@@ -1,11 +1,11 @@
-body{
-background:#eef1f6;
+body {
+background-color: #D6DDDE;
 }
 
-/* navbar */
-.navbar{
+.sidebar {
+height: 100vh;
 background:#14284b;
-height:65px;
+color: white;
 }
 
 .logo-branca{
@@ -13,46 +13,30 @@ height:40px;
 width:auto;
 }
 
-/* hero */
-.hero{
-padding:80px 0;
+.sidebar a {
+color: white;
+text-decoration: none;
+display: block;
+padding: 12px;
+border-radius: 8px;
 }
 
-.hero-title{
-font-size:42px;
-font-weight:700;
+.sidebar a:hover {
+background: rgba(255,255,255,0.1);
 }
 
-.hero-text{
-color:#5a5a5a;
-font-size:18px;
+.card-dashboard {
+border-radius: 12px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.hero-image{
-width:100%;
-height:400px;
-background:#c9d2e5;
-border-radius:20px;
+.content {
+padding: 20px;
+background-color: #f0f4f5;
 }
 
-/* cards */
-.feature-card{
-border-radius:14px;
-padding:20px;
-background:white;
-border:1px solid #dcdcdc;
-display:flex;
-align-items:center;
-gap:15px;
+@media (max-width: 768px) {
+.sidebar {
+height: auto;
 }
-
-.icon{
-font-size:28px;
-}
-
-/* footer */
-.footer{
-height:60px;
-background:#14284b;
-margin-top:60px;
 }
