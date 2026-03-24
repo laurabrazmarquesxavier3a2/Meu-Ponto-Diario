@@ -1,121 +1,163 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meu Ponto Diário</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="css/style-landing.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meu Ponto Diário – Gestão de RH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style-landing.css">
+
 </head>
-<body class="d-flex flex-column min-vh-100">
-    
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark">
+<body>
+ 
+<!-- ─── NAV ─────────────────────────────────── -->
+<nav>
+  <div class="logo">
+   <img class="logo-branca me-2" src="img/logo-branca.png">
 
-<div class="container mt-auto">
-
-<a class="navbar-brand d-flex align-items-center" href="#">
-<img class="logo-branca me-2" src="img/logo-branca.png">
-MEU PONTO DIÁRIO
-</a>
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
-<span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse justify-content-end" id="menu">
-<ul class="navbar-nav">
-<li class="nav-item">
-<a class="nav-link" href="#">Funcionalidades</a>
-</li>
-<li class="nav-item">
-<a class="nav-link" href="#">Leis</a>
-</li>
-<li class="nav-item">
-<a class="nav-link" href="#">Ajuda</a>
-</li>
-<li class="nav-item">
-<a class="nav-link" href="#">Sobre</a>
-</li>
-</ul>
-</div>
-</div>
+    Meu Ponto Diário
+  </div>
+  <ul>
+    <li><a href="#">Sobre</a></li>
+    <li><a href="#">Funcionalidades</a></li>
+    <li><a href="#">Ajuda</a></li>
+    <li><a href="#">Leis</a></li>
+  </ul>
 </nav>
-
-
-<!-- HERO -->
+ 
+<!-- ─── HERO ─────────────────────────────────── -->
 <section class="hero">
-<div class="container">
-<div class="row align-items-center">
-<div class="col-lg-6">
-<h1 class="hero-title mb-4">
-Gestão de RH rápida e segura.
-</h1>
-
-<p class="hero-text mb-4">
-Simplifique ponto, jornada e relatórios com segurança e assertividade,
-reduzindo erros trabalhistas.
-</p>
-
-<button class="btn btn-success mb-2 px-4 py-2" >
-Começar agora
-</button>
-</div>
-<div class="col-lg-6 text-center">
-<div class="hero-image"></div>
-</div>
-</div>
-</div>
-
+  <div class="hero-text">
+    <h1>Gestão de RH rápida e segura.</h1>
+    <p>Simplifique ponto, jornada e relatórios com segurança e assertividade, reduzindo erros trabalhistas.</p>
+    <a href="#" class="btn-primary">Começar agora</a>
+  </div>
+ 
+  <div class="hero-image">
+    <svg viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="60" y="240" width="360" height="14" rx="7" fill="#bdd0f7"/>
+      <rect x="100" y="254" width="12" height="60" rx="6" fill="#a3bbef"/>
+      <rect x="368" y="254" width="12" height="60" rx="6" fill="#a3bbef"/>
+      <rect x="160" y="165" width="160" height="100" rx="8" fill="#1e4ea1"/>
+      <rect x="168" y="173" width="144" height="84" rx="4" fill="#2d7ef7" opacity=".7"/>
+      <rect x="178" y="185" width="60" height="6" rx="3" fill="white" opacity=".6"/>
+      <rect x="178" y="197" width="96" height="5" rx="2.5" fill="white" opacity=".35"/>
+      <rect x="178" y="208" width="76" height="5" rx="2.5" fill="white" opacity=".35"/>
+      <rect x="178" y="219" width="50" height="5" rx="2.5" fill="white" opacity=".35"/>
+      <rect x="254" y="215" width="14" height="30" rx="3" fill="white" opacity=".5"/>
+      <rect x="272" y="200" width="14" height="45" rx="3" fill="white" opacity=".7"/>
+      <rect x="290" y="210" width="14" height="35" rx="3" fill="white" opacity=".5"/>
+      <rect x="140" y="265" width="200" height="10" rx="5" fill="#1a3a6b"/>
+      <circle cx="130" cy="148" r="26" fill="#f4c9a0"/>
+      <rect x="104" y="175" width="52" height="70" rx="10" fill="#1e4ea1"/>
+      <rect x="152" y="190" width="45" height="10" rx="5" fill="#f4c9a0" transform="rotate(-20 152 190)"/>
+      <circle cx="240" cy="148" r="24" fill="#8d5524"/>
+      <rect x="216" y="173" width="48" height="68" rx="10" fill="#2d7ef7"/>
+      <circle cx="348" cy="148" r="26" fill="#f4c9a0"/>
+      <rect x="322" y="175" width="52" height="70" rx="10" fill="#6b8dc7"/>
+      <rect x="335" y="146" width="14" height="9" rx="4" fill="none" stroke="#555" stroke-width="2"/>
+      <rect x="352" y="146" width="14" height="9" rx="4" fill="none" stroke="#555" stroke-width="2"/>
+      <line x1="349" y1="150" x2="352" y2="150" stroke="#555" stroke-width="2"/>
+      <rect x="62" y="150" width="62" height="76" rx="6" fill="white" opacity=".9" filter="url(#sh)"/>
+      <rect x="70" y="163" width="40" height="5" rx="2.5" fill="#2d7ef7" opacity=".6"/>
+      <rect x="70" y="173" width="46" height="4" rx="2" fill="#adc3f5"/>
+      <rect x="70" y="182" width="36" height="4" rx="2" fill="#adc3f5"/>
+      <rect x="70" y="191" width="42" height="4" rx="2" fill="#adc3f5"/>
+      <rect x="70" y="200" width="30" height="4" rx="2" fill="#adc3f5"/>
+      <defs>
+        <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#1a3a6b" flood-opacity=".15"/>
+        </filter>
+      </defs>
+    </svg>
+  </div>
 </section>
-
-
-<!-- FEATURES -->
-<section>
-
-<div class="container">
-
-<div class="row g-4">
-
-<div class="col-md-4">
-<div class="feature-card">
-
-<div class="icon">📁</div>
-<div><strong>Gestão de Documentos</strong></div>
-
-</div>
-</div>
-
-
-<div class="col-md-4">
-<div class="feature-card">
-
-<div class="icon">⏳</div>
-<div><strong>Controle de horários e horas extras</strong></div>
-
-</div>
-</div>
-
-
-<div class="col-md-4">
-<div class="feature-card">
-
-<div class="icon">🖥</div>
-<div><strong>Relatórios</strong></div>
-
-</div>
-</div>
-
-</div>
-
-</div>
-
+ 
+<!-- ─── FEATURE CARDS ─────────────────────────── -->
+<section class="features">
+  <div class="feature-card">
+    <div class="feature-icon">📄</div>
+    <div>
+      <h3>Gestão de Documentos</h3>
+      <p>Centralize contratos, holerites e documentos com segurança.</p>
+    </div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">⏱</div>
+    <div>
+      <h3>Controle de Horários e Horas Extras</h3>
+      <p>Registre e acompanhe jornadas e banco de horas em tempo real.</p>
+    </div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">📊</div>
+    <div>
+      <h3>Relatórios</h3>
+      <p>Gere relatórios completos e exportáveis em segundos.</p>
+    </div>
+  </div>
 </section>
+ 
+<!-- ─── PRICING ───────────────────────────────── -->
+<section class="pricing-section">
+  <div class="section-header">
+    <div class="tag">💳 Planos e Preços</div>
+    <h2>Escolha o modelo ideal para sua empresa</h2>
+    <p>Flexibilidade total: pague de forma fixa ou escale conforme sua equipe cresce.</p>
+  </div>
+ 
+  <div class="pricing-grid">
+ 
+    <!-- CARD 1: Assinatura Mensal -->
+    <div class="pricing-card card-light">
+      <div class="plan-icon">📅</div>
+      <div class="plan-name">Assinatura Mensal</div>
+      <div class="plan-desc">
+        Ideal para empresas que preferem previsibilidade: pague um valor fixo e acesse todas as funcionalidades sem surpresas no final do mês.
+      </div>
+      <hr class="divider"/>
+      <ul class="check-list">
+        <li class="check-item"><span class="check-icon">✓</span> Usuários ilimitados</li>
+        <li class="check-item"><span class="check-icon">✓</span> Gestão completa de ponto</li>
+        <li class="check-item"><span class="check-icon">✓</span> Relatórios automáticos</li>
+        <li class="check-item"><span class="check-icon">✓</span> Suporte via chat e e-mail</li>
+        <li class="check-item"><span class="check-icon">✓</span> Atualizações inclusas</li>
+      </ul>
+    </div>
+ 
+    <!-- CARD 2: Cobrança por Colaborador -->
+    <div class="pricing-card card-dark featured">
+      <div class="badge">⭐ Popular</div>
+      <div class="plan-icon">👥</div>
+      <div class="plan-name">Cobrança por Colaborador</div>
+      <div class="plan-desc">
+        Perfeito para empresas em crescimento: pague somente pelos colaboradores ativos cadastrados na plataforma, sem custo fixo elevado.
+      </div>
+      <hr class="divider"/>
+      <ul class="check-list">
+        <li class="check-item"><span class="check-icon">✓</span> Escala com sua equipe</li>
+        <li class="check-item"><span class="check-icon">✓</span> Gestão completa de ponto</li>
+        <li class="check-item"><span class="check-icon">✓</span> Relatórios automáticos</li>
+        <li class="check-item"><span class="check-icon">✓</span> Suporte prioritário 24/7</li>
+        <li class="check-item"><span class="check-icon">✓</span> Dashboard de gestão</li>
+      </ul>
+    </div>
+ 
+  </div>
+</section>
+ 
 
-
-<div class="footer mt-auto py-3"></div>
-
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<div class="footer-band">
+  <div>
+    <h3>Pronto para transformar seu RH?</h3>
+    <p>Experimente grátis por 14 dias. Sem cartão de crédito.</p>
+  </div>
+  <a href="#" class="btn-primary" style="white-space:nowrap">Criar conta gratuita</a>
+</div>
+ 
+<footer>
+  © 2026 Meu Ponto Diário · Todos os direitos reservados
+</footer>
+ 
 </body>
 </html>
