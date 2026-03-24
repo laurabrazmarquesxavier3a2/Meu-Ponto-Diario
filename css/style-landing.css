@@ -60,6 +60,14 @@ nav {
   overflow: hidden;
 }
 
+/* logo image from file */
+.logo-branca {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
 nav ul {
   list-style: none;
   display: flex;
