@@ -1,120 +1,85 @@
-  body {
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
 
-      margin: 0;
+.bg-login {
+  height: 100vh;
+  width: 100%;
+  position: relative;
 
-      height: 100vh;
+  background: url('../img/bg-img.png') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  padding-left: 8%;
+}
 
-      font-family: 'Poppins', sans-serif;
+/* 🔥 GRADIENTE POR CIMA (igual ao print) */
+.bg-login::before {
+  content: "";
+  position: absolute;
+  inset: 0;
 
-    }
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.98) 15%,
+    rgba(0, 0, 0, 0.9) 30%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0.4) 70%,
+    rgba(0, 0, 0, 0.1) 90%
+  );
+}
 
-    .bg-login {
+/* garante que o conteúdo fique acima do gradiente */
+.login-box {
+  position: relative;
+  z-index: 1;
+  max-width: 350px;
+  width: 100%;
+  color: white;
+}
 
-      height: 100vh;
+.login-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
 
-      width: 100%;
+.form-control {
+  background-color: #dcdcdc;
+  border: none;
+  height: 45px;
+  margin-bottom: 15px;
+}
 
-      background: 
+.btn-login {
+  background-color: #1c2f5c;
+  border-radius: 30px;
+  color: white;
+  width: 100%;
+  padding: 10px;
+}
 
-        linear-gradient(
+.btn-login:hover {
+  background-color: #162447;
+}
 
-          to top right,
+.forgot {
+  font-size: 0.85rem;
+  color: #ccc;
+  margin-top: 10px;
+  display: block;
+}
 
-          rgba(0, 0, 0, 0.95) 25%,
+.logo {
+  width: 60px;
+  margin-bottom: 20px;
+}
 
-          rgba(0, 0, 0, 0.7) 50%,
-
-          rgba(0, 0, 0, 0.2) 75%,
-
-          transparent 100%
-
-        ),
-
-
-        url('https://www.canva.com/pt_br/fotos/s/predios/') no-repeat center;
-
-      background-size: cover;
-
-      display: flex;
-
-      align-items: center;
-
-      padding-left: 8%;
-
-    }
-
-    .login-box {
-
-      max-width: 350px;
-
-      width: 100%;
-
-      color: white;
-
-    }
-
-    .login-title {
-
-      font-size: 2rem;
-
-      font-weight: 600;
-
-      margin-bottom: 30px;
-
-    }
-
-    .form-control {
-
-      background-color: #dcdcdc;
-
-      border: none;
-
-      height: 45px;
-
-      margin-bottom: 15px;
-
-    }
-
-    .btn-login {
-
-      background-color: #1c2f5c;
-
-      border-radius: 30px;
-
-      color: white;
-
-      width: 100%;
-
-      padding: 10px;
-
-    }
-
-    .btn-login:hover {
-
-      background-color: #162447;
-
-    }
-
-    .forgot {
-
-      font-size: 0.85rem;
-
-      color: #ccc;
-
-      margin-top: 10px;
-
-      display: block;
-
-    }
-
-    @media (max-width: 768px) {
-
-      .bg-login {
-
-        padding: 20px;
-
-        justify-content: center;
-
-      }
-
-    }
+@media (max-width: 768px) {
+  .bg-login {
+    padding: 20px;
+    justify-content: center;
+  }
+}
