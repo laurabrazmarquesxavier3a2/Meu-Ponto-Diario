@@ -109,31 +109,6 @@
             </div>
         </div>
 
-        <!-- EMAIL -->
-        <div class="col-md-6">
-            <div class="card card-dashboard p-4 h-100">
-
-                <h5 class="fw-bold mb-3">
-                    <i class="bi bi-envelope text-primary me-2"></i> Modelos de E-mail
-                </h5>
-
-                <?php
-                $emails = [
-                    "Aprovação de férias",
-                    "Rejeição de solicitação",
-                    "Envio de holerite",
-                    "Boas-vindas a novos funcionários",
-                    "Lembrete de ponto"
-                ];
-                ?>
-
-                <?php foreach ($emails as $e): ?>
-                    <div class="border rounded p-2 mb-2 config-item">
-                        <?= $e ?>
-                    </div>
-                <?php endforeach; ?>
-
-            </div>
         </div>
 
         <!-- APARÊNCIA -->
