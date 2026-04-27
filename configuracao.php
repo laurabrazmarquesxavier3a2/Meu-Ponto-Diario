@@ -109,8 +109,6 @@
             </div>
         </div>
 
-        </div>
-
         <!-- APARÊNCIA -->
         <div class="col-md-6">
             <div class="card card-dashboard p-4 h-100">

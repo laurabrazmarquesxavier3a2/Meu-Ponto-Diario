@@ -95,7 +95,8 @@ $normais = array_filter($comunicados, fn($c) => !$c['fixado']);
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="fw-bold">Comunicados</h1>
-            <p class="text-muted">Avisos importantes para os funcionários</p>
+            <h5 class="text-muted mb-4">Avisos importantes para os funcionários</h5>
+            <p class="text-muted"></p>
         </div>
 
         <button class="btn btn-primary px-4 py-2">

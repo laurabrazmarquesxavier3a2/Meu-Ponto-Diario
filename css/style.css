@@ -2,7 +2,7 @@ body {
   background-color: #D6DDDE;
 }
 
-/* SIDEBAR FIXA */
+/* SIDEBAR */
 .sidebar {
   position: fixed;
   top: 0;
@@ -14,6 +14,8 @@ body {
   display: flex;
   flex-direction: column;
   padding: 20px 10px;
+  transition: 0.3s;
+  z-index: 1000;
 }
 
 /* CONTEÚDO */
@@ -22,6 +24,7 @@ body {
   padding: 20px;
   background-color: #f0f4f5;
   min-height: 100vh;
+  transition: 0.3s;
 }
 
 /* LINKS */
@@ -43,12 +46,11 @@ body {
   background: rgba(255,255,255,0.1);
 }
 
-/* LINK ATIVO (PÁGINA ATUAL) */
+/* LINK ATIVO */
 .sidebar a.active {
   background: rgba(255, 255, 255, 0.08);
   border-left: 4px solid #60a5fa;
   font-weight: 600;
-  transition: all 0.3s ease;
 }
 
 /* LOGO */
@@ -56,14 +58,47 @@ body {
   height: 40px;
 }
 
+/* OVERLAY (FUNDO ESCURO NO MOBILE) */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 999;
+}
+
+.sidebar-overlay.show {
+  display: block;
+}
+
+/* BOTÃO HAMBURGUER */
+#btnSidebar {
+  display: none;
+  background-color: #14284b;
+}
+
 /* RESPONSIVO */
 @media (max-width: 768px) {
-  .sidebar {
-    position: relative;
-    width: 100%;
-    height: auto;
+
+  /* MOSTRA BOTÃO */
+  #btnSidebar {
+    display: block;
   }
 
+  /* ESCONDE SIDEBAR */
+  .sidebar {
+    left: -250px;
+  }
+
+  /* QUANDO ABERTA */
+  .sidebar.show {
+    left: 0;
+  }
+
+  /* CONTEÚDO OCUPA TELA */
   .content {
     margin-left: 0;
   }

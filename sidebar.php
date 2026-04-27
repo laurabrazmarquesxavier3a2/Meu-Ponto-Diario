@@ -2,7 +2,16 @@
 $pagina = basename($_SERVER['PHP_SELF']);
 ?>
 
-<div class="sidebar p-3 fs-5 d-flex flex-column">
+<!-- BOTÃO MOBILE -->
+<button class="btn btn-primary d-md-none m-3" id="btnSidebar">
+    <i class="bi bi-list"></i>
+</button>
+
+<!-- OVERLAY (fundo escuro) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar p-3 fs-5 d-flex flex-column" id="sidebar">
 
     <!-- TOPO -->
     <div>
@@ -60,5 +69,21 @@ $pagina = basename($_SERVER['PHP_SELF']);
         </a>
 
     </div>
-
 </div>
+
+<!-- SCRIPT -->
+<script>
+const sidebar = document.getElementById("sidebar");
+const btn = document.getElementById("btnSidebar");
+const overlay = document.getElementById("sidebarOverlay");
+
+btn.addEventListener("click", () => {
+    sidebar.classList.toggle("show");
+    overlay.classList.toggle("show");
+});
+
+overlay.addEventListener("click", () => {
+    sidebar.classList.remove("show");
+    overlay.classList.remove("show");
+});
+</script>

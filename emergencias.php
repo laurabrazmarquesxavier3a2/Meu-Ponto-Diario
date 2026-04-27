@@ -64,14 +64,19 @@ foreach ($emergencias as $e) {
 
 <div class="content">
 
-    <h1 class="fw-bold">Emergências e Riscos</h1>
-    <h5 class="text-muted mb-4">Reporte e gerenciamento de emergências</h5>
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold">Emergências e Riscos</h1>
+            <h5 class="text-muted mb-4">Reporte e gerenciamento de emergências</h5>
+            <h5 class="text-muted mb-4"></h5>
+        </div>
 
-    <!-- BOTÃO -->
-    <button class="btn btn-danger mb-4">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        Reportar Emergência
-    </button>
+        <button class="btn btn-danger px-4 py-2">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+                    Reportar Emergência        
+        </button>
+    </div>
 
     <!-- CARDS (PADRÃO IGUAL AO PONTO) -->
     <div class="row g-4 mb-4">
@@ -98,7 +103,7 @@ foreach ($emergencias as $e) {
 
         <div class="col-12 col-md-3">
             <div class="card card-dashboard p-3">
-                <h5>Prioridadde crítica</h5>
+                <h5>Prioridade crítica</h5>
                 <h1 class="fw-bold d-flex justify-content-between">
                     <?= $criticas ?>
                     <i class="bi bi-exclamation-triangle text-danger"></i>
