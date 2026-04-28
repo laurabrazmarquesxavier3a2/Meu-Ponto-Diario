@@ -64,7 +64,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
             <i class="bi bi-gear me-2"></i>Configurações
         </a>
 
-        <a href="#">
+        <a href="logout.php" onclick="return confirm('Deseja realmente sair?')">
             <i class="bi bi-box-arrow-right me-2"></i>Sair
         </a>
 
