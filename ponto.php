@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['usuario'])) {
+    header("Location: login.html");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -22,6 +31,10 @@
 
 <!-- CONTEÚDO -->
 <div class="content">
+
+    <div class="d-flex justify-content-end mb-2">
+        <span>Bem-vindo, <?php echo $_SESSION['usuario']; ?>!</span>
+    </div>
 
     <h1 class="fw-bold">Horários de Ponto</h1>
     <h5 class="text-muted mb-4">Controle de entrada e saída dos funcionários</h5>
