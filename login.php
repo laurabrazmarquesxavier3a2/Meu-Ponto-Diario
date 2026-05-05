@@ -5,8 +5,8 @@ session_start();
 $usuario_correto = "admin";
 $senha_correta = "123456";
 
-$usuario = $_POST['usuario'] ?? '';
-$senha = $_POST['senha'] ?? '';
+$usuario = $_POST['Usuário'] ?? '';
+$senha = $_POST['Senha'] ?? '';
 
 // Validação simples
 if ($usuario === $usuario_correto && $senha === $senha_correta) {
