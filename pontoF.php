@@ -18,8 +18,8 @@
 
 <!-- HEADER -->
 <header class="topbar">
-  <div class="logo" src="img/logo-azul.png" >
-    <i class="bi bi-check2-circle"></i>
+  <div class="logo"  >
+     <img src="img/logo-azul.png" alt="logo" class="logo-img">
     <span>MEU PONTO DIÁRIO</span>
   </div>
 
@@ -31,20 +31,11 @@
 </header>
 
 <div class="layout">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <button class="menu active"><i class="bi bi-clock"></i> Registro do Ponto</button>
-    <button class="menu"><i class="bi bi-file-earmark-text"></i> Solicitar Documen.</button>
-    <button class="menu"><i class="bi bi-folder"></i> Pedidos</button>
-    <button class="menu"><i class="bi bi-calendar-check"></i> Permissões</button>
-    <button class="menu"><i class="bi bi-shield-lock"></i> Segurança</button>
-    <button class="menu"><i class="bi bi-person"></i> Perfil</button>
-  </aside>
+ 
+<?php include 'siderbarF.php'; ?>
 
   <!-- CONTEÚDO -->
   <main class="content">
-
     <div class="cards">
 
       <div class="card-box">

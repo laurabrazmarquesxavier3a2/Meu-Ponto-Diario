@@ -24,8 +24,8 @@ body {
   font-size: 20px;
 }
 
-.logo i {
-  font-size: 26px;
+.logo-img {
+  width: 40px;
 }
 
 .user-area {
