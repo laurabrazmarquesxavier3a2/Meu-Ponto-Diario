@@ -5,82 +5,78 @@
   <title>Meu Ponto Diário</title>
 
   <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet/">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
   <!-- CSS -->
-  <link rel="stylesheet" href="css/style.funcionario.css">
-  <!-- Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style-funcionario.css">
 </head>
+
 <body>
 
 <!-- HEADER -->
-<nav class="navbar navbar-light bg-white shadow-sm px-4 justify-content-between">
-  <span class="fw-bold text-primary fs-5">
-    ✔ MEU PONTO DIÁRIO
-  </span>
+<header class="topbar">
+  <div class="logo">
+    <i class="bi bi-check2-circle"></i>
+    <span>MEU PONTO DIÁRIO</span>
+  </div>
 
-  <div class="d-flex align-items-center gap-3">
-    <span>🔔</span>
+  <div class="user-area">
+    <i class="bi bi-bell-fill"></i>
     <span>Kevin Nobre</span>
     <div class="avatar"></div>
   </div>
-</nav>
+</header>
 
-<div class="d-flex">
+<div class="layout">
 
   <!-- SIDEBAR -->
-  <div class="sidebar bg-white border-end p-3">
-    <button class="btn btn-primary w-100 text-start mb-2">Registro do Ponto</button>
-    <button class="btn btn-light w-100 text-start mb-2">Solicitar Documen.</button>
-    <button class="btn btn-light w-100 text-start mb-2">Pedidos</button>
-    <button class="btn btn-light w-100 text-start mb-2">Permissões</button>
-    <button class="btn btn-light w-100 text-start mb-2">Segurança</button>
-    <button class="btn btn-light w-100 text-start">Perfil</button>
-  </div>
+  <aside class="sidebar">
+    <button class="menu active"><i class="bi bi-clock"></i> Registro do Ponto</button>
+    <button class="menu"><i class="bi bi-file-earmark-text"></i> Solicitar Documen.</button>
+    <button class="menu"><i class="bi bi-folder"></i> Pedidos</button>
+    <button class="menu"><i class="bi bi-calendar-check"></i> Permissões</button>
+    <button class="menu"><i class="bi bi-shield-lock"></i> Segurança</button>
+    <button class="menu"><i class="bi bi-person"></i> Perfil</button>
+  </aside>
 
-  <!-- MAIN -->
-  <div class="container-fluid p-4">
+  <!-- CONTEÚDO -->
+  <main class="content">
 
-    <div class="row">
+    <div class="cards">
 
-      <!-- CARDS -->
-      <div class="col-md-4 d-flex flex-column gap-3">
-
-        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
-          <span>Entrada</span>
-          <span>09:01:30</span>
-        </div>
-
-        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
-          <span>Início Intervalo</span>
-          <span>--:--</span>
-        </div>
-
-        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
-          <span>Fim Intervalo</span>
-          <span>--:--</span>
-        </div>
-
-        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
-          <span>Saída</span>
-          <span>--:--</span>
-        </div>
-
+      <div class="card-box">
+        <span>Entrada</span>
+        <strong>09:01:30</strong>
       </div>
 
-      <!-- RELÓGIO -->
-      <div class="col-md-4">
-        <div class="card clock-box p-4 text-center">
-          ⏱
-          <div class="clock" id="clock"></div>
-          <div id="date" class="text-muted"></div>
-        </div>
+      <div class="card-box">
+        <span>Início Intervalo</span>
+        <strong>--:--</strong>
+      </div>
+
+      <div class="card-box">
+        <span>Fim Intervalo</span>
+        <strong>--:--</strong>
+      </div>
+
+      <div class="card-box">
+        <span>Saída</span>
+        <strong>--:--</strong>
       </div>
 
     </div>
 
-  </div>
+    <!-- RELÓGIO -->
+    <div class="clock-box">
+      <i class="bi bi-clock"></i>
+      <div id="clock" class="clock"></div>
+      <div id="date" class="date"></div>
+    </div>
+
+  </main>
 
 </div>
 
