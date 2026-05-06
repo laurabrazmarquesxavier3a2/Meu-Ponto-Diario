@@ -1,0 +1,44 @@
+body {
+  background-color: #D6DDDE;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  height: 100vh;
+}
+
+/* CARDS */
+.card-custom {
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  background-color: white;
+}
+
+/* RELÓGIO */
+.clock-box {
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.clock {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+/* AVATAR */
+.avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #14284b;
+  border-radius: 50%;
+}
+
+/* BOTÕES SIDEBAR */
+.sidebar .btn {
+  border-radius: 8px;
+}
+
+.sidebar .btn-light:hover {
+  background-color: #e9ecef;
+}

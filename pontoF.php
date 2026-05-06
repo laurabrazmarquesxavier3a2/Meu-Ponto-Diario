@@ -1,218 +1,107 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <title>Meu Ponto Diário</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
 
-    body {
-      background-color: #D6DDDE;
-    }
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet/">
 
-    /* HEADER */
-    .header {
-      height: 70px;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      border-bottom: 1px solid #ccc;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-      color: #14284b;
-      font-size: 20px;
-    }
-
-    .user-area {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-      background: #14284b;
-      border-radius: 50%;
-    }
-
-    /* LAYOUT */
-    .container {
-      display: flex;
-      height: calc(100vh - 70px);
-    }
-
-    /* SIDEBAR */
-    .sidebar {
-      width: 250px;
-      background: #fff;
-      padding: 20px;
-      border-right: 1px solid #ccc;
-    }
-
-    .menu button {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      text-align: left;
-    }
-
-    .menu .active {
-      background: #2d5bd1;
-      color: #fff;
-    }
-
-    .menu button:not(.active) {
-      background: transparent;
-    }
-
-    /* MAIN */
-    .main {
-      flex: 1;
-      padding: 30px;
-      display: flex;
-      gap: 30px;
-    }
-
-    .cards {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 300px;
-    }
-
-    .card {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    /* CLOCK */
-    .clock-box {
-      background: #fff;
-      border-radius: 20px;
-      padding: 30px;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      width: 300px;
-      height: fit-content;
-    }
-
-    .clock {
-      font-size: 48px;
-      margin: 15px 0;
-    }
-
-    .date {
-      color: #555;
-    }
-
-  </style>
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.funcionario.css">
 </head>
 <body>
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo">
-      ✔ MEU PONTO DIÁRIO
-    </div>
+<!-- HEADER -->
+<nav class="navbar navbar-light bg-white shadow-sm px-4 justify-content-between">
+  <span class="fw-bold text-primary fs-5">
+    ✔ MEU PONTO DIÁRIO
+  </span>
 
-    <div class="user-area">
-      🔔
-      <span>Kevin Nobre</span>
-      <div class="avatar"></div>
-    </div>
+  <div class="d-flex align-items-center gap-3">
+    <span>🔔</span>
+    <span>Kevin Nobre</span>
+    <div class="avatar"></div>
+  </div>
+</nav>
+
+<div class="d-flex">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar bg-white border-end p-3">
+    <button class="btn btn-primary w-100 text-start mb-2">Registro do Ponto</button>
+    <button class="btn btn-light w-100 text-start mb-2">Solicitar Documen.</button>
+    <button class="btn btn-light w-100 text-start mb-2">Pedidos</button>
+    <button class="btn btn-light w-100 text-start mb-2">Permissões</button>
+    <button class="btn btn-light w-100 text-start mb-2">Segurança</button>
+    <button class="btn btn-light w-100 text-start">Perfil</button>
   </div>
 
-  <!-- CONTAINER -->
-  <div class="container">
+  <!-- MAIN -->
+  <div class="container-fluid p-4">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-      <div class="menu">
-        <button class="active">Registro do Ponto</button>
-        <button>Solicitar Documen.</button>
-        <button>Pedidos</button>
-        <button>Permissões</button>
-        <button>Segurança</button>
-        <button>Perfil</button>
-      </div>
-    </div>
-
-    <!-- MAIN -->
-    <div class="main">
+    <div class="row">
 
       <!-- CARDS -->
-      <div class="cards">
-        <div class="card">
+      <div class="col-md-4 d-flex flex-column gap-3">
+
+        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
           <span>Entrada</span>
           <span>09:01:30</span>
         </div>
 
-        <div class="card">
+        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
           <span>Início Intervalo</span>
           <span>--:--</span>
         </div>
 
-        <div class="card">
+        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
           <span>Fim Intervalo</span>
           <span>--:--</span>
         </div>
 
-        <div class="card">
+        <div class="card card-custom p-3 d-flex flex-row justify-content-between">
           <span>Saída</span>
           <span>--:--</span>
         </div>
+
       </div>
 
-      <!-- CLOCK -->
-      <div class="clock-box">
-        ⏱
-        <div class="clock" id="clock"></div>
-        <div class="date" id="date"></div>
+      <!-- RELÓGIO -->
+      <div class="col-md-4">
+        <div class="card clock-box p-4 text-center">
+          ⏱
+          <div class="clock" id="clock"></div>
+          <div id="date" class="text-muted"></div>
+        </div>
       </div>
 
     </div>
+
   </div>
 
-  <!-- JS -->
-  <script>
-    function updateClock() {
-      const now = new Date();
+</div>
 
-      const time = now.toLocaleTimeString('pt-BR');
-      const date = now.toLocaleDateString('pt-BR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
+<!-- JS -->
+<script>
+function updateClock() {
+  const now = new Date();
 
-      document.getElementById('clock').innerText = time;
-      document.getElementById('date').innerText = date;
-    }
+  const time = now.toLocaleTimeString('pt-BR');
+  const date = now.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
 
-    setInterval(updateClock, 1000);
-    updateClock();
-  </script>
+  document.getElementById('clock').innerText = time;
+  document.getElementById('date').innerText = date;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+</script>
 
 </body>
 </html>
