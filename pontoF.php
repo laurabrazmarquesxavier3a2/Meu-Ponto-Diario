@@ -9,6 +9,8 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="css/style.funcionario.css">
+  <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
 
