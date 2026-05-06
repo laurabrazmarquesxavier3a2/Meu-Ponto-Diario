@@ -18,7 +18,7 @@
 
 <!-- HEADER -->
 <header class="topbar">
-  <div class="logo">
+  <div class="logo" src="img/logo-azul.png" >
     <i class="bi bi-check2-circle"></i>
     <span>MEU PONTO DIÁRIO</span>
   </div>
