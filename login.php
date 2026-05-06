@@ -1,14 +1,12 @@
-<?php
+ <?php
 session_start();
 
-// Usuário e senha fixos
 $usuario_correto = "admin";
 $senha_correta = "123456";
 
-$usuario = $_POST['Usuário'] ?? '';
-$senha = $_POST['Senha'] ?? '';
+$usuario = $_POST['usuario'] ?? '';
+$senha = $_POST['senha'] ?? '';
 
-// Validação simples
 if ($usuario === $usuario_correto && $senha === $senha_correta) {
     $_SESSION['usuario'] = $usuario;
     header("Location: ponto.php");
