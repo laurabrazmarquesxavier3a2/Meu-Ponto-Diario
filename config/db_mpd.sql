@@ -71,5 +71,14 @@ CREATE TABLE banco_horas_movimentacao (
         ON DELETE CASCADE
 );
 
-
+CREATE TABLE comunicados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    conteudo TEXT NOT NULL,
+    categoria VARCHAR(100),
+    fixado TINYINT(1) DEFAULT 0,
+    autor VARCHAR(150),
+    publico VARCHAR(150),
+    data_publicacao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 

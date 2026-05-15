@@ -11,7 +11,6 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 </head>
-
 <body>
 
 <?php include 'sidebar.php'; ?>
@@ -120,19 +119,16 @@
                 <label class="fw-semibold mb-2">Tema</label>
 
                 <div class="d-flex gap-2 mb-3">
-                    <button class="btn btn-outline-primary active w-100">Claro</button>
-                    <button class="btn btn-outline-secondary w-100">Escuro</button>
-                    <button class="btn btn-outline-secondary w-100">Auto</button>
-                </div>
+                <button id="lightMode"
+                    class="btn btn-primary w-100">
+                    Claro
+                </button>
 
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>Modo compacto</strong><br>
-                        <small class="text-muted">Reduz espaçamentos da interface</small>
-                    </div>
-                    <input type="checkbox" class="form-check-input">
+                <button id="darkMode"
+                    class="btn btn-outline-dark w-100">
+                    Escuro
+                </button>
                 </div>
-
             </div>
         </div>
 

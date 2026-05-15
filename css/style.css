@@ -80,6 +80,147 @@ body {
   background-color: #14284b;
 }
 
+/* =========================
+   DARK MODE 
+========================= */
+
+body.dark-mode {
+    background-color: #102038;
+    color: #f1f5f9;
+}
+
+/* CONTEÚDO */
+body.dark-mode .content {
+    background-color: #162b49;
+}
+
+/* SIDEBAR */
+body.dark-mode .sidebar {
+    background-color: #14284b;
+}
+
+/* LINKS SIDEBAR */
+body.dark-mode .sidebar a {
+    color: white;
+}
+
+/* LINK ATIVO */
+body.dark-mode .sidebar a.active {
+    background: rgba(255,255,255,0.08);
+    border-left: 4px solid #60a5fa;
+}
+
+/* HOVER */
+body.dark-mode .sidebar a:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* CARDS */
+body.dark-mode .card-dashboard {
+    background-color: #1b3457;
+    border: 1px solid #2b4b77;
+    color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+}
+
+/* TÍTULOS */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode strong,
+body.dark-mode label {
+    color: white;
+}
+
+/* TEXTO SECUNDÁRIO */
+body.dark-mode .text-muted {
+    color: #b7c7dd !important;
+}
+
+/* ÍCONES */
+body.dark-mode i {
+    color: white;
+}
+
+/* =========================
+   TABELA
+========================= */
+
+body.dark-mode .table {
+    color: white;
+    border-color: #355884;
+}
+
+/* HEADER TABELA */
+body.dark-mode .table-light {
+    background-color: #244266 !important;
+    color: white !important;
+}
+
+body.dark-mode .table-light th {
+    background-color: #244266 !important;
+    color: white !important;
+    border-color: #355884 !important;
+}
+
+/* LINHAS */
+body.dark-mode .table tbody tr {
+    background-color: #1b3457;
+    color: white;
+    border-color: #355884;
+}
+
+/* HOVER LINHAS */
+body.dark-mode .table-hover tbody tr:hover {
+    background-color: #28476b;
+    color: white;
+}
+
+/* CÉLULAS */
+body.dark-mode .table td,
+body.dark-mode .table th {
+    border-color: #355884;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+body.dark-mode .bg-success {
+    background-color: #198754 !important;
+}
+
+body.dark-mode .bg-danger {
+    background-color: #dc3545 !important;
+}
+
+body.dark-mode .bg-warning {
+    background-color: #ffc107 !important;
+    color: black !important;
+}
+
+/* =========================
+   TRANSIÇÕES
+========================= */
+
+body,
+.content,
+.sidebar,
+.card-dashboard,
+.table,
+.table tbody tr,
+.table td,
+.table th,
+.btn,
+.sidebar a {
+    transition: 0.3s;
+}
+
+
+
 /* RESPONSIVO */
 @media (max-width: 768px) {
 

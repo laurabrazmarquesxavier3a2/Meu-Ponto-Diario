@@ -23,10 +23,6 @@
 <!-- CONTEÚDO -->
 <div class="content">
 
-    <div class="d-flex justify-content-end mb-2">
-        <span>Bem-vindo, <?php echo $_SESSION['usuario']; ?>!</span>
-    </div>
-
     <h1 class="fw-bold">Horários de Ponto</h1>
     <h5 class="text-muted mb-4">Controle de entrada e saída dos funcionários</h5>
 

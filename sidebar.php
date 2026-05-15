@@ -71,19 +71,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
     </div>
 </div>
 
-<!-- SCRIPT -->
-<script>
-const sidebar = document.getElementById("sidebar");
-const btn = document.getElementById("btnSidebar");
-const overlay = document.getElementById("sidebarOverlay");
-
-btn.addEventListener("click", () => {
-    sidebar.classList.toggle("show");
-    overlay.classList.toggle("show");
-});
-
-overlay.addEventListener("click", () => {
-    sidebar.classList.remove("show");
-    overlay.classList.remove("show");
-});
-</script>
+<!-- SCRIPTS -->
+<script src="js/theme.js"></script>
+<script src="js/sidebar.js"></script>

@@ -10,7 +10,7 @@
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+
   <!-- Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -26,6 +26,18 @@
       font-size: 32px;
       color: #fff;
       font-weight: bold;
+    }
+
+    /* BOX DE PERMISSÃO */
+    .permission-box {
+      background-color: #f1f5f9;
+      transition: 0.3s;
+    }
+
+    /* DARK MODE */
+    body.dark-mode .permission-box {
+      background-color: #244266;
+      color: white;
     }
   </style>
 </head>
@@ -45,15 +57,22 @@
 
     <!-- PERFIL -->
     <div class="col-lg-4">
-      <div class="card shadow-sm p-4 text-center">
+
+      <div class="card card-dashboard shadow-sm p-4 text-center">
 
         <div class="avatar mx-auto mb-3">
           JP
         </div>
 
         <h5 class="fw-bold mb-1">Juliana Pereira</h5>
-        <p class="text-primary mb-1">Gerente de RH</p>
-        <p class="text-muted small mb-3">Recursos Humanos</p>
+
+        <p class="text-primary mb-1">
+          Gerente de RH
+        </p>
+
+        <p class="text-muted small mb-3">
+          Recursos Humanos
+        </p>
 
         <hr>
 
@@ -91,6 +110,7 @@
         </button>
 
       </div>
+
     </div>
 
     <!-- LADO DIREITO -->
@@ -100,37 +120,66 @@
       <div class="row g-3 mb-4 text-center">
 
         <div class="col-6 col-md-3">
-          <div class="card shadow-sm p-3">
+
+          <div class="card card-dashboard shadow-sm p-3">
+
             <h5 class="fw-bold">18</h5>
-            <small class="text-muted">Aprovações Pendentes</small>
+
+            <small class="text-muted">
+              Aprovações Pendentes
+            </small>
+
           </div>
+
         </div>
 
         <div class="col-6 col-md-3">
-          <div class="card shadow-sm p-3">
+
+          <div class="card card-dashboard shadow-sm p-3">
+
             <h5 class="fw-bold">42</h5>
-            <small class="text-muted">Ações Hoje</small>
+
+            <small class="text-muted">
+              Ações Hoje
+            </small>
+
           </div>
+
         </div>
 
         <div class="col-6 col-md-3">
-          <div class="card shadow-sm p-3">
+
+          <div class="card card-dashboard shadow-sm p-3">
+
             <h5 class="fw-bold">5 anos</h5>
-            <small class="text-muted">Tempo na Empresa</small>
+
+            <small class="text-muted">
+              Tempo na Empresa
+            </small>
+
           </div>
+
         </div>
 
         <div class="col-6 col-md-3">
-          <div class="card shadow-sm p-3">
+
+          <div class="card card-dashboard shadow-sm p-3">
+
             <h5 class="fw-bold">1.247</h5>
-            <small class="text-muted">Solicitações Resolvidas</small>
+
+            <small class="text-muted">
+              Solicitações Resolvidas
+            </small>
+
           </div>
+
         </div>
 
       </div>
 
       <!-- PERMISSÕES -->
-      <div class="card shadow-sm p-4 mb-4">
+      <div class="card card-dashboard shadow-sm p-4 mb-4">
+
         <h5 class="fw-bold mb-3">
           <i class="bi bi-shield-lock me-2 text-primary"></i>
           Permissões e Acessos
@@ -139,70 +188,151 @@
         <div class="row g-2">
 
           <div class="col-md-6">
-            <div class="bg-light rounded p-2 d-flex align-items-center">
+
+            <div class="permission-box rounded p-2 d-flex align-items-center">
+
               <span class="badge bg-primary me-2">&nbsp;</span>
+
               Administrador
+
             </div>
+
           </div>
 
           <div class="col-md-6">
-            <div class="bg-light rounded p-2 d-flex align-items-center">
+
+            <div class="permission-box rounded p-2 d-flex align-items-center">
+
               <span class="badge bg-primary me-2">&nbsp;</span>
+
               Aprovar Férias
+
             </div>
+
           </div>
 
           <div class="col-md-6">
-            <div class="bg-light rounded p-2 d-flex align-items-center">
+
+            <div class="permission-box rounded p-2 d-flex align-items-center">
+
               <span class="badge bg-primary me-2">&nbsp;</span>
+
               Aprovar Licenças
+
             </div>
+
           </div>
 
           <div class="col-md-6">
-            <div class="bg-light rounded p-2 d-flex align-items-center">
+
+            <div class="permission-box rounded p-2 d-flex align-items-center">
+
               <span class="badge bg-primary me-2">&nbsp;</span>
+
               Gerenciar Funcionários
+
             </div>
+
           </div>
 
         </div>
+
       </div>
 
       <!-- ATIVIDADES -->
-      <div class="card shadow-sm p-4">
-        <h5 class="fw-bold mb-3">Atividades Recentes</h5>
+      <div class="card card-dashboard shadow-sm p-4">
+
+        <h5 class="fw-bold mb-3">
+          Atividades Recentes
+        </h5>
 
         <div class="mb-3 d-flex">
-          <span class="badge bg-success rounded-circle me-2">&nbsp;</span>
+
+          <span class="badge bg-success rounded-circle me-2">
+            &nbsp;
+          </span>
+
           <div>
-            <small>Aprovado pedido de férias - Maria Silva</small><br>
-            <small class="text-muted">Há 1 hora</small>
+
+            <small>
+              Aprovado pedido de férias - Maria Silva
+            </small>
+
+            <br>
+
+            <small class="text-muted">
+              Há 1 hora
+            </small>
+
           </div>
+
         </div>
 
         <div class="mb-3 d-flex">
-          <span class="badge bg-primary rounded-circle me-2">&nbsp;</span>
+
+          <span class="badge bg-primary rounded-circle me-2">
+            &nbsp;
+          </span>
+
           <div>
-            <small>Enviado holerite para João Santos</small><br>
-            <small class="text-muted">Há 2 horas</small>
+
+            <small>
+              Enviado holerite para João Santos
+            </small>
+
+            <br>
+
+            <small class="text-muted">
+              Há 2 horas
+            </small>
+
           </div>
+
         </div>
 
         <div class="mb-3 d-flex">
-          <span class="badge bg-warning rounded-circle me-2">&nbsp;</span>
+
+          <span class="badge bg-warning rounded-circle me-2">
+            &nbsp;
+          </span>
+
           <div>
-            <small>Revisado licença médica - Ana Costa</small><br>
-            <small class="text-muted">Há 3 horas</small>
+
+            <small>
+              Revisado licença médica - Ana Costa
+            </small>
+
+            <br>
+
+            <small class="text-muted">
+              Há 3 horas
+            </small>
+
           </div>
+
         </div>
 
         <div class="d-flex">
-          <span class="badge rounded-circle me-2" style="background-color: purple;">&nbsp;</span>
+
+          <span class="badge rounded-circle me-2"
+            style="background-color: purple;">
+            &nbsp;
+          </span>
+
           <div>
-            <small>Atualizado informações de benefícios</small><br>
-            <small class="text-muted">Há 5 horas</small>
+
+            <small>
+              Atualizado informações de benefícios
+            </small>
+
+            <br>
+
+            <small class="text-muted">
+              Há 5 horas
+            </small>
+
           </div>
+
         </div>
 
       </div>
