@@ -1,349 +1,398 @@
-<?php require_once 'auth.php'; ?>
+<?php
+require_once 'auth.php';
+require_once 'config/database.php';
+
+$id_usuario = $_SESSION['id_usuario'];
+
+$sql = "SELECT * FROM usuarios WHERE id_usuario = ?";
+$stmt = $con->prepare($sql);
+$stmt->bind_param("i", $id_usuario);
+$stmt->execute();
+
+$result = $stmt->get_result();
+$usuario = $result->fetch_assoc();
+
+$sqlAtividades = "
+SELECT * FROM atividades
+WHERE id_usuario = ?
+ORDER BY data_atividade DESC
+LIMIT 5
+";
+
+$stmtAtv = $con->prepare($sqlAtividades);
+$stmtAtv->bind_param("i", $id_usuario);
+$stmtAtv->execute();
+
+$atividades = $stmtAtv->get_result();
+
+$iniciais = '';
+
+$nomes = explode(' ', $usuario['nome']);
+
+foreach($nomes as $n){
+    $iniciais .= strtoupper($n[0]);
+
+    if(strlen($iniciais) >= 2){
+        break;
+    }
+}
+?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Perfil RH</title>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
 
-  <!-- Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<title>Meu Perfil</title>
 
-  <style>
-    .avatar {
-      width: 96px;
-      height: 96px;
-      background-color: #4f46e5;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      color: #fff;
-      font-weight: bold;
-    }
+<link rel="stylesheet" href="css/style.css">
 
-    /* BOX DE PERMISSÃO */
-    .permission-box {
-      background-color: #f1f5f9;
-      transition: 0.3s;
-    }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet">
 
-    /* DARK MODE */
-    body.dark-mode .permission-box {
-      background-color: #244266;
-      color: white;
-    }
-  </style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet">
+
+<style>
+
+.avatar{
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#2563eb,#1e3a8a);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:32px;
+    font-weight:bold;
+    margin:auto;
+    box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+
+.profile-card{
+    overflow:hidden;
+}
+
+.profile-header{
+    height:90px;
+    background:linear-gradient(135deg,#1d4ed8,#2563eb);
+    border-radius:16px 16px 0 0;
+}
+
+.permission-box{
+    background:#f1f5f9;
+    transition:.3s;
+}
+
+.permission-box:hover{
+    transform:translateY(-2px);
+}
+
+.activity-item{
+    border-left:3px solid #2563eb;
+    padding-left:15px;
+    margin-bottom:20px;
+}
+
+.stat-card i{
+    font-size:28px;
+    opacity:.7;
+}
+
+body.dark-mode .permission-box{
+    background:#244266;
+    color:white;
+}
+
+body.dark-mode .activity-item{
+    border-color:#60a5fa;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <?php include 'sidebar.php'; ?>
 
-<!-- CONTEÚDO -->
 <div class="content">
 
-  <h1 class="fw-bold">Meu Perfil</h1>
-  <h5 class="text-muted mb-4">Informações da sua conta de RH</h5>
+<div class="container-fluid">
 
-  <div class="row g-4">
+    <!-- TOPO -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <!-- PERFIL -->
-    <div class="col-lg-4">
+        <div>
+            <h1 class="fw-bold">
+                Meu Perfil
+            </h1>
 
-      <div class="card card-dashboard shadow-sm p-4 text-center">
-
-        <div class="avatar mx-auto mb-3">
-          JP
+            <h5 class="text-muted">
+                Informações da sua conta de RH
+            </h5>
         </div>
 
-        <h5 class="fw-bold mb-1">Juliana Pereira</h5>
-
-        <p class="text-primary mb-1">
-          Gerente de RH
-        </p>
-
-        <p class="text-muted small mb-3">
-          Recursos Humanos
-        </p>
-
-        <hr>
-
-        <div class="text-start small text-muted">
-
-          <div class="d-flex align-items-center mb-2">
-            <i class="bi bi-envelope me-2"></i>
-            juliana.pereira@empresa.com
-          </div>
-
-          <div class="d-flex align-items-center mb-2">
-            <i class="bi bi-telephone me-2"></i>
-            (11) 98765-1234
-          </div>
-
-          <div class="d-flex align-items-center mb-2">
-            <i class="bi bi-geo-alt me-2"></i>
-            São Paulo, SP
-          </div>
-
-          <div class="d-flex align-items-center mb-2">
-            <i class="bi bi-briefcase me-2"></i>
-            ID: RH-001
-          </div>
-
-          <div class="d-flex align-items-center">
-            <i class="bi bi-calendar me-2"></i>
-            Desde 15/05/2020
-          </div>
-
-        </div>
-
-        <button class="btn btn-primary w-100 mt-4">
-          Editar Perfil
-        </button>
-
-      </div>
+        <span class="badge bg-success px-3 py-2">
+            <i class="bi bi-circle-fill me-1"></i>
+            Online
+        </span>
 
     </div>
 
-    <!-- LADO DIREITO -->
-    <div class="col-lg-8">
+    <div class="row g-4">
 
-      <!-- STATS -->
-      <div class="row g-3 mb-4 text-center">
+        <!-- PERFIL -->
+        <div class="col-lg-4">
 
-        <div class="col-6 col-md-3">
+            <div class="card card-dashboard shadow-sm border-0 profile-card">
 
-          <div class="card card-dashboard shadow-sm p-3">
+                <div class="profile-header"></div>
 
-            <h5 class="fw-bold">18</h5>
+                <div class="p-4 text-center">
 
-            <small class="text-muted">
-              Aprovações Pendentes
-            </small>
+                    <?php if($usuario['foto']): ?>
 
-          </div>
+                        <img src="uploads/<?= $usuario['foto'] ?>"
+                             class="avatar">
 
-        </div>
+                    <?php else: ?>
 
-        <div class="col-6 col-md-3">
+                        <div class="avatar">
+                            <?= $iniciais ?>
+                        </div>
 
-          <div class="card card-dashboard shadow-sm p-3">
+                    <?php endif; ?>
 
-            <h5 class="fw-bold">42</h5>
+                    <h4 class="fw-bold mt-3 mb-1">
+                        <?= $usuario['nome'] ?>
+                    </h4>
 
-            <small class="text-muted">
-              Ações Hoje
-            </small>
+                    <p class="text-primary mb-1">
+                        <?= $usuario['cargo'] ?>
+                    </p>
 
-          </div>
+                    <p class="text-muted small">
+                        <?= $usuario['departamento'] ?>
+                    </p>
 
-        </div>
+                    <hr>
 
-        <div class="col-6 col-md-3">
+                    <div class="text-start">
 
-          <div class="card card-dashboard shadow-sm p-3">
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-envelope me-2"></i>
+                                <?= $usuario['email'] ?>
+                            </small>
+                        </div>
 
-            <h5 class="fw-bold">5 anos</h5>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-telephone me-2"></i>
+                                <?= $usuario['telefone'] ?>
+                            </small>
+                        </div>
 
-            <small class="text-muted">
-              Tempo na Empresa
-            </small>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt me-2"></i>
+                                <?= $usuario['cidade'] ?>
+                            </small>
+                        </div>
 
-          </div>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-clock-history me-2"></i>
 
-        </div>
+                                Último login:
+                                <?= date(
+                                    'd/m/Y H:i',
+                                    strtotime($usuario['ultimo_login'])
+                                ) ?>
+                            </small>
+                        </div>
 
-        <div class="col-6 col-md-3">
+                    </div>
 
-          <div class="card card-dashboard shadow-sm p-3">
+                    <button class="btn btn-primary w-100 mt-3">
+                        <i class="bi bi-pencil-square me-2"></i>
+                        Editar Perfil
+                    </button>
 
-            <h5 class="fw-bold">1.247</h5>
-
-            <small class="text-muted">
-              Solicitações Resolvidas
-            </small>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- PERMISSÕES -->
-      <div class="card card-dashboard shadow-sm p-4 mb-4">
-
-        <h5 class="fw-bold mb-3">
-          <i class="bi bi-shield-lock me-2 text-primary"></i>
-          Permissões e Acessos
-        </h5>
-
-        <div class="row g-2">
-
-          <div class="col-md-6">
-
-            <div class="permission-box rounded p-2 d-flex align-items-center">
-
-              <span class="badge bg-primary me-2">&nbsp;</span>
-
-              Administrador
-
-            </div>
-
-          </div>
-
-          <div class="col-md-6">
-
-            <div class="permission-box rounded p-2 d-flex align-items-center">
-
-              <span class="badge bg-primary me-2">&nbsp;</span>
-
-              Aprovar Férias
+                </div>
 
             </div>
 
-          </div>
+        </div>
 
-          <div class="col-md-6">
+        <!-- LADO DIREITO -->
+        <div class="col-lg-8">
 
-            <div class="permission-box rounded p-2 d-flex align-items-center">
+            <!-- STATS -->
+            <div class="row g-3 mb-4">
 
-              <span class="badge bg-primary me-2">&nbsp;</span>
+                <div class="col-md-3">
 
-              Aprovar Licenças
+                    <div class="card card-dashboard stat-card p-3 border-0 shadow-sm">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+                                <h3 class="fw-bold">18</h3>
+
+                                <small class="text-muted">
+                                    Aprovações
+                                </small>
+                            </div>
+
+                            <i class="bi bi-check2-circle"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card card-dashboard stat-card p-3 border-0 shadow-sm">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+                                <h3 class="fw-bold">42</h3>
+
+                                <small class="text-muted">
+                                    Ações Hoje
+                                </small>
+                            </div>
+
+                            <i class="bi bi-lightning"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card card-dashboard stat-card p-3 border-0 shadow-sm">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+                                <h3 class="fw-bold">5</h3>
+
+                                <small class="text-muted">
+                                    Anos Empresa
+                                </small>
+                            </div>
+
+                            <i class="bi bi-briefcase"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card card-dashboard stat-card p-3 border-0 shadow-sm">
+
+                        <div class="d-flex justify-content-between">
+
+                            <div>
+                                <h3 class="fw-bold">1.247</h3>
+
+                                <small class="text-muted">
+                                    Resolvidas
+                                </small>
+                            </div>
+
+                            <i class="bi bi-bar-chart"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
             </div>
 
-          </div>
+            <!-- PERMISSÕES -->
+            <div class="card card-dashboard border-0 shadow-sm p-4 mb-4">
 
-          <div class="col-md-6">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-shield-lock me-2 text-primary"></i>
+                    Permissões e Acessos
+                </h5>
 
-            <div class="permission-box rounded p-2 d-flex align-items-center">
+                <div class="row g-3">
 
-              <span class="badge bg-primary me-2">&nbsp;</span>
+                    <div class="col-md-6">
+                        <div class="permission-box rounded p-3">
+                            Administrador
+                        </div>
+                    </div>
 
-              Gerenciar Funcionários
+                    <div class="col-md-6">
+                        <div class="permission-box rounded p-3">
+                            Aprovar Férias
+                        </div>
+                    </div>
 
+                    <div class="col-md-6">
+                        <div class="permission-box rounded p-3">
+                            Aprovar Licenças
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="permission-box rounded p-3">
+                            Gerenciar Funcionários
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
-          </div>
-
+            <!-- ATIVIDADES -->
+            <div class="card card-dashboard border-0 shadow-sm p-4">
+                <h5 class="fw-bold mb-4">
+                    Atividades Recentes
+                </h5>
+                <?php while($atividade = $atividades->fetch_assoc()): ?>
+                    <div class="activity-item">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="badge bg-<?= $atividade['tipo'] ?> me-2">
+                                &nbsp;
+                            </span>
+                            <strong>
+                                <?= $atividade['descricao'] ?>
+                            </strong>
+                        </div>
+                        <small class="text-muted">
+                            <?= date(
+                                'd/m/Y H:i',
+                                strtotime($atividade['data_atividade'])
+                            ) ?>
+                        </small>
+                    </div>
+                <?php endwhile; ?>
+            </div>
         </div>
-
-      </div>
-
-      <!-- ATIVIDADES -->
-      <div class="card card-dashboard shadow-sm p-4">
-
-        <h5 class="fw-bold mb-3">
-          Atividades Recentes
-        </h5>
-
-        <div class="mb-3 d-flex">
-
-          <span class="badge bg-success rounded-circle me-2">
-            &nbsp;
-          </span>
-
-          <div>
-
-            <small>
-              Aprovado pedido de férias - Maria Silva
-            </small>
-
-            <br>
-
-            <small class="text-muted">
-              Há 1 hora
-            </small>
-
-          </div>
-
-        </div>
-
-        <div class="mb-3 d-flex">
-
-          <span class="badge bg-primary rounded-circle me-2">
-            &nbsp;
-          </span>
-
-          <div>
-
-            <small>
-              Enviado holerite para João Santos
-            </small>
-
-            <br>
-
-            <small class="text-muted">
-              Há 2 horas
-            </small>
-
-          </div>
-
-        </div>
-
-        <div class="mb-3 d-flex">
-
-          <span class="badge bg-warning rounded-circle me-2">
-            &nbsp;
-          </span>
-
-          <div>
-
-            <small>
-              Revisado licença médica - Ana Costa
-            </small>
-
-            <br>
-
-            <small class="text-muted">
-              Há 3 horas
-            </small>
-
-          </div>
-
-        </div>
-
-        <div class="d-flex">
-
-          <span class="badge rounded-circle me-2"
-            style="background-color: purple;">
-            &nbsp;
-          </span>
-
-          <div>
-
-            <small>
-              Atualizado informações de benefícios
-            </small>
-
-            <br>
-
-            <small class="text-muted">
-              Há 5 horas
-            </small>
-
-          </div>
-
-        </div>
-
-      </div>
-
     </div>
-
-  </div>
-
 </div>
-
+</div>
+<script src="js/theme.js"></script>
 </body>
 </html>

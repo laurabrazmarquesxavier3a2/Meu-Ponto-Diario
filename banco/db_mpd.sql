@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 16/05/2026 às 02:47
+-- Tempo de geração: 16/05/2026 às 03:54
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -20,6 +20,30 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `db_mpd`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `atividades`
+--
+
+CREATE TABLE `atividades` (
+  `id_atividade` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
+  `descricao` varchar(255) NOT NULL,
+  `tipo` enum('success','primary','warning','danger') DEFAULT 'primary',
+  `data_atividade` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `atividades`
+--
+
+INSERT INTO `atividades` (`id_atividade`, `id_usuario`, `descricao`, `tipo`, `data_atividade`) VALUES
+(1, 3, 'Aprovado pedido de férias - Maria Silva', 'success', '2026-05-15 22:47:33'),
+(2, 3, 'Enviado holerite para João Santos', 'primary', '2026-05-15 22:47:33'),
+(3, 3, 'Revisado licença médica - Ana Costa', 'warning', '2026-05-15 22:47:33'),
+(4, 3, 'Atualizado informações de benefícios', 'danger', '2026-05-15 22:47:33');
 
 -- --------------------------------------------------------
 
@@ -92,7 +116,10 @@ CREATE TABLE `funcionarios` (
 --
 
 INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `horario_padrao`, `ativo`, `created_at`) VALUES
-(2, 'Administrador RH', 'Gerente RH', 'Recursos Humanos', '09:00:00', 1, '2026-05-16 00:18:27');
+(2, 'Administrador RH', 'Gerente RH', 'Recursos Humanos', '09:00:00', 1, '2026-05-16 00:18:27'),
+(3, 'Mara Silva', 'Analista RH', 'RH', '08:00:00', 1, '2026-05-16 01:11:55'),
+(4, 'João Santos', 'Assistente Administrativo', 'Financeiro', '09:00:00', 1, '2026-05-16 01:11:55'),
+(5, 'Ana Silva', 'Desenvolvedora', 'TI', '08:30:00', 1, '2026-05-16 01:11:55');
 
 -- --------------------------------------------------------
 
@@ -112,6 +139,15 @@ CREATE TABLE `pontos` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Despejando dados para a tabela `pontos`
+--
+
+INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hora_saida`, `total_horas`, `status`, `justificativa`, `created_at`) VALUES
+(1, 3, '2026-03-08', '08:45:00', '18:10:00', 8.25, 'completo', NULL, '2026-05-16 01:12:13'),
+(2, 4, '2026-03-08', '09:15:00', '18:00:00', 7.45, 'atraso', NULL, '2026-05-16 01:12:13'),
+(3, 5, '2026-03-08', '08:50:00', NULL, NULL, 'em andamento', NULL, '2026-05-16 01:12:13');
+
 -- --------------------------------------------------------
 
 --
@@ -127,19 +163,31 @@ CREATE TABLE `usuarios` (
   `tipo` enum('rh','funcionario') DEFAULT 'funcionario',
   `status` enum('ativo','inativo') DEFAULT 'ativo',
   `ultimo_login` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `telefone` varchar(20) DEFAULT NULL,
+  `cidade` varchar(100) DEFAULT NULL,
+  `foto` varchar(255) DEFAULT NULL,
+  `cargo` varchar(100) DEFAULT NULL,
+  `departamento` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `usuarios`
 --
 
-INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`, `tipo`, `status`, `ultimo_login`, `created_at`) VALUES
-(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-15 21:39:13', '2026-05-16 00:24:30');
+INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`, `tipo`, `status`, `ultimo_login`, `created_at`, `telefone`, `cidade`, `foto`, `cargo`, `departamento`) VALUES
+(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-15 21:52:49', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos');
 
 --
 -- Índices para tabelas despejadas
 --
+
+--
+-- Índices de tabela `atividades`
+--
+ALTER TABLE `atividades`
+  ADD PRIMARY KEY (`id_atividade`),
+  ADD KEY `id_usuario` (`id_usuario`);
 
 --
 -- Índices de tabela `banco_horas`
@@ -187,6 +235,12 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT de tabela `atividades`
+--
+ALTER TABLE `atividades`
+  MODIFY `id_atividade` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT de tabela `banco_horas`
 --
 ALTER TABLE `banco_horas`
@@ -208,13 +262,13 @@ ALTER TABLE `comunicados`
 -- AUTO_INCREMENT de tabela `funcionarios`
 --
 ALTER TABLE `funcionarios`
-  MODIFY `id_funcionario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_funcionario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de tabela `pontos`
 --
 ALTER TABLE `pontos`
-  MODIFY `id_ponto` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_ponto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de tabela `usuarios`
@@ -225,6 +279,12 @@ ALTER TABLE `usuarios`
 --
 -- Restrições para tabelas despejadas
 --
+
+--
+-- Restrições para tabelas `atividades`
+--
+ALTER TABLE `atividades`
+  ADD CONSTRAINT `atividades_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE;
 
 --
 -- Restrições para tabelas `banco_horas`
