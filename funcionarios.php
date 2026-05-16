@@ -1,3 +1,5 @@
+<?php require_once 'auth.php'; ?>
+
 <?php
 $funcionarios = [
     ["nome"=>"Maria Silva","cargo"=>"Gerente de Projetos","dep"=>"TI","email"=>"maria.silva@empresa.com","tel"=>"(11) 98765-4321","local"=>"São Paulo, SP","status"=>"Ativo"],

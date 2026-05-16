@@ -1,3 +1,5 @@
+<?php require_once 'auth.php'; ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>

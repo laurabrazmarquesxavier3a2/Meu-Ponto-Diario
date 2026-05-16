@@ -1,7 +1,7 @@
 <?php
+
 session_start();
 session_destroy();
+header("Location: login.php");
 
-// redireciona pro login
-header("Location: login.html");
 exit;

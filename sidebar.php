@@ -1,3 +1,5 @@
+<?php require_once 'auth.php'; ?>
+
 <?php
 $pagina = basename($_SERVER['PHP_SELF']);
 ?>

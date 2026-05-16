@@ -37,8 +37,7 @@ CREATE TABLE banco_horas (
     id_banco INT AUTO_INCREMENT PRIMARY KEY,
     id_funcionario INT NOT NULL,
 
-    mes YEAR_MONTH NOT NULL,
-
+    mes VARCHAR(7) NOT NULL,
     saldo_total DECIMAL(6,2) DEFAULT 0,
     saldo_mes DECIMAL(6,2) DEFAULT 0,
 
@@ -80,5 +79,29 @@ CREATE TABLE comunicados (
     autor VARCHAR(150),
     publico VARCHAR(150),
     data_publicacao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+
+    id_funcionario INT NULL,
+
+    nome VARCHAR(150) NOT NULL,
+
+    email VARCHAR(150) NOT NULL UNIQUE,
+
+    senha VARCHAR(255) NOT NULL,
+
+    tipo ENUM('rh', 'funcionario') DEFAULT 'funcionario',
+
+    status ENUM('ativo', 'inativo') DEFAULT 'ativo',
+
+    ultimo_login DATETIME NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_funcionario)
+        REFERENCES funcionarios(id_funcionario)
+        ON DELETE SET NULL
 );
 
