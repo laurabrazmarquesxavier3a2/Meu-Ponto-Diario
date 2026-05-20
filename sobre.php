@@ -1,61 +1,101 @@
-<script src="js/js.js"></script>
-
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-<meta charset="UTF-8">
-<title>Sobre</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre</title>
 
-<link rel="stylesheet" href="style-landing.css">
-
+    <link rel="stylesheet" href="css/ajuda.css">
 </head>
+
 <body>
 
-<header class="navbar">
+    <!-- NAVBAR -->
 
-    <div class="logo">
-        <img src="img/logo.png">
-        <span>MEU PONTO DIÁRIO</span>
-    </div>
+    <nav class="navbar">
 
-    <nav>
-        <a href="sobre.php">Sobre</a>
-        <a href="funcionalidades.php">Funcionalidades</a>
-        <a href="ajuda.php">Ajuda</a>
-        <a href="leis.php">Leis</a>
+        <div class="logo">
+
+            <img class="logo-branca"
+                src="img/logo-branca.png">
+
+            <span>MEU PONTO DIÁRIO</span>
+
+        </div>
+
+        <div class="menu">
+
+            <a href="sobre.php">Sobre</a>
+            <a href="funcionalidades.php">Funcionalidades</a>
+            <a href="ajuda.php">Ajuda</a>
+            <a href="leis.php">Leis</a>
+
+        </div>
+        
     </nav>
 
-</header>
+    <!-- CONTAINER -->
 
-<div class="container">
+    <div class="container">
 
-    <section class="hero">
+        <h1 class="titulo-ajuda">
+            Sobre o Sistema
+        </h1>
 
-        <div class="hero-text">
-            <h1>Sobre o Meu Ponto Diário</h1>
+        <div class="faq-container">
 
-            <p>
-                Sistema desenvolvido para facilitar
-                a gestão de RH com rapidez, segurança
-                e praticidade.
-            </p>
+            <!-- CARD -->
 
-            <br>
+            <div class="faq-card">
 
-            <p>
-                Nossa plataforma ajuda empresas
-                no controle de jornada, relatórios,
-                banco de horas e documentos.
-            </p>
+                <div class="faq-title">
+                    O que é o Meu Ponto Diário?
+                </div>
+
+                <div class="faq-answer">
+                    Plataforma criada para facilitar
+                    o controle de ponto, banco de horas,
+                    relatórios e gestão de RH.
+                </div>
+
+            </div>
+
+            <!-- CARD -->
+
+            <div class="faq-card">
+
+                <div class="faq-title">
+                    Objetivo do Projeto
+                </div>
+
+                <div class="faq-answer">
+                    Tornar a gestão empresarial
+                    mais rápida, prática e segura.
+                </div>
+
+            </div>
+
+            <!-- CARD -->
+
+            <div class="faq-card">
+
+                <div class="faq-title">
+                    Tecnologia e Segurança
+                </div>
+
+                <div class="faq-answer">
+                    Sistema desenvolvido com foco
+                    em desempenho, acessibilidade
+                    e proteção de dados.
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="hero-image">
-            <img src="img/rh.png">
-        </div>
-
-    </section>
-
-</div>
+    </div>
 
 </body>
+
 </html>

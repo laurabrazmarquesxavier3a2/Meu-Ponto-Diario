@@ -1,67 +1,99 @@
-<script src="js/js.js"></script>
-
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leis Trabalhistas</title>
 
-<title>Leis</title><link rel="stylesheet" href="style-landing.css">
-
+    <link rel="stylesheet" href="css/ajuda.css">
 </head>
+
 <body>
 
-<header class="navbar">
+    <!-- NAVBAR -->
 
-    <div class="logo">
-        <img src="img/logo.png">
-        <span>MEU PONTO DIÁRIO</span>
-    </div>
+    <nav class="navbar">
 
-    <nav>
-        <a href="sobre.php">Sobre</a>
-        <a href="funcionalidades.php">Funcionalidades</a>
-        <a href="ajuda.php">Ajuda</a>
-        <a href="leis.php">Leis</a>
+        <div class="logo">
+
+            <img class="logo-branca"
+                src="img/logo-branca.png">
+
+            <span>MEU PONTO DIÁRIO</span>
+
+        </div>
+
+        <div class="menu">
+
+            <a href="sobre.php">Sobre</a>
+            <a href="funcionalidades.php">Funcionalidades</a>
+            <a href="ajuda.php">Ajuda</a>
+            <a href="leis.php">Leis</a>
+
+        </div>
+
     </nav>
 
-</header>
+    <!-- CONTAINER -->
 
-<div class="container">
+    <div class="container">
 
-    <h1 style="font-size:50px;">
-        Leis Trabalhistas
-    </h1>
+        <h1 class="titulo-ajuda">
+            Leis Trabalhistas
+        </h1>
 
-    <br><br>
+        <div class="faq-container">
 
-    <div class="lei">
-        <h3>Controle de Jornada</h3>
+            <!-- CARD -->
 
-        <p>
-            Empresas devem registrar corretamente
-            entrada e saída dos funcionários.
-        </p>
+            <div class="faq-card">
+
+                <div class="faq-title">
+                    Controle de Jornada
+                </div>
+
+                <div class="faq-answer">
+                    Empresas devem registrar corretamente
+                    entrada e saída dos funcionários.
+                </div>
+
+            </div>
+
+            <!-- CARD -->
+
+            <div class="faq-card">
+
+                <div class="faq-title">
+                    Horas Extras
+                </div>
+
+                <div class="faq-answer">
+                    Horas extras devem ser remuneradas
+                    conforme as regras da CLT.
+                </div>
+
+            </div>
+
+            <!-- CARD -->
+
+            <div class="faq-card">
+
+                <div class="faq-title">
+                    Banco de Horas
+                </div>
+
+                <div class="faq-answer">
+                    O banco de horas deve seguir
+                    acordo individual ou coletivo.
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-
-    <div class="lei">
-        <h3>Horas Extras</h3>
-
-        <p>
-            Horas extras devem ser remuneradas
-            conforme a CLT.
-        </p>
-    </div>
-
-    <div class="lei">
-        <h3>Banco de Horas</h3>
-
-        <p>
-            O banco de horas deve seguir acordo
-            individual ou coletivo.
-        </p>
-    </div>
-
-</div>
 
 </body>
+
 </html>

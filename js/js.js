@@ -34,3 +34,25 @@ document.addEventListener("DOMContentLoaded", () => {
   // Executa ao carregar
   revealOnScroll();
 });
+
+const modal = document.getElementById("modalDuvida");
+
+const abrir = document.getElementById("abrirFormulario");
+
+const fechar = document.querySelector(".fechar");
+
+abrir.onclick = () => {
+    modal.style.display = "flex";
+}
+
+fechar.onclick = () => {
+    modal.style.display = "none";
+}
+
+window.onclick = (e) => {
+
+    if(e.target == modal){
+        modal.style.display = "none";
+    }
+
+}
