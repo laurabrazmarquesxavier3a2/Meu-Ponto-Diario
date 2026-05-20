@@ -15,7 +15,7 @@ body {
   padding-left: 8%;
 }
 
-/* 🔥 GRADIENTE POR CIMA (igual ao print) */
+
 .bg-login::before {
   content: "";
   position: absolute;
