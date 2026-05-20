@@ -17,7 +17,7 @@
 
         <div class="logo">
 
-            <img src="img/logo-branca.png">
+            <img src="img/logo-branca.png" >
 
             <span>MEU PONTO DIÁRIO</span>
 

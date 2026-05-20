@@ -18,7 +18,7 @@
         <div class="logo">
 
             <img class="logo-branca"
-                src="img/logo-branca.png">
+                src="img/logo-branca.png" >
 
             <span>MEU PONTO DIÁRIO</span>
 
@@ -32,7 +32,7 @@
             <a href="leis.php">Leis</a>
 
         </div>
-        
+
     </nav>
 
     <!-- CONTAINER -->
