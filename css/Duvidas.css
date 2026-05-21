@@ -1,0 +1,74 @@
+body {
+
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 100vh;
+
+    background: #f5f7fb;
+
+    font-family: 'Segoe UI', sans-serif;
+
+}
+
+.sucesso-container {
+
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+}
+
+.logo {
+
+    width: 140px;
+
+    margin-bottom: 25px;
+
+}
+
+h1 {
+
+    color: #1c2340;
+
+    font-size: 32px;
+
+    max-width: 700px;
+
+    line-height: 1.5;
+
+    margin-bottom: 30px;
+
+}
+
+a {
+
+    text-decoration: none;
+
+    background: #1c2340;
+
+    color: white;
+
+    padding: 14px 35px;
+
+    border-radius: 10px;
+
+    font-size: 17px;
+
+    transition: 0.3s;
+
+}
+
+a:hover {
+
+    transform: scale(1.05);
+
+    opacity: 0.9;
+
+}

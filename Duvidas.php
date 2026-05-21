@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if (mysqli_stmt_execute($stmt)) {
 
-                echo "Dúvida enviada com sucesso!";
+              //  echo "Dúvida enviada com sucesso!";
 
             } else {
 
@@ -64,3 +64,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 mysqli_close($conexao);
 
 ?>
+
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Dúvida enviada</title>
+
+    <link rel="stylesheet" href="css/Duvidas.css">
+
+</head>
+
+<body>
+
+    <div class="sucesso-container">
+
+        <!-- LOGO -->
+
+        <img
+            src="img/logo-azul.png"
+            alt="Logo"
+            class="logo">
+
+        <!-- MENSAGEM -->
+
+        <h1>
+
+            Obrigado por compartilhar sua dúvida,
+            responderemos assim que possível.
+
+        </h1>
+
+        <!-- BOTÃO VOLTAR -->
+
+        <a href="ajuda.php">
+
+            Voltar
+
+        </a>
+
+    </div>
+
+</body>
+
+</html>
