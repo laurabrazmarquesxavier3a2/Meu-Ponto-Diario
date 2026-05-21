@@ -9,8 +9,8 @@ $current = basename($_SERVER['PHP_SELF']);
     <i class="bi bi-clock"></i> Registro do Ponto
   </button>
 
-  <button class="menu <?php echo ($current == 'documentos.php') ? 'active' : ''; ?>">
-    <i class="bi bi-file-earmark-text"></i> Solicitar Documen.
+  <button class="menu <?php echo ($current == 'holeritefunc.php') ? 'active' : ''; ?>">
+    <i class="bi bi-file-earmark-text"></i> Solicitar Holerite
   </button>
 
   <button class="menu <?php echo ($current == 'pedidos.php') ? 'active' : ''; ?>">
