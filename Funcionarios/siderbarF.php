@@ -2,7 +2,7 @@
 // página atual (pra destacar o botão ativo)
 $current = basename($_SERVER['PHP_SELF']);
 ?>
- <link rel="stylesheet" href="css/style-funcionario.css">
+ <link rel="stylesheet" href="../css/style-funcionario.css">
 <aside class="sidebar">
 
   <button class="menu <?php echo ($current == 'pontoF.php') ? 'active' : ''; ?>">

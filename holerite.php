@@ -27,15 +27,15 @@
 
     <div class="container-fluid">
 
-        <h1 class="fw-bold">Solicitações de holerite</h1>
-        <h5 class="text-muted mb-4">Gerencie pedidos de holerites dos funcionários</h5>
+        <h1 class="fw-bold">Envio de holerite</h1>
+        <h5 class="text-muted mb-4">Gerencie o envio de holerites dos funcionários</h5>
 
         <!-- CARDS -->
         <div class="row g-4 mb-4">
 
             <div class="col-12 col-md-4">
                 <div class="card card-dashboard p-3 text-start">
-                    <h5>Aguardando Envio</h5>
+                    <h5>Envio Pendente</h5>
                     <h1 class="fw-bolder d-flex justify-content-between align-items-center">
                         2 <i class="bi bi-calendar"></i>
                     </h1>
@@ -53,7 +53,7 @@
 
             <div class="col-12 col-md-4">
                 <div class="card card-dashboard p-3 text-start">
-                    <h5>Total de solicitações</h5>
+                    <h5>Total de funcionários</h5>
                     <h1 class="fw-bolder d-flex justify-content-between align-items-center">
                         6
                     </h1>
@@ -72,7 +72,7 @@
                         <tr>
                             <th>Funcionário</th>
                             <th>Período</th>
-                            <th>Data da solicitação</th>
+                            <th>Data de Envio</th>
                             <th>Status</th>
                             <th>Ações</th>
                         </tr>

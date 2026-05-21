@@ -11,7 +11,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
   <!-- CSS -->
-  <link rel="stylesheet" href="css/style-funcionario.css">
+  <link rel="stylesheet" href="../css/style-funcionario.css">
 </head>
 
 <body>
@@ -19,7 +19,7 @@
 <!-- HEADER -->
 <header class="topbar">
   <div class="logo"  >
-     <img src="img/logo-azul.png" alt="logo" class="logo-img">
+     <img src="../img/logo-azul.png" alt="logo" class="logo-img">
     <span>MEU PONTO DIÁRIO</span>
   </div>
 
