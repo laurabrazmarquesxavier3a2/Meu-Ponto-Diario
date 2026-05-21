@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 16/05/2026 às 03:54
--- Versão do servidor: 10.4.32-MariaDB
+-- Tempo de geração: 22/05/2026 às 00:37
+-- Versão do servidor: 8.0.42
 -- Versão do PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -28,11 +28,11 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `atividades` (
-  `id_atividade` int(11) NOT NULL,
-  `id_usuario` int(11) NOT NULL,
-  `descricao` varchar(255) NOT NULL,
-  `tipo` enum('success','primary','warning','danger') DEFAULT 'primary',
-  `data_atividade` datetime DEFAULT current_timestamp()
+  `id_atividade` int NOT NULL,
+  `id_usuario` int NOT NULL,
+  `descricao` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo` enum('success','primary','warning','danger') COLLATE utf8mb4_general_ci DEFAULT 'primary',
+  `data_atividade` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -52,15 +52,15 @@ INSERT INTO `atividades` (`id_atividade`, `id_usuario`, `descricao`, `tipo`, `da
 --
 
 CREATE TABLE `banco_horas` (
-  `id_banco` int(11) NOT NULL,
-  `id_funcionario` int(11) NOT NULL,
-  `mes` varchar(7) NOT NULL,
-  `saldo_total` decimal(6,2) DEFAULT 0.00,
-  `saldo_mes` decimal(6,2) DEFAULT 0.00,
-  `horas_extras_mes` decimal(6,2) DEFAULT 0.00,
-  `horas_debito_mes` decimal(6,2) DEFAULT 0.00,
+  `id_banco` int NOT NULL,
+  `id_funcionario` int NOT NULL,
+  `mes` varchar(7) COLLATE utf8mb4_general_ci NOT NULL,
+  `saldo_total` decimal(6,2) DEFAULT '0.00',
+  `saldo_mes` decimal(6,2) DEFAULT '0.00',
+  `horas_extras_mes` decimal(6,2) DEFAULT '0.00',
+  `horas_debito_mes` decimal(6,2) DEFAULT '0.00',
   `data_atualizacao` date DEFAULT NULL,
-  `status` enum('positivo','negativo','neutro') DEFAULT 'neutro'
+  `status` enum('positivo','negativo','neutro') COLLATE utf8mb4_general_ci DEFAULT 'neutro'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -70,12 +70,12 @@ CREATE TABLE `banco_horas` (
 --
 
 CREATE TABLE `banco_horas_movimentacao` (
-  `id_mov` int(11) NOT NULL,
-  `id_funcionario` int(11) NOT NULL,
+  `id_mov` int NOT NULL,
+  `id_funcionario` int NOT NULL,
   `data` date NOT NULL,
-  `tipo` enum('extra','debito') NOT NULL,
+  `tipo` enum('extra','debito') COLLATE utf8mb4_general_ci NOT NULL,
   `horas` decimal(5,2) NOT NULL,
-  `descricao` varchar(255) DEFAULT NULL
+  `descricao` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -85,15 +85,41 @@ CREATE TABLE `banco_horas_movimentacao` (
 --
 
 CREATE TABLE `comunicados` (
-  `id` int(11) NOT NULL,
-  `titulo` varchar(255) NOT NULL,
-  `conteudo` text NOT NULL,
-  `categoria` varchar(100) DEFAULT NULL,
-  `fixado` tinyint(1) DEFAULT 0,
-  `autor` varchar(150) DEFAULT NULL,
-  `publico` varchar(150) DEFAULT NULL,
-  `data_publicacao` datetime DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `titulo` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `conteudo` text COLLATE utf8mb4_general_ci NOT NULL,
+  `categoria` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `fixado` tinyint(1) DEFAULT '0',
+  `autor` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `publico` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `data_publicacao` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `duvidas`
+--
+
+CREATE TABLE `duvidas` (
+  `id` int NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `duvida` text NOT NULL,
+  `data_envio` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Despejando dados para a tabela `duvidas`
+--
+
+INSERT INTO `duvidas` (`id`, `nome`, `email`, `duvida`, `data_envio`) VALUES
+(1, 'guibaldo', 'jaca@madura.com', 'não sei php', '2026-05-21 15:16:30'),
+(2, 'GUILHERME GONÇALVES ALVES', 'agui53592@gmail.com', 'testando o forme', '2026-05-21 16:06:20'),
+(3, 'Carlos jacinto pinto', 'shaolinmataporco@hotmal', 'familia não sei ajudar no tcc', '2026-05-21 16:25:39'),
+(4, 'Lyvia lacre', 'taylor.swift@gmail.com', 'textão textão textão', '2026-05-21 16:29:39'),
+(5, 'laurinha', 'cademinhas@compras.com', 'testando os bagulho', '2026-05-21 16:32:49'),
+(6, 'ana carolina', 'agui53592@gmail.com', 'textão textao', '2026-05-21 22:34:46');
 
 -- --------------------------------------------------------
 
@@ -102,13 +128,13 @@ CREATE TABLE `comunicados` (
 --
 
 CREATE TABLE `funcionarios` (
-  `id_funcionario` int(11) NOT NULL,
-  `nome` varchar(150) NOT NULL,
-  `cargo` varchar(100) DEFAULT NULL,
-  `departamento` varchar(100) DEFAULT NULL,
+  `id_funcionario` int NOT NULL,
+  `nome` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `cargo` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `departamento` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `horario_padrao` time DEFAULT '09:00:00',
-  `ativo` tinyint(1) DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `ativo` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -124,19 +150,34 @@ INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `
 -- --------------------------------------------------------
 
 --
+-- Estrutura para tabela `holerites`
+--
+
+CREATE TABLE `holerites` (
+  `id` int NOT NULL,
+  `funcionario_id` int NOT NULL,
+  `arquivo` varchar(255) DEFAULT NULL,
+  `periodo` varchar(20) NOT NULL,
+  `data_envio` datetime DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('pendente','enviado') DEFAULT 'pendente'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `pontos`
 --
 
 CREATE TABLE `pontos` (
-  `id_ponto` int(11) NOT NULL,
-  `id_funcionario` int(11) NOT NULL,
+  `id_ponto` int NOT NULL,
+  `id_funcionario` int NOT NULL,
   `data` date NOT NULL,
   `hora_entrada` time DEFAULT NULL,
   `hora_saida` time DEFAULT NULL,
   `total_horas` decimal(5,2) DEFAULT NULL,
-  `status` enum('completo','atraso','em andamento','ausente') DEFAULT 'em andamento',
-  `justificativa` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `status` enum('completo','atraso','em andamento','ausente') COLLATE utf8mb4_general_ci DEFAULT 'em andamento',
+  `justificativa` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -155,20 +196,20 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 --
 
 CREATE TABLE `usuarios` (
-  `id_usuario` int(11) NOT NULL,
-  `id_funcionario` int(11) DEFAULT NULL,
-  `nome` varchar(150) NOT NULL,
-  `email` varchar(150) NOT NULL,
-  `senha` varchar(255) NOT NULL,
-  `tipo` enum('rh','funcionario') DEFAULT 'funcionario',
-  `status` enum('ativo','inativo') DEFAULT 'ativo',
+  `id_usuario` int NOT NULL,
+  `id_funcionario` int DEFAULT NULL,
+  `nome` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `senha` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo` enum('rh','funcionario') COLLATE utf8mb4_general_ci DEFAULT 'funcionario',
+  `status` enum('ativo','inativo') COLLATE utf8mb4_general_ci DEFAULT 'ativo',
   `ultimo_login` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `telefone` varchar(20) DEFAULT NULL,
-  `cidade` varchar(100) DEFAULT NULL,
-  `foto` varchar(255) DEFAULT NULL,
-  `cargo` varchar(100) DEFAULT NULL,
-  `departamento` varchar(100) DEFAULT NULL
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `telefone` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `cidade` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `foto` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `cargo` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `departamento` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -176,7 +217,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`, `tipo`, `status`, `ultimo_login`, `created_at`, `telefone`, `cidade`, `foto`, `cargo`, `departamento`) VALUES
-(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-15 21:52:49', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos');
+(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-21 13:39:46', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos');
 
 --
 -- Índices para tabelas despejadas
@@ -210,10 +251,23 @@ ALTER TABLE `comunicados`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Índices de tabela `duvidas`
+--
+ALTER TABLE `duvidas`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Índices de tabela `funcionarios`
 --
 ALTER TABLE `funcionarios`
   ADD PRIMARY KEY (`id_funcionario`);
+
+--
+-- Índices de tabela `holerites`
+--
+ALTER TABLE `holerites`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `funcionario_id` (`funcionario_id`);
 
 --
 -- Índices de tabela `pontos`
@@ -238,43 +292,55 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de tabela `atividades`
 --
 ALTER TABLE `atividades`
-  MODIFY `id_atividade` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_atividade` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de tabela `banco_horas`
 --
 ALTER TABLE `banco_horas`
-  MODIFY `id_banco` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_banco` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `banco_horas_movimentacao`
 --
 ALTER TABLE `banco_horas_movimentacao`
-  MODIFY `id_mov` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_mov` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `comunicados`
 --
 ALTER TABLE `comunicados`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de tabela `duvidas`
+--
+ALTER TABLE `duvidas`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de tabela `funcionarios`
 --
 ALTER TABLE `funcionarios`
-  MODIFY `id_funcionario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_funcionario` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de tabela `holerites`
+--
+ALTER TABLE `holerites`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `pontos`
 --
 ALTER TABLE `pontos`
-  MODIFY `id_ponto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_ponto` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de tabela `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_usuario` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Restrições para tabelas despejadas
@@ -297,6 +363,12 @@ ALTER TABLE `banco_horas`
 --
 ALTER TABLE `banco_horas_movimentacao`
   ADD CONSTRAINT `banco_horas_movimentacao_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
+
+--
+-- Restrições para tabelas `holerites`
+--
+ALTER TABLE `holerites`
+  ADD CONSTRAINT `holerites_ibfk_1` FOREIGN KEY (`funcionario_id`) REFERENCES `funcionarios` (`id_funcionario`);
 
 --
 -- Restrições para tabelas `pontos`
