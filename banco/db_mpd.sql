@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 22/05/2026 às 00:37
+-- Tempo de geração: 26/05/2026 às 22:01
 -- Versão do servidor: 8.0.42
 -- Versão do PHP: 8.2.12
 
@@ -30,8 +30,8 @@ SET time_zone = "+00:00";
 CREATE TABLE `atividades` (
   `id_atividade` int NOT NULL,
   `id_usuario` int NOT NULL,
-  `descricao` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `tipo` enum('success','primary','warning','danger') COLLATE utf8mb4_general_ci DEFAULT 'primary',
+  `descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo` enum('success','primary','warning','danger') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'primary',
   `data_atividade` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -54,13 +54,13 @@ INSERT INTO `atividades` (`id_atividade`, `id_usuario`, `descricao`, `tipo`, `da
 CREATE TABLE `banco_horas` (
   `id_banco` int NOT NULL,
   `id_funcionario` int NOT NULL,
-  `mes` varchar(7) COLLATE utf8mb4_general_ci NOT NULL,
+  `mes` varchar(7) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `saldo_total` decimal(6,2) DEFAULT '0.00',
   `saldo_mes` decimal(6,2) DEFAULT '0.00',
   `horas_extras_mes` decimal(6,2) DEFAULT '0.00',
   `horas_debito_mes` decimal(6,2) DEFAULT '0.00',
   `data_atualizacao` date DEFAULT NULL,
-  `status` enum('positivo','negativo','neutro') COLLATE utf8mb4_general_ci DEFAULT 'neutro'
+  `status` enum('positivo','negativo','neutro') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'neutro'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -73,9 +73,9 @@ CREATE TABLE `banco_horas_movimentacao` (
   `id_mov` int NOT NULL,
   `id_funcionario` int NOT NULL,
   `data` date NOT NULL,
-  `tipo` enum('extra','debito') COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo` enum('extra','debito') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `horas` decimal(5,2) NOT NULL,
-  `descricao` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
+  `descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -86,12 +86,12 @@ CREATE TABLE `banco_horas_movimentacao` (
 
 CREATE TABLE `comunicados` (
   `id` int NOT NULL,
-  `titulo` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `conteudo` text COLLATE utf8mb4_general_ci NOT NULL,
-  `categoria` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `titulo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `conteudo` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `categoria` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `fixado` tinyint(1) DEFAULT '0',
-  `autor` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `publico` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `autor` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `publico` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `data_publicacao` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -129,9 +129,9 @@ INSERT INTO `duvidas` (`id`, `nome`, `email`, `duvida`, `data_envio`) VALUES
 
 CREATE TABLE `funcionarios` (
   `id_funcionario` int NOT NULL,
-  `nome` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
-  `cargo` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `departamento` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `cargo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `departamento` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `horario_padrao` time DEFAULT '09:00:00',
   `ativo` tinyint(1) DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -165,6 +165,34 @@ CREATE TABLE `holerites` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura para tabela `licencas_medicas`
+--
+
+CREATE TABLE `licencas_medicas` (
+  `id` int NOT NULL,
+  `id_funcionario` int NOT NULL,
+  `arquivo_atestado` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo_arquivo` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `motivo` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `data_inicio` date NOT NULL,
+  `data_fim` date NOT NULL,
+  `dias` int DEFAULT NULL,
+  `observacao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `data_envio` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `licencas_medicas`
+--
+
+INSERT INTO `licencas_medicas` (`id`, `id_funcionario`, `arquivo_atestado`, `tipo_arquivo`, `motivo`, `data_inicio`, `data_fim`, `dias`, `observacao`, `data_envio`) VALUES
+(1, 2, '../uploads/licencas/6a15f80135a9b.png', 'png', 'gripe ', '2026-05-06', '2026-05-08', 3, '', '2026-05-26 19:44:01'),
+(2, 2, '../uploads/licencas/6a15f98ad343a.png', 'png', 'virose', '2026-05-12', '2026-05-14', 3, '', '2026-05-26 19:50:34'),
+(3, 2, 'uploads/licencas/6a15fac647bcc.png', 'png', 'dor de cabeça', '2026-05-04', '2026-05-07', 4, '', '2026-05-26 19:55:50');
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `pontos`
 --
 
@@ -175,8 +203,8 @@ CREATE TABLE `pontos` (
   `hora_entrada` time DEFAULT NULL,
   `hora_saida` time DEFAULT NULL,
   `total_horas` decimal(5,2) DEFAULT NULL,
-  `status` enum('completo','atraso','em andamento','ausente') COLLATE utf8mb4_general_ci DEFAULT 'em andamento',
-  `justificativa` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` enum('completo','atraso','em andamento','ausente') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'em andamento',
+  `justificativa` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -198,18 +226,18 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 CREATE TABLE `usuarios` (
   `id_usuario` int NOT NULL,
   `id_funcionario` int DEFAULT NULL,
-  `nome` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
-  `senha` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `tipo` enum('rh','funcionario') COLLATE utf8mb4_general_ci DEFAULT 'funcionario',
-  `status` enum('ativo','inativo') COLLATE utf8mb4_general_ci DEFAULT 'ativo',
+  `nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `senha` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo` enum('rh','funcionario') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'funcionario',
+  `status` enum('ativo','inativo') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'ativo',
   `ultimo_login` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `telefone` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `cidade` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `foto` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `cargo` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `departamento` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL
+  `telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `cidade` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `foto` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `cargo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `departamento` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -217,7 +245,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`, `tipo`, `status`, `ultimo_login`, `created_at`, `telefone`, `cidade`, `foto`, `cargo`, `departamento`) VALUES
-(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-21 13:39:46', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos');
+(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-26 16:57:47', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos');
 
 --
 -- Índices para tabelas despejadas
@@ -268,6 +296,13 @@ ALTER TABLE `funcionarios`
 ALTER TABLE `holerites`
   ADD PRIMARY KEY (`id`),
   ADD KEY `funcionario_id` (`funcionario_id`);
+
+--
+-- Índices de tabela `licencas_medicas`
+--
+ALTER TABLE `licencas_medicas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
 -- Índices de tabela `pontos`
@@ -331,6 +366,12 @@ ALTER TABLE `holerites`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de tabela `licencas_medicas`
+--
+ALTER TABLE `licencas_medicas`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT de tabela `pontos`
 --
 ALTER TABLE `pontos`
@@ -369,6 +410,12 @@ ALTER TABLE `banco_horas_movimentacao`
 --
 ALTER TABLE `holerites`
   ADD CONSTRAINT `holerites_ibfk_1` FOREIGN KEY (`funcionario_id`) REFERENCES `funcionarios` (`id_funcionario`);
+
+--
+-- Restrições para tabelas `licencas_medicas`
+--
+ALTER TABLE `licencas_medicas`
+  ADD CONSTRAINT `licencas_medicas_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
 -- Restrições para tabelas `pontos`
