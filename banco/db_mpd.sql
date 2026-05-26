@@ -107,7 +107,8 @@ CREATE TABLE `duvidas` (
   `email` varchar(150) NOT NULL,
   `duvida` text NOT NULL,
   `data_envio` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 
+COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `duvidas`
@@ -160,8 +161,8 @@ CREATE TABLE `holerites` (
   `periodo` varchar(20) NOT NULL,
   `data_envio` datetime DEFAULT CURRENT_TIMESTAMP,
   `status` enum('pendente','enviado') DEFAULT 'pendente'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 
+COLLATE=utf8mb4_general_ci;
 -- --------------------------------------------------------
 
 --
