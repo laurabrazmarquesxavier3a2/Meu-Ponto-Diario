@@ -1,4 +1,33 @@
-<?php require_once 'auth.php'; ?>
+ <?php
+require_once 'auth.php';
+require_once 'config/database.php';
+
+// BUSCAR LICENÇAS
+$sql = "
+SELECT
+    lm.*,
+    f.nome
+FROM licencas_medicas lm
+INNER JOIN funcionarios f
+ON lm.id_funcionario = f.id_funcionario
+ORDER BY lm.data_envio DESC
+";
+
+$result = $con->query($sql);
+
+// CARDS
+$totalSubmissoes = $con->query(
+    "SELECT COUNT(*) as total FROM licencas_medicas"
+)->fetch_assoc()['total'];
+
+$licencasAtivas = $con->query(
+    "SELECT COUNT(*) as total
+     FROM licencas_medicas
+     WHERE CURDATE()
+     BETWEEN data_inicio AND data_fim"
+)->fetch_assoc()['total'];
+
+?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -28,34 +57,31 @@
     <div class="container-fluid">
 
         <h1 class="fw-bold">Licenças Médicas</h1>
-        <h5 class="text-muted mb-4">Gerencie envios de atestados e licenças médicas</h5>
+        <h5 class="text-muted mb-4">
+            Gerencie envios de atestados e licenças médicas
+        </h5>
 
         <!-- CARDS -->
         <div class="row g-4 mb-4">
 
-            <div class="col-12 col-md-4">
-                <div class="card card-dashboard p-3 text-start">
-                    <h5>Aguardando Análise</h5>
-                    <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                        2 <i class="bi bi-heart-pulse"></i>
-                    </h1>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-6">
                 <div class="card card-dashboard p-3 text-start">
                     <h5>Licenças Ativas</h5>
+
                     <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                        1 <i class="bi bi-heart-pulse"></i>
+                        <?= $licencasAtivas ?>
+                        <i class="bi bi-heart-pulse"></i>
                     </h1>
                 </div>
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-6">
                 <div class="card card-dashboard p-3 text-start">
                     <h5>Total de Submissões</h5>
+
                     <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                        5 <i class="bi bi-heart-pulse"></i>
+                        <?= $totalSubmissoes ?>
+                        <i class="bi bi-file-earmark-medical"></i>
                     </h1>
                 </div>
             </div>
@@ -64,69 +90,93 @@
 
         <!-- TABELA -->
         <div class="card card-dashboard p-3">
+
             <h5>Atestados e Licenças</h5>
 
             <div class="table-responsive">
+
                 <table class="table table-hover mt-3">
+
                     <thead class="table-light">
                         <tr>
                             <th>Funcionário</th>
                             <th>Período</th>
                             <th>Dias</th>
                             <th>Motivo</th>
-                            <th>Status</th>
+                            <th>Data Envio</th>
                             <th>Ações</th>
-                            <th></th>
-                            <th></th>
                         </tr>
                     </thead>
 
                     <tbody>
 
-                        <tr>
-                            <td><i class="bi bi-person me-2"></i>João Silva</td>
-                            <td>08/03/2026 - 12/03/2026</td>
-                            <td>5 dias</td>
-                            <td>Gripe</td>
-                            <td><span class="badge bg-success">Aprovado</span></td>
-                            <td>
-                                <a href="#" class="d-flex align-items-center gap-2 text-primary text-decoration-none">
-                                    <i class="bi bi-eye"></i>Ver atestado
-                                </a>
-                            </td>
-                            <td></td>
-                            <td></td>
-                        </tr>
+                    <?php if($result->num_rows > 0){ ?>
+
+                        <?php while($licenca = $result->fetch_assoc()){ ?>
+
+                            <tr>
+
+                                <td>
+                                    <i class="bi bi-person me-2"></i>
+                                    <?= htmlspecialchars($licenca['nome']) ?>
+                                </td>
+
+                                <td>
+                                    <?= date(
+                                        'd/m/Y',
+                                        strtotime($licenca['data_inicio'])
+                                    ) ?>
+                                    -
+                                    <?= date(
+                                        'd/m/Y',
+                                        strtotime($licenca['data_fim'])
+                                    ) ?>
+                                </td>
+
+                                <td>
+                                    <?= $licenca['dias'] ?> dias
+                                </td>
+
+                                <td>
+                                    <?= htmlspecialchars($licenca['motivo']) ?>
+                                </td>
+
+                                <td>
+                                    <?= date(
+                                        'd/m/Y H:i',
+                                        strtotime($licenca['data_envio'])
+                                    ) ?>
+                                </td>
+
+                                <td>
+                                    <a
+                                        href="<?= $licenca['arquivo_atestado'] ?>"
+                                        target="_blank"
+                                        class="d-flex align-items-center gap-2 text-primary text-decoration-none"
+                                    >
+                                        <i class="bi bi-eye"></i>
+                                        Ver atestado
+                                    </a>
+                                </td>
+
+                            </tr>
+
+                        <?php } ?>
+
+                    <?php } else { ?>
 
                         <tr>
-                            <td><i class="bi bi-person me-2"></i>Ana Santos</td>
-                            <td>09/03/2026 - 16/03/2026</td>
-                            <td>7 dias</td>
-                            <td>Cirurgia</td>
-                            <td><span class="badge bg-warning">Pendente</span></td>
-
-                            <td>
-                                <a href="#" class="d-flex align-items-center gap-2 text-primary text-decoration-none">
-                                    <i class="bi bi-eye"></i>Ver atestado
-                                </a>
-                            </td>
-
-                            <td>
-                                <a href="#" class="d-flex align-items-center gap-2 text-success text-decoration-none">
-                                    <i class="bi bi-check"></i>Aprovar
-                                </a>
-                            </td>
-
-                            <td>
-                                <a href="#" class="d-flex align-items-center gap-2 text-danger text-decoration-none">
-                                    <i class="bi bi-x"></i>Rejeitar
-                                </a>
+                            <td colspan="6" class="text-center text-muted">
+                                Nenhuma licença enviada
                             </td>
                         </tr>
+
+                    <?php } ?>
 
                     </tbody>
 
                 </table>
+
             </div>
         </div>
 

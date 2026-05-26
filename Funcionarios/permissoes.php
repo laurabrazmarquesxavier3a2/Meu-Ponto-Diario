@@ -101,32 +101,66 @@ $meses = [
 >
     Solicitar Férias
 </button>
-            </div>
+           
+</div>
 
-            <!-- CARD LICENÇA -->
-            <div class="card">
+             <div class="card">
 
-                <h3>Enviar Licença Médica</h3>
+    <h3>Enviar Licença Médica</h3>
 
-                <p>
-                    Envie um documento PDF da sua licença médica para o RH.
-                </p>
+    <p>
+        Envie PDF, PNG ou JPG da licença médica.
+    </p>
 
-                <input
-                    type="file"
-                    accept=".pdf"
-                    class="form-control"
-                    id="pdfInput"
-                >
+    <form
+        action="enviar_licenca.php"
+        method="POST"
+        enctype="multipart/form-data"
+    >
 
-                <button
-                    class="btn btn-danger w-100 mt-3"
-                    onclick="enviarPDF()"
-                >
-                    Enviar PDF
-                </button>
+        <label>Motivo</label>
+        <input
+            type="text"
+            name="motivo"
+            class="form-control mb-3"
+            required
+        >
 
-            </div>
+        <label>Data início</label>
+        <input
+            type="date"
+            name="data_inicio"
+            class="form-control mb-3"
+            required
+        >
+
+        <label>Data fim</label>
+        <input
+            type="date"
+            name="data_fim"
+            class="form-control mb-3"
+            required
+        >
+
+        <label>Atestado</label>
+        <input
+            type="file"
+            name="arquivo"
+            accept=".pdf,.png,.jpg,.jpeg"
+            class="form-control"
+            required
+        >
+
+        <button
+            type="submit"
+            class="btn btn-danger w-100 mt-3"
+        >
+            Enviar Licença
+        </button>
+
+    </form>
+
+</div>
 
         </div>
 
