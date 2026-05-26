@@ -30,7 +30,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
         class="<?= $pagina == 'pontoF.php' ? 'active' : '' ?>">
 
             <i class="fa-regular fa-clock"></i>
-            Registro de Ponto
+            Histórico De Ponto
 
         </a>
 
