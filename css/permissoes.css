@@ -1,0 +1,199 @@
+body {
+    background: #ececec;
+}
+
+/* CONTEÚDO */
+
+.content {
+    margin-left: 250px;
+    padding: 40px;
+}
+
+/* TÍTULO */
+
+.title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.title h2 {
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.title p {
+    color: #666;
+}
+
+/* CARDS */
+
+.cards {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.card {
+    width: 420px;
+    border: none !important;
+    border-radius: 18px !important;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.card h3 {
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.card p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* MESES */
+
+.meses {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.mes-card {
+    background: #f4f4f4;
+    padding: 18px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: .3s;
+    font-weight: 600;
+    border: 2px solid transparent;
+}
+
+.mes-card:hover {
+    background: #dfe6ff;
+    transform: translateY(-3px);
+}
+
+/* MÊS ATIVO */
+
+.mes-card.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0a58ca;
+    transform: scale(1.03);
+}
+
+/* BOX MÊS SELECIONADO */
+
+.mes-selecionado {
+    margin-top: 20px;
+    background: #eef3ff;
+    border: 2px solid #0d6efd;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+/* BOTÃO EDITAR */
+
+.btn-editar {
+    border: none;
+    background: #0d6efd;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.btn-editar:hover {
+    opacity: 0.9;
+}
+
+/* ALERTA */
+
+.alerta {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    background: #198754;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: .4s;
+    font-weight: bold;
+    z-index: 9999;
+}
+
+.alerta.show {
+    opacity: 1;
+}
+
+/* RESPONSIVO */
+
+@media(max-width:900px) {
+
+    .content {
+        margin-left: 0;
+        padding: 90px 20px 20px;
+    }
+
+    .card {
+        width: 100%;
+    }
+
+}
+/* ANIMAÇÃO DOS CARDS */
+
+.card {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: .5s;
+}
+
+/* BOX SELECIONADO */
+
+#mesSelecionadoTexto {
+    line-height: 1.5;
+}
+
+/* ALERTA MODERNO */
+
+.alerta {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    background: #1f2937;
+    color: white;
+    padding: 16px 22px;
+    border-radius: 14px;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: .4s;
+    font-weight: 500;
+    z-index: 9999;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    min-width: 250px;
+}
+
+.alerta.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* BOTÃO DESABILITADO */
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

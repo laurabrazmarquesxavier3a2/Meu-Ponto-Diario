@@ -1,55 +1,20 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  background-color: #D6DDDE;
-}
-
-/* HEADER */
-.topbar {
-  height: 70px;
-  background: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 30px;
-  border-bottom: 1px solid #cfcfcf;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: bold;
-  color: #14284b;
-  font-size: 20px;
-}
-
-.logo-img {
-  width: 40px;
-}
-
-.user-area {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.avatar {
-  width: 42px;
-  height: 42px;
-  background: #14284b;
-  border-radius: 50%;
+  background: #D6DDDE;
 }
 
 /* LAYOUT */
+
 .layout {
   display: flex;
+  min-height: 100vh;
 }
 
 /* SIDEBAR */
+
 .sidebar {
   width: 260px;
-  height: calc(100vh - 70px);
   background: #f4f4f4;
   padding: 20px;
   border-right: 1px solid #d0d0d0;
@@ -57,16 +22,22 @@ body {
 
 .menu {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
   border: none;
   background: transparent;
   text-align: left;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu:hover {
+  background: #e4e4e4;
 }
 
 .menu.active {
@@ -74,60 +45,189 @@ body {
   color: white;
 }
 
-.menu:hover {
-  background: #e4e4e4;
-}
-
 /* CONTEÚDO */
+
 .content {
   flex: 1;
+  padding: 30px;
+}
+
+/* TOPO */
+
+.top-content {
   display: flex;
-  gap: 60px;
-  padding: 40px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+/* ESQUERDA */
+
+.left-side {
+  flex: 1;
 }
 
 /* CARDS */
+
 .cards {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  width: 320px;
+  margin-bottom: 25px;
 }
 
 .card-box {
   background: #efefef;
   padding: 20px;
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  border-radius: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .card-box span {
+  display: block;
+  margin-bottom: 10px;
   font-weight: 600;
+  color: #555;
+}
+
+.card-box strong {
+  font-size: 24px;
+  color: #14284b;
 }
 
 /* RELÓGIO */
+
 .clock-box {
   background: #efefef;
-  padding: 30px;
-  border-radius: 20px;
-  width: 300px;
+  padding: 50px 35px;
+  border-radius: 24px;
+  width: 420px;
+  min-width: 420px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .clock-box i {
-  font-size: 24px;
+  font-size: 40px;
+  color: #14284b;
 }
 
 .clock {
-  font-size: 48px;
+  font-size: 70px;
   font-weight: bold;
-  margin: 10px 0;
+  margin: 20px 0;
+  color: #14284b;
 }
 
 .date {
-  font-size: 14px;
+  font-size: 18px;
   color: #555;
+  text-transform: capitalize;
+}
+
+/* MENSAGEM */
+
+.message-box {
+  background: #efefef;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.message-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #14284b;
+  margin-bottom: 15px;
+}
+
+.message-text {
+  font-size: 18px;
+  color: #444;
+  min-height: 30px;
+}
+
+/* CALENDÁRIOS */
+
+.calendar-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.calendar-box {
+  background: #efefef;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #14284b;
+}
+
+.calendar-item {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border-left: 5px solid #2d5bd1;
+}
+
+.calendar-item strong {
+  display: block;
+  font-size: 14px;
+  color: #14284b;
+}
+
+.calendar-item span {
+  font-size: 13px;
+  color: #555;
+}
+
+/* SCROLL MÊS */
+
+.month-scroll {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* RESPONSIVO */
+
+@media(max-width:1200px) {
+
+  .top-content {
+    flex-direction: column;
+  }
+
+  .calendar-section {
+    grid-template-columns: 1fr;
+  }
+
+  .clock-box {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+@media(max-width:768px) {
+
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
 }

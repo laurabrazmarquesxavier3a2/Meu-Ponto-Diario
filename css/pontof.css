@@ -1,0 +1,456 @@
+/* =========================
+   GOOGLE FONT
+========================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
+/* =========================
+   RESET
+========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Manrope', sans-serif;
+}
+
+body {
+    background: #eef2f7 !important;
+    overflow-x: hidden;
+}
+
+/* =========================
+   CONTENT
+========================= */
+
+.content {
+
+    margin-left: 240px;
+
+    padding: 40px;
+
+    min-height: 100vh;
+
+}
+
+/* =========================
+   TITLE
+========================= */
+
+.title {
+
+    margin-bottom: 35px;
+
+}
+
+.title h2 {
+
+    font-size: 52px;
+
+    font-weight: 900;
+
+    color: #111;
+
+    letter-spacing: -2px;
+
+    margin-bottom: 8px;
+
+}
+
+.title p {
+
+    color: #666;
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+}
+
+/* =========================
+   TOP CONTENT
+========================= */
+
+.top-content {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr) 320px;
+
+    gap: 25px;
+
+    align-items: start;
+
+}
+
+/* =========================
+   LEFT SIDE
+========================= */
+
+.left-side {
+
+    width: 100%;
+
+    min-width: 0;
+
+}
+
+/* =========================
+   CARDS
+========================= */
+
+.cards {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 20px;
+
+    margin-bottom: 25px;
+
+}
+
+.card-box {
+
+    background: #fff;
+
+    border-radius: 28px;
+
+    padding: 28px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, .05);
+
+    transition: .3s ease;
+
+}
+
+.card-box:hover {
+
+    transform: translateY(-5px);
+
+}
+
+.card-box span {
+
+    display: block;
+
+    color: #666;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    margin-bottom: 8px;
+
+}
+
+.card-box strong {
+
+    font-size: 32px;
+
+    font-weight: 900;
+
+    color: #1f458f;
+
+}
+
+.card-box i {
+
+    width: 60px;
+
+    height: 60px;
+
+    border-radius: 20px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 22px;
+
+    background: linear-gradient(135deg,
+            #1f458f,
+            #2f6ff0);
+
+    color: #fff;
+
+}
+
+/* =========================
+   MESSAGE BOX
+========================= */
+
+.message-box {
+
+    background: #fff;
+
+    border-radius: 28px;
+
+    padding: 28px;
+
+    margin-bottom: 25px;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, .05);
+
+}
+
+.message-title {
+
+    font-size: 22px;
+
+    font-weight: 900;
+
+    color: #1f458f;
+
+    margin-bottom: 15px;
+
+}
+
+.message-title i {
+
+    margin-right: 10px;
+
+}
+
+.message-text {
+
+    font-size: 18px;
+
+    color: #333;
+
+    font-weight: 700;
+
+}
+
+/* =========================
+   CALENDÁRIO
+========================= */
+
+.calendar-section {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 25px;
+
+}
+
+.calendar-box {
+
+    background: #fff;
+
+    border-radius: 28px;
+
+    padding: 28px;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, .05);
+
+}
+
+.calendar-title {
+
+    font-size: 20px;
+
+    font-weight: 900;
+
+    color: #1f458f;
+
+    margin-bottom: 20px;
+
+}
+
+.calendar-title i {
+
+    margin-right: 8px;
+
+}
+
+.calendar-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 14px 0;
+
+    border-bottom: 1px solid #ececec;
+
+}
+
+.calendar-item:last-child {
+
+    border: none;
+
+}
+
+.calendar-item strong {
+
+    color: #111;
+
+    font-size: 16px;
+
+    font-weight: 800;
+
+}
+
+.calendar-item span {
+
+    color: #555;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+}
+
+/* =========================
+   CLOCK
+========================= */
+
+.clock-box {
+
+    width: 100%;
+
+    max-width: 320px;
+
+    background: linear-gradient(135deg,
+            #1f458f,
+            #2f6ff0);
+
+    border-radius: 35px;
+
+    padding: 40px 25px;
+
+    text-align: center;
+
+    color: #fff;
+
+    box-shadow:
+        0 20px 45px rgba(31, 69, 143, .25);
+
+    position: sticky;
+
+    top: 30px;
+
+    overflow: hidden;
+
+}
+
+.clock-box i {
+
+    font-size: 52px;
+
+    margin-bottom: 18px;
+
+}
+
+.clock {
+
+    font-size: 54px;
+
+    font-weight: 900;
+
+    letter-spacing: -2px;
+
+    line-height: 1;
+
+    word-break: break-word;
+
+}
+
+.date {
+
+    margin-top: 15px;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    opacity: .9;
+
+    line-height: 1.4;
+
+    text-transform: capitalize;
+
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+
+@media(max-width:1200px) {
+
+    .top-content {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .clock-box {
+
+        max-width: 100%;
+
+        position: relative;
+
+        top: 0;
+
+    }
+
+}
+
+@media(max-width:900px) {
+
+    .content {
+
+        margin-left: 0;
+
+        padding: 25px 20px;
+
+    }
+
+    .cards {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .calendar-section {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
+@media(max-width:600px) {
+
+    .title h2 {
+
+        font-size: 38px;
+
+    }
+
+    .clock {
+
+        font-size: 45px;
+
+    }
+
+}
