@@ -48,6 +48,12 @@
 
     </nav>
 
+           <div class="topo-botao">
+    <a href="index.html" class="btn-voltar">
+        ← Voltar para página inicial
+    </a>
+</div>
+
     <!-- CONTAINER -->
 
     <div class="container">

@@ -32,6 +32,12 @@
 
         </div>
 
+        <div class="topo-botao">
+    <a href="index.html" class="btn-voltar">
+        ← Voltar para página inicial
+    </a>
+</div>
+
     </header>
 
     <!-- CONTAINER -->
