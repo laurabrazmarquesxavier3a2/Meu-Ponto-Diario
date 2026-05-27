@@ -91,6 +91,14 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         </a>
 
+        <a href="duvidasRH.php"
+        class="<?= $pagina == 'duvidasRH.php' ? 'active' : '' ?>">
+
+         <i class="bi bi-patch-question me-2"></i>
+         Dúvidas
+
+        </a>
+
         <a href="funcionarios.php"
         class="<?= $pagina == 'funcionarios.php' ? 'active' : '' ?>">
 

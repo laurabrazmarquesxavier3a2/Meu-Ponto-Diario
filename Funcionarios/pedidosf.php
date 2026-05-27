@@ -15,12 +15,15 @@ $meses = [
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
 
     <title>Pedidos</title>
 
     <!-- BOOTSTRAP -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet">
 
     <!-- FONT AWESOME -->
     <link rel="stylesheet"
@@ -28,10 +31,12 @@ $meses = [
 
     <!-- CSS -->
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/sidebarfunc.css">
 
-    <!-- CSS ESPECÍFICO -->
-    <link rel="stylesheet" href="../css/pedidosf.css">
+    <link rel="stylesheet"
+    href="../css/sidebarfunc.css">
+
+    <link rel="stylesheet"
+    href="../css/pedidosf.css">
 
 </head>
 
@@ -44,6 +49,25 @@ $meses = [
     <main class="pedidos-page">
 
         <div class="container-fluid">
+
+            <!-- ALERTA SUCESSO -->
+            <?php if(isset($_GET['sucesso'])){ ?>
+
+                <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm border-0 rounded-4">
+
+                    <i class="fa-solid fa-circle-check me-2"></i>
+
+                    Licença enviada com sucesso.
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                    </button>
+
+                </div>
+
+            <?php } ?>
 
             <!-- TÍTULO -->
             <div class="mb-4">
@@ -71,7 +95,7 @@ $meses = [
                             <!-- HEADER -->
                             <div class="d-flex align-items-center gap-3 mb-4">
 
-                                <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                                <div class="icon-box bg-primary bg-opacity-10 text-primary p-3 rounded-4">
 
                                     <i class="fa-solid fa-umbrella-beach"></i>
 
@@ -167,7 +191,7 @@ $meses = [
                             <!-- HEADER -->
                             <div class="d-flex align-items-center gap-3 mb-4">
 
-                                <div class="icon-box bg-danger bg-opacity-10 text-danger">
+                                <div class="icon-box bg-danger bg-opacity-10 text-danger p-3 rounded-4">
 
                                     <i class="fa-solid fa-file-medical"></i>
 
@@ -243,6 +267,21 @@ $meses = [
 
                                 </div>
 
+                                <div class="mb-3">
+
+                                    <label class="form-label fw-semibold">
+                                        Observação
+                                    </label>
+
+                                    <textarea
+                                        name="observacao"
+                                        class="form-control"
+                                        rows="3"
+                                        placeholder="Digite uma observação..."
+                                    ></textarea>
+
+                                </div>
+
                                 <div class="mb-4">
 
                                     <label class="form-label fw-semibold">
@@ -291,19 +330,105 @@ $meses = [
         style="z-index:9999;"
     ></div>
 
+<!-- BOOTSTRAP -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JS -->
 <script>
 
 let mesSelecionado = null;
 
+// LIMITE
 const limiteEdicoes = 2;
 
 let edicoesRestantes = limiteEdicoes;
 
+// CONTROLE
 let sistemaBloqueado = false;
 
-function selecionarMes(botao){
+// DIREITO ÀS FÉRIAS
+let possuiDireitoFerias = true;
 
-    if(sistemaBloqueado){
+// LOAD
+window.addEventListener("load", () => {
+
+    atualizarBox();
+
+    verificarPermissaoFerias();
+
+});
+
+// VERIFICA DIREITO
+function verificarPermissaoFerias(){
+
+    if(!possuiDireitoFerias){
+
+        bloquearSistemaFerias(
+            "⚠ Você está fora do prazo para solicitar férias"
+        );
+
+    }
+
+}
+
+// BLOQUEAR SISTEMA
+function bloquearSistemaFerias(mensagem = null){
+
+    sistemaBloqueado = true;
+
+    document.querySelectorAll(".mes-btn")
+    .forEach(btn => {
+
+        btn.disabled = true;
+
+    });
+
+    const btnSolicitar =
+    document.querySelector("#btnSolicitar");
+
+    if(btnSolicitar){
+
+        btnSolicitar.disabled = true;
+
+        btnSolicitar.innerHTML =
+        "Solicitação Bloqueada";
+
+        btnSolicitar.classList.remove(
+            "btn-primary"
+        );
+
+        btnSolicitar.classList.add(
+            "btn-secondary"
+        );
+
+    }
+
+    mesSelecionado = null;
+
+    document.querySelector("#mesSelecionadoTexto")
+    .innerHTML = `
+
+        <span class="text-danger fw-bold">
+            Solicitação bloqueada
+        </span>
+
+    `;
+
+    if(mensagem){
+
+        mostrarAlerta(mensagem);
+
+    }
+
+}
+
+// SELECIONAR MÊS
+function selecionarMes(elemento){
+
+    if(
+        sistemaBloqueado ||
+        edicoesRestantes <= 0
+    ){
 
         mostrarAlerta(
             "⚠ Solicitação bloqueada"
@@ -327,31 +452,47 @@ function selecionarMes(botao){
 
     });
 
-    botao.classList.remove("btn-light");
+    elemento.classList.remove("btn-light");
 
-    botao.classList.add(
+    elemento.classList.add(
         "btn-primary",
         "text-white"
     );
 
     mesSelecionado =
-    botao.innerText;
+    elemento.innerText;
 
     atualizarBox();
 
+    mostrarAlerta(
+        "✔ " + mesSelecionado + " selecionado"
+    );
+
 }
 
+// BOX
 function atualizarBox(){
 
+    if(sistemaBloqueado){
+
+        return;
+
+    }
+
     const texto =
-    document.getElementById(
-        "mesSelecionadoTexto"
+    document.querySelector(
+        "#mesSelecionadoTexto"
     );
 
     if(!mesSelecionado){
 
-        texto.innerHTML =
-        "Nenhum mês selecionado";
+        texto.innerHTML = `
+
+            <span class="text-muted">
+                Nenhum mês selecionado
+            </span>
+
+        `;
 
         return;
 
@@ -371,12 +512,23 @@ function atualizarBox(){
 
 }
 
+// SOLICITAR
 function solicitarFerias(){
 
     if(sistemaBloqueado){
 
         mostrarAlerta(
             "⚠ Solicitação bloqueada"
+        );
+
+        return;
+
+    }
+
+    if(!possuiDireitoFerias){
+
+        mostrarAlerta(
+            "⚠ Você está fora do prazo"
         );
 
         return;
@@ -393,6 +545,12 @@ function solicitarFerias(){
 
     }
 
+    // SALVA TEMPORARIAMENTE
+    localStorage.setItem(
+        "pedidoFerias",
+        mesSelecionado
+    );
+
     mostrarAlerta(
         "🎉 Solicitação enviada para " +
         mesSelecionado
@@ -400,56 +558,31 @@ function solicitarFerias(){
 
     edicoesRestantes--;
 
-    document.getElementById(
-        "tentativasRestantes"
-    ).innerText =
-    edicoesRestantes;
+    atualizarBox();
 
     if(edicoesRestantes <= 0){
 
-        bloquearSistema();
+        bloquearSistemaFerias(
+            "⚠ Limite de solicitações atingido"
+        );
 
     }
 
-}
+    // REDIRECIONA
+    setTimeout(() => {
 
-function bloquearSistema(){
+        window.location.href =
+        "SoliLic.php";
 
-    sistemaBloqueado = true;
-
-    document.querySelectorAll(".mes-btn")
-    .forEach(btn => {
-
-        btn.disabled = true;
-
-    });
-
-    const btn =
-    document.getElementById(
-        "btnSolicitar"
-    );
-
-    btn.disabled = true;
-
-    btn.classList.remove(
-        "btn-primary"
-    );
-
-    btn.classList.add(
-        "btn-secondary"
-    );
-
-    btn.innerHTML =
-    "Limite atingido";
+    }, 1500);
 
 }
 
+// ALERTA
 function mostrarAlerta(texto){
 
     const alerta =
-    document.getElementById(
-        "alerta"
-    );
+    document.getElementById("alerta");
 
     alerta.innerHTML = texto;
 

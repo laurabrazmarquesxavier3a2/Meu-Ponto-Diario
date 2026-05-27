@@ -26,6 +26,17 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
     <nav class="menu">
 
+    <a href="banco-HorasColab.php"
+    class="<?= $pagina == 'banco-HorasColab.php' ? 'active' : '' ?>">
+
+        <i class="fa-solid fa-chart-line"></i>
+
+        <span>
+            Banco de Horas
+        </span>
+
+    </a>
+
         <a href="pontoF.php"
         class="<?= $pagina == 'pontoF.php' ? 'active' : '' ?>">
 
@@ -91,6 +102,17 @@ $pagina = basename($_SERVER['PHP_SELF']);
             </span>
 
         </a>
+
+<a href="../login.php"
+onclick="return confirm('Deseja realmente sair?')">
+
+    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>
+
+    <span>
+        Sair
+    </span>
+
+</a>
 
     </nav>
 

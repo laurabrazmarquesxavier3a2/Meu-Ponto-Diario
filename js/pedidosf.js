@@ -46,7 +46,7 @@ function bloquearSistemaFerias(mensagem = null){
 
     });
 
-    // BOTÃO SOLICITAR
+    // BOTÃO
     const btnSolicitar =
     document.querySelector("#btnSolicitar");
 
@@ -71,8 +71,9 @@ function bloquearSistemaFerias(mensagem = null){
     mesSelecionado = null;
 
     // BOX
-    document.querySelector("#mesSelecionadoTexto")
-    .innerHTML = `
+    document.querySelector(
+        "#mesSelecionadoTexto"
+    ).innerHTML = `
 
         <span class="text-danger fw-bold">
             Solicitação bloqueada
@@ -128,14 +129,17 @@ function selecionarMes(elemento){
     });
 
     // NOVO
-    elemento.classList.remove("btn-light");
+    elemento.classList.remove(
+        "btn-light"
+    );
 
     elemento.classList.add(
         "btn-primary",
         "text-white"
     );
 
-    mesSelecionado = elemento.innerText;
+    mesSelecionado =
+    elemento.innerText;
 
     atualizarBox();
 
@@ -145,7 +149,7 @@ function selecionarMes(elemento){
 
 }
 
-// ATUALIZAR BOX
+// ATUALIZA BOX
 function atualizarBox(){
 
     if(sistemaBloqueado){
@@ -205,13 +209,11 @@ function atualizarBox(){
 
 }
 
-// SOLICITAR
+// SOLICITAR FÉRIAS
 function solicitarFerias(){
 
     // BLOQUEADO
-    if(
-        sistemaBloqueado
-    ){
+    if(sistemaBloqueado){
 
         mostrarAlerta(
             "⚠ Solicitação bloqueada"
@@ -243,17 +245,18 @@ function solicitarFerias(){
 
     }
 
+    // ALERTA
     mostrarAlerta(
         "🎉 Solicitação enviada para " +
         mesSelecionado
     );
 
-    // DIMINUI APENAS AO SOLICITAR
+    // DIMINUI TENTATIVAS
     edicoesRestantes--;
 
     atualizarBox();
 
-    // BLOQUEIA SOMENTE QUANDO ACABAR
+    // BLOQUEIA AO ACABAR
     if(edicoesRestantes <= 0){
 
         bloquearSistemaFerias(
@@ -261,6 +264,37 @@ function solicitarFerias(){
         );
 
     }
+
+    // FORMULÁRIO TEMPORÁRIO
+    const form =
+    document.createElement("form");
+
+    form.method = "POST";
+
+    form.action =
+    "salvar_ferias.php";
+
+    // INPUT MÊS
+    const inputMes =
+    document.createElement("input");
+
+    inputMes.type = "hidden";
+
+    inputMes.name = "mes";
+
+    inputMes.value =
+    mesSelecionado;
+
+    form.appendChild(inputMes);
+
+    document.body.appendChild(form);
+
+    // ENVIA
+    setTimeout(() => {
+
+        form.submit();
+
+    }, 1000);
 
 }
 
@@ -272,11 +306,23 @@ function mostrarAlerta(texto){
 
     alerta.innerHTML = texto;
 
-    alerta.classList.add("show");
+    alerta.classList.remove(
+        "d-none"
+    );
+
+    alerta.classList.add(
+        "show"
+    );
 
     setTimeout(() => {
 
-        alerta.classList.remove("show");
+        alerta.classList.add(
+            "d-none"
+        );
+
+        alerta.classList.remove(
+            "show"
+        );
 
     }, 3000);
 
