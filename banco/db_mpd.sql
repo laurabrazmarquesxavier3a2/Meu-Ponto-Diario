@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.1.3
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Tempo de geração: 26/05/2026 às 22:01
--- Versão do servidor: 8.0.42
--- Versão do PHP: 8.2.12
+-- Host: localhost
+-- Tempo de geração: 26-Maio-2026 às 23:51
+-- Versão do servidor: 5.7.36
+-- versão do PHP: 8.0.16
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,19 +24,19 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `atividades`
+-- Estrutura da tabela `atividades`
 --
 
 CREATE TABLE `atividades` (
-  `id_atividade` int NOT NULL,
-  `id_usuario` int NOT NULL,
-  `descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `tipo` enum('success','primary','warning','danger') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'primary',
+  `id_atividade` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
+  `descricao` varchar(255) NOT NULL,
+  `tipo` enum('success','primary','warning','danger') DEFAULT 'primary',
   `data_atividade` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Despejando dados para a tabela `atividades`
+-- Extraindo dados da tabela `atividades`
 --
 
 INSERT INTO `atividades` (`id_atividade`, `id_usuario`, `descricao`, `tipo`, `data_atividade`) VALUES
@@ -48,69 +48,69 @@ INSERT INTO `atividades` (`id_atividade`, `id_usuario`, `descricao`, `tipo`, `da
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `banco_horas`
+-- Estrutura da tabela `banco_horas`
 --
 
 CREATE TABLE `banco_horas` (
-  `id_banco` int NOT NULL,
-  `id_funcionario` int NOT NULL,
-  `mes` varchar(7) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `id_banco` int(11) NOT NULL,
+  `id_funcionario` int(11) NOT NULL,
+  `mes` varchar(7) NOT NULL,
   `saldo_total` decimal(6,2) DEFAULT '0.00',
   `saldo_mes` decimal(6,2) DEFAULT '0.00',
   `horas_extras_mes` decimal(6,2) DEFAULT '0.00',
   `horas_debito_mes` decimal(6,2) DEFAULT '0.00',
   `data_atualizacao` date DEFAULT NULL,
-  `status` enum('positivo','negativo','neutro') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'neutro'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `status` enum('positivo','negativo','neutro') DEFAULT 'neutro'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `banco_horas_movimentacao`
+-- Estrutura da tabela `banco_horas_movimentacao`
 --
 
 CREATE TABLE `banco_horas_movimentacao` (
-  `id_mov` int NOT NULL,
-  `id_funcionario` int NOT NULL,
+  `id_mov` int(11) NOT NULL,
+  `id_funcionario` int(11) NOT NULL,
   `data` date NOT NULL,
-  `tipo` enum('extra','debito') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo` enum('extra','debito') NOT NULL,
   `horas` decimal(5,2) NOT NULL,
-  `descricao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `descricao` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `comunicados`
+-- Estrutura da tabela `comunicados`
 --
 
 CREATE TABLE `comunicados` (
-  `id` int NOT NULL,
-  `titulo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `conteudo` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `categoria` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `id` int(11) NOT NULL,
+  `titulo` varchar(255) NOT NULL,
+  `conteudo` text NOT NULL,
+  `categoria` varchar(100) DEFAULT NULL,
   `fixado` tinyint(1) DEFAULT '0',
-  `autor` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `publico` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `autor` varchar(150) DEFAULT NULL,
+  `publico` varchar(150) DEFAULT NULL,
   `data_publicacao` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `duvidas`
+-- Estrutura da tabela `duvidas`
 --
 
 CREATE TABLE `duvidas` (
-  `id` int NOT NULL,
+  `id` int(11) NOT NULL,
   `nome` varchar(100) NOT NULL,
   `email` varchar(150) NOT NULL,
   `duvida` text NOT NULL,
   `data_envio` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Despejando dados para a tabela `duvidas`
+-- Extraindo dados da tabela `duvidas`
 --
 
 INSERT INTO `duvidas` (`id`, `nome`, `email`, `duvida`, `data_envio`) VALUES
@@ -124,21 +124,21 @@ INSERT INTO `duvidas` (`id`, `nome`, `email`, `duvida`, `data_envio`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `funcionarios`
+-- Estrutura da tabela `funcionarios`
 --
 
 CREATE TABLE `funcionarios` (
-  `id_funcionario` int NOT NULL,
-  `nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `cargo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `departamento` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `id_funcionario` int(11) NOT NULL,
+  `nome` varchar(150) NOT NULL,
+  `cargo` varchar(100) DEFAULT NULL,
+  `departamento` varchar(100) DEFAULT NULL,
   `horario_padrao` time DEFAULT '09:00:00',
   `ativo` tinyint(1) DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Despejando dados para a tabela `funcionarios`
+-- Extraindo dados da tabela `funcionarios`
 --
 
 INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `horario_padrao`, `ativo`, `created_at`) VALUES
@@ -150,39 +150,39 @@ INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `holerites`
+-- Estrutura da tabela `holerites`
 --
 
 CREATE TABLE `holerites` (
-  `id` int NOT NULL,
-  `funcionario_id` int NOT NULL,
+  `id` int(11) NOT NULL,
+  `funcionario_id` int(11) NOT NULL,
   `arquivo` varchar(255) DEFAULT NULL,
   `periodo` varchar(20) NOT NULL,
   `data_envio` datetime DEFAULT CURRENT_TIMESTAMP,
   `status` enum('pendente','enviado') DEFAULT 'pendente'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `licencas_medicas`
+-- Estrutura da tabela `licencas_medicas`
 --
 
 CREATE TABLE `licencas_medicas` (
-  `id` int NOT NULL,
-  `id_funcionario` int NOT NULL,
-  `arquivo_atestado` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `tipo_arquivo` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `motivo` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `id` int(11) NOT NULL,
+  `id_funcionario` int(11) NOT NULL,
+  `arquivo_atestado` varchar(255) NOT NULL,
+  `tipo_arquivo` varchar(20) DEFAULT NULL,
+  `motivo` varchar(150) DEFAULT NULL,
   `data_inicio` date NOT NULL,
   `data_fim` date NOT NULL,
-  `dias` int DEFAULT NULL,
-  `observacao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `dias` int(11) DEFAULT NULL,
+  `observacao` varchar(255) DEFAULT NULL,
   `data_envio` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Despejando dados para a tabela `licencas_medicas`
+-- Extraindo dados da tabela `licencas_medicas`
 --
 
 INSERT INTO `licencas_medicas` (`id`, `id_funcionario`, `arquivo_atestado`, `tipo_arquivo`, `motivo`, `data_inicio`, `data_fim`, `dias`, `observacao`, `data_envio`) VALUES
@@ -193,126 +193,127 @@ INSERT INTO `licencas_medicas` (`id`, `id_funcionario`, `arquivo_atestado`, `tip
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `pontos`
+-- Estrutura da tabela `pontos`
 --
 
 CREATE TABLE `pontos` (
-  `id_ponto` int NOT NULL,
-  `id_funcionario` int NOT NULL,
+  `id_ponto` int(11) NOT NULL,
+  `id_funcionario` int(11) NOT NULL,
   `data` date NOT NULL,
   `hora_entrada` time DEFAULT NULL,
   `hora_saida` time DEFAULT NULL,
   `total_horas` decimal(5,2) DEFAULT NULL,
-  `status` enum('completo','atraso','em andamento','ausente') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'em andamento',
-  `justificativa` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` enum('completo','atraso','em andamento','ausente') DEFAULT 'em andamento',
+  `justificativa` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Despejando dados para a tabela `pontos`
+-- Extraindo dados da tabela `pontos`
 --
 
 INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hora_saida`, `total_horas`, `status`, `justificativa`, `created_at`) VALUES
-(1, 3, '2026-03-08', '08:45:00', '18:10:00', 8.25, 'completo', NULL, '2026-05-16 01:12:13'),
-(2, 4, '2026-03-08', '09:15:00', '18:00:00', 7.45, 'atraso', NULL, '2026-05-16 01:12:13'),
+(1, 3, '2026-03-08', '08:45:00', '18:10:00', '8.25', 'completo', NULL, '2026-05-16 01:12:13'),
+(2, 4, '2026-03-08', '09:15:00', '18:00:00', '7.45', 'atraso', NULL, '2026-05-16 01:12:13'),
 (3, 5, '2026-03-08', '08:50:00', NULL, NULL, 'em andamento', NULL, '2026-05-16 01:12:13');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `usuarios`
+-- Estrutura da tabela `usuarios`
 --
 
 CREATE TABLE `usuarios` (
-  `id_usuario` int NOT NULL,
-  `id_funcionario` int DEFAULT NULL,
-  `nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `senha` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `tipo` enum('rh','funcionario') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'funcionario',
-  `status` enum('ativo','inativo') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'ativo',
+  `id_usuario` int(11) NOT NULL,
+  `id_funcionario` int(11) DEFAULT NULL,
+  `nome` varchar(150) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `senha` varchar(255) NOT NULL,
+  `tipo` enum('rh','funcionario') DEFAULT 'funcionario',
+  `status` enum('ativo','inativo') DEFAULT 'ativo',
   `ultimo_login` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `cidade` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `foto` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `cargo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `departamento` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `telefone` varchar(20) DEFAULT NULL,
+  `cidade` varchar(100) DEFAULT NULL,
+  `foto` varchar(255) DEFAULT NULL,
+  `cargo` varchar(100) DEFAULT NULL,
+  `departamento` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Despejando dados para a tabela `usuarios`
+-- Extraindo dados da tabela `usuarios`
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`, `tipo`, `status`, `ultimo_login`, `created_at`, `telefone`, `cidade`, `foto`, `cargo`, `departamento`) VALUES
-(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-26 16:57:47', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos');
+(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-05-26 20:32:27', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos'),
+(4, 4, 'João Santos', 'joao@empresa.com', '$2y$10$ptIRnPXcMYLzUncmVeBfGOk4Cyb5TWkW5TQW1DolVevkhTrcCygqy', 'funcionario', 'ativo', '2026-05-26 20:47:50', '2026-05-26 23:29:03', NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Índices para tabelas despejadas
 --
 
 --
--- Índices de tabela `atividades`
+-- Índices para tabela `atividades`
 --
 ALTER TABLE `atividades`
   ADD PRIMARY KEY (`id_atividade`),
   ADD KEY `id_usuario` (`id_usuario`);
 
 --
--- Índices de tabela `banco_horas`
+-- Índices para tabela `banco_horas`
 --
 ALTER TABLE `banco_horas`
   ADD PRIMARY KEY (`id_banco`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices de tabela `banco_horas_movimentacao`
+-- Índices para tabela `banco_horas_movimentacao`
 --
 ALTER TABLE `banco_horas_movimentacao`
   ADD PRIMARY KEY (`id_mov`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices de tabela `comunicados`
+-- Índices para tabela `comunicados`
 --
 ALTER TABLE `comunicados`
   ADD PRIMARY KEY (`id`);
 
 --
--- Índices de tabela `duvidas`
+-- Índices para tabela `duvidas`
 --
 ALTER TABLE `duvidas`
   ADD PRIMARY KEY (`id`);
 
 --
--- Índices de tabela `funcionarios`
+-- Índices para tabela `funcionarios`
 --
 ALTER TABLE `funcionarios`
   ADD PRIMARY KEY (`id_funcionario`);
 
 --
--- Índices de tabela `holerites`
+-- Índices para tabela `holerites`
 --
 ALTER TABLE `holerites`
   ADD PRIMARY KEY (`id`),
   ADD KEY `funcionario_id` (`funcionario_id`);
 
 --
--- Índices de tabela `licencas_medicas`
+-- Índices para tabela `licencas_medicas`
 --
 ALTER TABLE `licencas_medicas`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices de tabela `pontos`
+-- Índices para tabela `pontos`
 --
 ALTER TABLE `pontos`
   ADD PRIMARY KEY (`id_ponto`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices de tabela `usuarios`
+-- Índices para tabela `usuarios`
 --
 ALTER TABLE `usuarios`
   ADD PRIMARY KEY (`id_usuario`),
@@ -320,111 +321,111 @@ ALTER TABLE `usuarios`
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- AUTO_INCREMENT para tabelas despejadas
+-- AUTO_INCREMENT de tabelas despejadas
 --
 
 --
 -- AUTO_INCREMENT de tabela `atividades`
 --
 ALTER TABLE `atividades`
-  MODIFY `id_atividade` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_atividade` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de tabela `banco_horas`
 --
 ALTER TABLE `banco_horas`
-  MODIFY `id_banco` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_banco` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `banco_horas_movimentacao`
 --
 ALTER TABLE `banco_horas_movimentacao`
-  MODIFY `id_mov` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_mov` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `comunicados`
 --
 ALTER TABLE `comunicados`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `duvidas`
 --
 ALTER TABLE `duvidas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de tabela `funcionarios`
 --
 ALTER TABLE `funcionarios`
-  MODIFY `id_funcionario` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_funcionario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de tabela `holerites`
 --
 ALTER TABLE `holerites`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `licencas_medicas`
 --
 ALTER TABLE `licencas_medicas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de tabela `pontos`
 --
 ALTER TABLE `pontos`
-  MODIFY `id_ponto` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_ponto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de tabela `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- Restrições para tabelas despejadas
+-- Restrições para despejos de tabelas
 --
 
 --
--- Restrições para tabelas `atividades`
+-- Limitadores para a tabela `atividades`
 --
 ALTER TABLE `atividades`
   ADD CONSTRAINT `atividades_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE;
 
 --
--- Restrições para tabelas `banco_horas`
+-- Limitadores para a tabela `banco_horas`
 --
 ALTER TABLE `banco_horas`
   ADD CONSTRAINT `banco_horas_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Restrições para tabelas `banco_horas_movimentacao`
+-- Limitadores para a tabela `banco_horas_movimentacao`
 --
 ALTER TABLE `banco_horas_movimentacao`
   ADD CONSTRAINT `banco_horas_movimentacao_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Restrições para tabelas `holerites`
+-- Limitadores para a tabela `holerites`
 --
 ALTER TABLE `holerites`
   ADD CONSTRAINT `holerites_ibfk_1` FOREIGN KEY (`funcionario_id`) REFERENCES `funcionarios` (`id_funcionario`);
 
 --
--- Restrições para tabelas `licencas_medicas`
+-- Limitadores para a tabela `licencas_medicas`
 --
 ALTER TABLE `licencas_medicas`
   ADD CONSTRAINT `licencas_medicas_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Restrições para tabelas `pontos`
+-- Limitadores para a tabela `pontos`
 --
 ALTER TABLE `pontos`
   ADD CONSTRAINT `pontos_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Restrições para tabelas `usuarios`
+-- Limitadores para a tabela `usuarios`
 --
 ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE SET NULL;

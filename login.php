@@ -10,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);
     $senha = trim($_POST['senha']);
 
-    $sql = "SELECT * FROM usuarios 
-            WHERE email = ? 
+    $sql = "SELECT * FROM usuarios
+            WHERE email = ?
             AND status = 'ativo'
             LIMIT 1";
 
@@ -25,40 +25,60 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $usuario = $resultado->fetch_assoc();
 
+        // VERIFICA SENHA HASH
         if (password_verify($senha, $usuario['senha'])) {
 
+            // SESSÕES
             $_SESSION['id_usuario'] = $usuario['id_usuario'];
+            $_SESSION['id_funcionario'] = $usuario['id_funcionario'];
             $_SESSION['nome'] = $usuario['nome'];
             $_SESSION['tipo'] = $usuario['tipo'];
 
-            $update = "UPDATE usuarios 
-                       SET ultimo_login = NOW() 
+            // ATUALIZA ÚLTIMO LOGIN
+            $update = "UPDATE usuarios
+                       SET ultimo_login = NOW()
                        WHERE id_usuario = ?";
 
             $stmtUpdate = $con->prepare($update);
             $stmtUpdate->bind_param("i", $usuario['id_usuario']);
             $stmtUpdate->execute();
 
-            header("Location: ponto.php");
-            exit;
+            // REDIRECIONAMENTO POR TIPO
+            if ($usuario['tipo'] == 'rh') {
+
+                header("Location: ponto.php");
+                exit;
+
+            } else if ($usuario['tipo'] == 'funcionario') {
+
+                header("Location: Funcionarios/pontoF.php");
+                exit;
+
+            }
 
         } else {
+
             $erro = "Senha incorreta.";
+
         }
 
     } else {
+
         $erro = "Usuário não encontrado.";
+
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Login - RH</title>
+<title>Login</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -81,22 +101,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
 
         <?php if($erro): ?>
+
             <div class="alert alert-danger">
                 <?= $erro ?>
             </div>
+
         <?php endif; ?>
 
         <form method="POST">
 
-            <input 
-                type="email" 
+            <input
+                type="email"
                 name="email"
                 class="form-control"
                 placeholder="E-mail"
                 required
             >
 
-            <input 
+            <input
                 type="password"
                 name="senha"
                 class="form-control"
