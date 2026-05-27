@@ -1,31 +1,93 @@
 <?php
-include('conexao.php'); // troque se sua conexão tiver outro nome
+require_once 'config/database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $funcionario_id = $_POST['funcionario_id'];
-    $periodo = $_POST['periodo'];
+    $funcionario_id = (int) $_POST['funcionario_id'];
+    $mes = trim($_POST['mes']);
+    $ano = trim($_POST['ano']);
 
-    // verifica se arquivo foi enviado
-    if(isset($_FILES['holerite']) && $_FILES['holerite']['error'] == 0){
+    $periodo = $mes . '/' . $ano;
 
-        $arquivo = $_FILES['holerite'];
+    /*
+    ========================================
+    VERIFICA ARQUIVO
+    ========================================
+    */
 
-        // nome único pro PDF
-        $nomeArquivo = time() . "_" . basename($arquivo['name']);
+    if (
+        isset($_FILES['arquivo']) &&
+        $_FILES['arquivo']['error'] === 0
+    ) {
 
-        // pasta onde vai salvar
-        $caminho = "uploads/" . $nomeArquivo;
+        $arquivo = $_FILES['arquivo'];
 
-        // move arquivo para pasta uploads
-        if(move_uploaded_file($arquivo['tmp_name'], $caminho)){
+        /*
+        ========================================
+        CRIAR PASTA SE NÃO EXISTIR
+        ========================================
+        */
 
-            // salva no banco
-            $sql = "INSERT INTO holerites
-            (funcionario_id, arquivo, periodo, status)
-            VALUES (?, ?, ?, 'enviado')";
+        $pasta = "uploads/holerites/";
 
-            $stmt = $conn->prepare($sql);
+        
+
+        /*
+        ========================================
+        GERAR NOME ÚNICO
+        ========================================
+        */
+
+        $extensao = strtolower(
+            pathinfo($arquivo['name'], PATHINFO_EXTENSION)
+        );
+
+        // aceita apenas PDF
+        if ($extensao !== 'pdf') {
+            die("Somente arquivos PDF são permitidos.");
+        }
+
+        $nomeArquivo =
+            uniqid('holerite_', true)
+            . '.pdf';
+
+        $caminho = $pasta . $nomeArquivo;
+
+        /*
+        ========================================
+        MOVE O ARQUIVO
+        ========================================
+        */
+
+        if (move_uploaded_file(
+            $arquivo['tmp_name'],
+            $caminho
+        )) {
+
+            /*
+            ========================================
+            SALVAR NO BANCO
+            ========================================
+            */
+
+            $sql = "
+                INSERT INTO holerites
+                (
+                    funcionario_id,
+                    arquivo,
+                    periodo,
+                    status
+                )
+                VALUES
+                (?, ?, ?, 'enviado')
+            ";
+
+            $stmt = $con->prepare($sql);
+
+            if (!$stmt) {
+                die("Erro SQL: " . $con->error);
+            }
+
             $stmt->bind_param(
                 "iss",
                 $funcionario_id,
@@ -33,19 +95,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $periodo
             );
 
-            if($stmt->execute()){
-                header("Location: holerite.php");
+            if ($stmt->execute()) {
+
+                header("Location: holerite.php?sucesso=1");
                 exit;
+
             } else {
-                echo "Erro ao salvar no banco.";
+
+                echo "Erro ao salvar no banco: "
+                . $stmt->error;
+
             }
 
         } else {
+
             echo "Erro ao mover arquivo.";
+
         }
 
     } else {
+
         echo "Nenhum arquivo enviado.";
+
     }
 }
 ?>
