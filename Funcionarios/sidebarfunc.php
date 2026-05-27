@@ -92,6 +92,15 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         </a>
 
+         <a href="comunicafunc.php"
+        class="<?= $pagina == 'comunicafunc.php' ? 'active' : '' ?>">
+
+             <i class="fa-solid fa-bullhorn"></i>
+
+            <span>
+                Comunicados
+            </span>
+
         <a href="perfilfunc.php"
         class="<?= $pagina == 'perfilfunc.php' ? 'active' : '' ?>">
 
