@@ -48,8 +48,8 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         </a>
 
-        <a href="pedidos.php"
-        class="<?= $pagina == 'pedidos.php' ? 'active' : '' ?>">
+        <a href="pedidosf.php"
+        class="<?= $pagina == 'pedidosf.php' ? 'active' : '' ?>">
 
             <i class="fa-solid fa-calendar-days"></i>
 

@@ -33,10 +33,10 @@ $pagina = basename($_SERVER['PHP_SELF']);
     <?php include 'sidebarfunc.php'; ?>
 
     <!-- MAIN -->
-    <div class="main-content">
+    <main class="main-content">
 
         <!-- TOPO -->
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 w-100">
 
             <div>
 
@@ -50,17 +50,10 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
             </div>
 
-            <button class="btn btn-success fw-semibold px-4">
-
-                <i class="fa-solid fa-plus me-2"></i>
-                Novo Pedido
-
-            </button>
-
         </div>
 
         <!-- CARD -->
-        <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 text-center w-100">
 
             <div class="mb-3">
 
@@ -72,13 +65,9 @@ $pagina = basename($_SERVER['PHP_SELF']);
                 Nenhum pedido feito no momento.
             </h4>
 
-            <p class="text-muted mb-0">
-                Clique em “Novo Pedido” para criar sua primeira solicitação
-            </p>
-
         </div>
 
-    </div>
+    </main>
 
 </body>
 

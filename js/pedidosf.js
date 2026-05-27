@@ -14,19 +14,6 @@ let possuiDireitoFerias = true;
 // LOAD
 window.addEventListener("load", () => {
 
-    const cards = document.querySelectorAll(".card");
-
-    cards.forEach((card, index) => {
-
-        setTimeout(() => {
-
-            card.style.opacity = "1";
-            card.style.transform = "translateY(0px)";
-
-        }, index * 180);
-
-    });
-
     atualizarBox();
 
     verificarPermissaoFerias();
@@ -52,34 +39,24 @@ function bloquearSistemaFerias(mensagem = null){
     sistemaBloqueado = true;
 
     // BLOQUEIA MESES
-    document.querySelectorAll(".mes-card")
-    .forEach(card => {
+    document.querySelectorAll(".mes-btn")
+    .forEach(btn => {
 
-        card.style.pointerEvents = "none";
-        card.style.opacity = "0.5";
-        card.style.filter = "grayscale(40%)";
-
-        card.classList.remove("active");
+        btn.disabled = true;
 
     });
 
     // BOTÃO SOLICITAR
     const btnSolicitar =
-    document.querySelector(".btn-solicitar");
+    document.querySelector("#btnSolicitar");
 
     if(btnSolicitar){
 
-        // DESABILITA
         btnSolicitar.disabled = true;
 
-        // REMOVE CLICK
-        btnSolicitar.onclick = null;
-
-        // TEXTO
         btnSolicitar.innerHTML =
         "Solicitação Bloqueada";
 
-        // ESTILO
         btnSolicitar.classList.remove(
             "btn-primary"
         );
@@ -87,27 +64,6 @@ function bloquearSistemaFerias(mensagem = null){
         btnSolicitar.classList.add(
             "btn-secondary"
         );
-
-        btnSolicitar.style.cursor =
-        "not-allowed";
-
-        btnSolicitar.style.opacity =
-        "0.6";
-
-    }
-
-    // BOTÃO EDITAR
-    const btnEditar =
-    document.querySelector(".btn-editar");
-
-    if(btnEditar){
-
-        btnEditar.disabled = true;
-
-        btnEditar.style.opacity = "0.5";
-
-        btnEditar.style.cursor =
-        "not-allowed";
 
     }
 
@@ -118,19 +74,13 @@ function bloquearSistemaFerias(mensagem = null){
     document.querySelector("#mesSelecionadoTexto")
     .innerHTML = `
 
-        <span style="
-            color:#dc3545;
-            font-weight:700;
-            font-size:15px;
-        ">
+        <span class="text-danger fw-bold">
             Solicitação bloqueada
         </span>
 
         <br>
 
-        <small style="
-            color:#777;
-        ">
+        <small class="text-muted">
             Limite de alterações atingido
             ou prazo encerrado.
         </small>
@@ -162,31 +112,32 @@ function selecionarMes(elemento){
 
     }
 
-    // REMOVE ANTIGOS
-    document.querySelectorAll(".mes-card")
-    .forEach(card => {
+    // REMOVE ESTILO
+    document.querySelectorAll(".mes-btn")
+    .forEach(btn => {
 
-        card.classList.remove("active");
+        btn.classList.remove(
+            "btn-primary",
+            "text-white"
+        );
+
+        btn.classList.add(
+            "btn-light"
+        );
 
     });
 
     // NOVO
-    elemento.classList.add("active");
+    elemento.classList.remove("btn-light");
+
+    elemento.classList.add(
+        "btn-primary",
+        "text-white"
+    );
 
     mesSelecionado = elemento.innerText;
 
     atualizarBox();
-
-    // EFEITO
-    elemento.style.transform =
-    "scale(1.08)";
-
-    setTimeout(() => {
-
-        elemento.style.transform =
-        "scale(1.03)";
-
-    }, 150);
 
     mostrarAlerta(
         "✔ " + mesSelecionado + " selecionado"
@@ -213,7 +164,7 @@ function atualizarBox(){
 
         texto.innerHTML = `
 
-            <span style="color:#777;">
+            <span class="text-muted">
 
                 Nenhum mês selecionado
 
@@ -254,91 +205,12 @@ function atualizarBox(){
 
 }
 
-// EDITAR
-function editarMes(){
-
-    // BLOQUEADO
-    if(
-        sistemaBloqueado ||
-        edicoesRestantes <= 0
-    ){
-
-        mostrarAlerta(
-            "⚠ Solicitação bloqueada"
-        );
-
-        return;
-
-    }
-
-    // SEM MÊS
-    if(!mesSelecionado){
-
-        mostrarAlerta(
-            "Nenhum mês selecionado"
-        );
-
-        return;
-
-    }
-
-    // CONFIRMAÇÃO
-    const confirmar = confirm(
-
-        `Tem certeza que deseja editar?\n\n` +
-
-        `O mês selecionado anteriormente será removido.\n\n` +
-
-        `Você possui apenas ${edicoesRestantes} alteração(ões) restante(s).`
-
-    );
-
-    if(!confirmar){
-
-        return;
-
-    }
-
-    // REMOVE ACTIVE
-    document.querySelectorAll(".mes-card")
-    .forEach(card => {
-
-        card.classList.remove("active");
-
-    });
-
-    // LIMPA
-    mesSelecionado = null;
-
-    // REDUZ
-    edicoesRestantes--;
-
-    atualizarBox();
-
-    mostrarAlerta(
-
-        `✏ Alteração realizada. Restam ${edicoesRestantes} edição(ões)`
-
-    );
-
-    // LIMITE
-    if(edicoesRestantes <= 0){
-
-        bloquearSistemaFerias(
-            "⚠ Limite de alterações atingido"
-        );
-
-    }
-
-}
-
 // SOLICITAR
 function solicitarFerias(){
 
     // BLOQUEADO
     if(
-        sistemaBloqueado ||
-        edicoesRestantes <= 0
+        sistemaBloqueado
     ){
 
         mostrarAlerta(
@@ -376,35 +248,19 @@ function solicitarFerias(){
         mesSelecionado
     );
 
-    // BLOQUEIA APÓS ENVIAR
-    bloquearSistemaFerias();
+    // DIMINUI APENAS AO SOLICITAR
+    edicoesRestantes--;
 
-}
+    atualizarBox();
 
-// PDF
-function enviarPDF(){
+    // BLOQUEIA SOMENTE QUANDO ACABAR
+    if(edicoesRestantes <= 0){
 
-    const arquivo =
-    document.getElementById("pdfInput");
-
-    if(arquivo.files.length === 0){
-
-        mostrarAlerta(
-            "Selecione um documento PDF"
+        bloquearSistemaFerias(
+            "⚠ Limite de solicitações atingido"
         );
 
-        return;
-
     }
-
-    const nomeArquivo =
-    arquivo.files[0].name;
-
-    mostrarAlerta(
-        "📄 " +
-        nomeArquivo +
-        " enviado com sucesso"
-    );
 
 }
 

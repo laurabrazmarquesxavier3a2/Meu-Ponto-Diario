@@ -1,0 +1,36 @@
+.pedidos-page {
+    margin-left: 250px;
+    padding: 30px;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.pedidos-page .container-fluid {
+    max-width: 100%;
+    padding: 0;
+}
+
+.icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 22px;
+}
+
+.card {
+    overflow: hidden;
+}
+
+@media(max-width: 991px) {
+
+    .pedidos-page {
+        margin-left: 0;
+        padding: 90px 15px 20px;
+    }
+
+}
