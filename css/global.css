@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Manrope', sans-serif;
+}
+
+body {
+
+    background: #ececec;
+
+    overflow-x: hidden;
+
+    color: #111;
+
+}
+
+.main,
+.content {
+
+    margin-left: 230px;
+
+    width: calc(100% - 230px);
+
+    min-height: 100vh;
+
+    padding: 40px;
+
+}
+
+.title,
+.titulo {
+
+    margin-bottom: 35px;
+
+}
+
+.title h1,
+.title h2,
+.titulo h1,
+.titulo h2 {
+
+    font-size: 38px;
+    font-weight: 800;
+
+    margin-bottom: 8px;
+
+}
+
+.title p,
+.titulo p {
+
+    color: #666;
+
+    font-size: 16px;
+
+}
+
+.cards {
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+
+}
+
+.card {
+
+    background: #fff;
+
+    border: none;
+
+    border-radius: 20px;
+
+    padding: 30px;
+
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+
+}
+
+.btn-default {
+
+    border: none;
+
+    background: #1f458f;
+    color: #fff;
+
+    padding: 12px 20px;
+
+    border-radius: 12px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: .3s;
+
+}
+
+.btn-default:hover {
+
+    transform: translateY(-2px);
+
+}
+
+.form-control,
+.form-select {
+
+    border: none !important;
+
+    background: #f4f6fb !important;
+
+    border-radius: 14px !important;
+
+    padding: 14px 16px !important;
+
+    min-height: 52px;
+
+}
+
+@media(max-width:900px) {
+
+    .main,
+    .content {
+
+        width: 100%;
+
+        margin-left: 0;
+
+        padding: 90px 20px 20px;
+
+    }
+
+}

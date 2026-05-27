@@ -33,7 +33,7 @@ window.addEventListener("load", () => {
 
 });
 
-// VERIFICA
+// VERIFICA DIREITO
 function verificarPermissaoFerias(){
 
     if(!possuiDireitoFerias){
@@ -63,17 +63,23 @@ function bloquearSistemaFerias(mensagem = null){
 
     });
 
-    // BLOQUEIA BOTÃO SOLICITAR
+    // BOTÃO SOLICITAR
     const btnSolicitar =
     document.querySelector(".btn-solicitar");
 
     if(btnSolicitar){
 
+        // DESABILITA
         btnSolicitar.disabled = true;
 
-        btnSolicitar.innerHTML =
-        "Limite Excedido";
+        // REMOVE CLICK
+        btnSolicitar.onclick = null;
 
+        // TEXTO
+        btnSolicitar.innerHTML =
+        "Solicitação Bloqueada";
+
+        // ESTILO
         btnSolicitar.classList.remove(
             "btn-primary"
         );
@@ -86,11 +92,11 @@ function bloquearSistemaFerias(mensagem = null){
         "not-allowed";
 
         btnSolicitar.style.opacity =
-        "0.7";
+        "0.6";
 
     }
 
-    // BLOQUEIA EDITAR
+    // BOTÃO EDITAR
     const btnEditar =
     document.querySelector(".btn-editar");
 
@@ -99,7 +105,9 @@ function bloquearSistemaFerias(mensagem = null){
         btnEditar.disabled = true;
 
         btnEditar.style.opacity = "0.5";
-        btnEditar.style.cursor = "not-allowed";
+
+        btnEditar.style.cursor =
+        "not-allowed";
 
     }
 
@@ -137,7 +145,7 @@ function bloquearSistemaFerias(mensagem = null){
 
 }
 
-// SELECIONAR
+// SELECIONAR MÊS
 function selecionarMes(elemento){
 
     // BLOQUEADO
@@ -170,11 +178,13 @@ function selecionarMes(elemento){
     atualizarBox();
 
     // EFEITO
-    elemento.style.transform = "scale(1.08)";
+    elemento.style.transform =
+    "scale(1.08)";
 
     setTimeout(() => {
 
-        elemento.style.transform = "scale(1.03)";
+        elemento.style.transform =
+        "scale(1.03)";
 
     }, 150);
 
@@ -184,10 +194,9 @@ function selecionarMes(elemento){
 
 }
 
-// BOX
+// ATUALIZAR BOX
 function atualizarBox(){
 
-    // BLOQUEADO
     if(sistemaBloqueado){
 
         return;
@@ -195,7 +204,9 @@ function atualizarBox(){
     }
 
     const texto =
-    document.querySelector("#mesSelecionadoTexto");
+    document.querySelector(
+        "#mesSelecionadoTexto"
+    );
 
     // SEM MÊS
     if(!mesSelecionado){
@@ -218,8 +229,10 @@ function atualizarBox(){
         `;
 
         return;
+
     }
 
+    // COM MÊS
     texto.innerHTML = `
 
         <strong>
@@ -238,6 +251,7 @@ function atualizarBox(){
         </small>
 
     `;
+
 }
 
 // EDITAR
@@ -268,7 +282,7 @@ function editarMes(){
 
     }
 
-    // CONFIRMA
+    // CONFIRMAÇÃO
     const confirmar = confirm(
 
         `Tem certeza que deseja editar?\n\n` +
@@ -285,7 +299,7 @@ function editarMes(){
 
     }
 
-    // REMOVE
+    // REMOVE ACTIVE
     document.querySelectorAll(".mes-card")
     .forEach(card => {
 
@@ -307,7 +321,7 @@ function editarMes(){
 
     );
 
-    // LIMITE ATINGIDO
+    // LIMITE
     if(edicoesRestantes <= 0){
 
         bloquearSistemaFerias(
@@ -358,9 +372,11 @@ function solicitarFerias(){
     }
 
     mostrarAlerta(
-        "🎉 Solicitação enviada para " + mesSelecionado
+        "🎉 Solicitação enviada para " +
+        mesSelecionado
     );
 
+    // BLOQUEIA APÓS ENVIAR
     bloquearSistemaFerias();
 
 }
@@ -385,7 +401,9 @@ function enviarPDF(){
     arquivo.files[0].name;
 
     mostrarAlerta(
-        "📄 " + nomeArquivo + " enviado com sucesso"
+        "📄 " +
+        nomeArquivo +
+        " enviado com sucesso"
     );
 
 }

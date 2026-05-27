@@ -2,80 +2,98 @@
 $pagina = basename($_SERVER['PHP_SELF']);
 ?>
 
-<!-- BOTÃO MOBILE -->
+<link rel="stylesheet" href="../css/sidebarfunc.css">
+
 <button class="btn-sidebar-mobile" id="btnSidebar">
-    ☰
+
+    <i class="fa-solid fa-bars"></i>
+
 </button>
 
-<!-- OVERLAY -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-<!-- LOGO -->
-<div class="logo">
+<aside class="sidebar" id="sidebar">
 
-    <img src="../img/logo-azul.png">
+    <div class="logo">
 
-    <span>
-        Meu Ponto Diário
-    </span>
+        <img src="../img/logo-azul.png">
 
-</div>
+        <span>
+            Meu Ponto Diário
+        </span>
 
-    <!-- MENU -->
-    <div class="menu">
+    </div>
+
+    <nav class="menu">
 
         <a href="pontoF.php"
         class="<?= $pagina == 'pontoF.php' ? 'active' : '' ?>">
 
-            <i class="fa-regular fa-clock"></i>
-            Histórico De Ponto
+            <i class="fa-solid fa-clock"></i>
+
+            <span>
+                Histórico de Ponto
+            </span>
 
         </a>
 
-        <a href="documentos.php"
-        class="<?= $pagina == 'documentos.php' ? 'active' : '' ?>">
+        <a href="holerite.php"
+        class="<?= $pagina == 'holerite.php' ? 'active' : '' ?>">
 
-            <i class="fa-regular fa-file"></i>
-            Solicitar Documento
+            <i class="fa-solid fa-file-lines"></i>
+
+            <span>
+                Holerite
+            </span>
 
         </a>
 
         <a href="pedidos.php"
         class="<?= $pagina == 'pedidos.php' ? 'active' : '' ?>">
 
-            <i class="fa-regular fa-envelope"></i>
-            Pedidos
+            <i class="fa-solid fa-calendar-days"></i>
+
+            <span>
+                Pedidos
+            </span>
 
         </a>
 
-        <a href="permissoes.php"
-        class="<?= $pagina == 'permissoes.php' ? 'active' : '' ?>">
+        <a href="SoliLic.php"
+        class="<?= $pagina == 'SoliLic.php' ? 'active' : '' ?>">
 
-            <i class="fa-regular fa-calendar"></i>
-            Permissões
+            <i class="fa-solid fa-file-circle-plus"></i>
+
+            <span>
+                Solicitações E Licenças
+            </span>
 
         </a>
 
         <a href="seguranca.php"
         class="<?= $pagina == 'seguranca.php' ? 'active' : '' ?>">
 
-            <i class="fa-solid fa-shield"></i>
-            Segurança
+            <i class="fa-solid fa-shield-halved"></i>
+
+            <span>
+                Segurança
+            </span>
 
         </a>
 
         <a href="perfilfunc.php"
         class="<?= $pagina == 'perfilfunc.php' ? 'active' : '' ?>">
 
-            <i class="fa-regular fa-user"></i>
-            Perfil
+            <i class="fa-solid fa-user"></i>
+
+            <span>
+                Perfil
+            </span>
 
         </a>
 
-    </div>
+    </nav>
 
-</div>
+</aside>
 
 <script src="../js/sidebarfunc.js"></script>

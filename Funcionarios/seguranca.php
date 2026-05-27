@@ -1,5 +1,5 @@
 <?php
-$pagina = basename($_SERVER['PHP_SELF']);
+session_start();
 ?>
 
 <!DOCTYPE html>
@@ -7,155 +7,139 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
 <head>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Segurança</title>
+<title>Segurança</title>
 
-    <!-- BOOTSTRAP -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- BOOTSTRAP -->
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
 
-    <!-- FONT AWESOME -->
-    <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- FONT AWESOME -->
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- CSS -->
-    <link rel="stylesheet"
-    href="../css/seguranca.css">
+<!-- CSS GLOBAL -->
+<link rel="stylesheet" href="../css/global.css">
 
 </head>
 
 <body>
 
-    <!-- ALERT -->
-    <div class="custom-alert" id="alertBox">
+<!-- SIDEBAR -->
+<?php include 'sidebarfunc.php'; ?>
 
-        <i class="fa-solid fa-circle-check"></i>
+<!-- ALERT -->
+<div
+class="position-fixed top-0 end-0 p-4"
+style="z-index:9999">
+
+    <div
+    id="alertBox"
+    class="alert alert-success shadow-lg border-0 rounded-4 d-none">
+
+        <i class="fa-solid fa-circle-check me-2"></i>
+
         Reporte enviado com sucesso!
 
     </div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
+</div>
 
-        <div class="logo">
+<!-- CONTENT -->
+<div class="content">
 
-            <img src="../img/logo-azul.png">
+    <!-- TITLE -->
+    <div class="title text-start">
 
-            <span>
-                Meu Ponto Diário
-            </span>
+        <h2>
+            Reportar Ocorrência
+        </h2>
 
-        </div>
-
-        <div class="menu">
-
-            <a href="pontoF.php">
-                <i class="fa-regular fa-clock"></i>
-                Registro de Ponto
-            </a>
-
-            <a href="documentos.php">
-                <i class="fa-regular fa-file"></i>
-                Solicitar Documento
-            </a>
-
-            <a href="pedidos.php">
-                <i class="fa-regular fa-envelope"></i>
-                Pedidos
-            </a>
-
-            <a href="permissoes.php">
-                <i class="fa-regular fa-calendar"></i>
-                Permissões
-            </a>
-
-            <a href="seguranca.php" class="active">
-                <i class="fa-solid fa-shield"></i>
-                Segurança
-            </a>
-
-            <a href="perfil.php">
-                <i class="fa-regular fa-user"></i>
-                Perfil
-            </a>
-
-        </div>
+        <p>
+            Utilize o formulário abaixo para registrar situações de risco,
+            comportamento inadequado ou problemas estruturais.
+        </p>
 
     </div>
 
-    <!-- MAIN -->
-    <div class="main">
+    <!-- CARD -->
+    <div class="card border-0 shadow-sm rounded-4">
 
-        <!-- BOLHAS -->
-        <div class="bg-circle circle1"></div>
-        <div class="bg-circle circle2"></div>
-
-        <!-- CARD -->
-        <div class="security-card">
-
-            <h1 class="title">
-                Reportar Ocorrência
-            </h1>
-
-            <p class="subtitle">
-                Utilize o formulário abaixo para registrar qualquer situação de risco,
-                comportamento inadequado ou problema estrutural.
-            </p>
+        <div class="card-body p-4 p-lg-5">
 
             <!-- FORM -->
             <form id="reportForm">
 
                 <div class="row g-4">
-<!-- CATEGORIAS MELHORES -->
-<select class="form-select" required>
 
-    <option value="">
-        Selecione uma categoria
-    </option>
+                    <!-- CATEGORIA -->
+                    <div class="col-12">
 
-    <option>
-        Assédio
-    </option>
+                        <label class="form-label fw-semibold">
 
-    <option>
-        Agressão
-    </option>
+                            Categoria
 
-    <option>
-        Discriminação
-    </option>
+                        </label>
 
-    <option>
-        Problema elétrico
-    </option>
+                        <select
+                        class="form-select form-select-lg"
+                        required>
 
-    <option>
-        Equipamento danificado
-    </option>
+                            <option value="">
+                                Selecione uma categoria
+                            </option>
 
-    <option>
-        Risco de acidente
-    </option>
+                            <option>
+                                Assédio
+                            </option>
 
-    <option>
-        Vazamento
-    </option>
+                            <option>
+                                Agressão
+                            </option>
 
-    <option>
-        Outro
-    </option>
+                            <option>
+                                Discriminação
+                            </option>
 
-</select>
+                            <option>
+                                Problema elétrico
+                            </option>
+
+                            <option>
+                                Equipamento danificado
+                            </option>
+
+                            <option>
+                                Risco de acidente
+                            </option>
+
+                            <option>
+                                Vazamento
+                            </option>
+
+                            <option>
+                                Outro
+                            </option>
+
+                        </select>
+
+                    </div>
 
                     <!-- DESCRIÇÃO -->
                     <div class="col-12">
 
-                        <label class="form-label fw-bold">
+                        <label class="form-label fw-semibold">
+
                             Descrição detalhada
+
                         </label>
 
-                        <textarea class="form-control"
+                        <textarea
+                        class="form-control"
                         rows="6"
                         placeholder="Descreva detalhadamente o ocorrido..."
                         required></textarea>
@@ -165,38 +149,36 @@ $pagina = basename($_SERVER['PHP_SELF']);
                     <!-- TESTEMUNHAS -->
                     <div class="col-12">
 
-                        <label class="form-label fw-bold">
+                        <label class="form-label fw-semibold">
+
                             Pessoas envolvidas ou testemunhas
+
                         </label>
 
-                        <input type="text"
+                        <input
+                        type="text"
                         class="form-control"
                         placeholder="Opcional">
 
                     </div>
 
-                    <!-- UPLOAD -->
+                    <!-- EVIDÊNCIAS -->
                     <div class="col-12">
 
-                        <label class="form-label fw-bold mb-3">
+                        <label class="form-label fw-semibold">
+
                             Evidências
+
                         </label>
 
-                        <div class="upload-box">
+                        <input
+                        type="file"
+                        class="form-control"
+                        multiple>
 
-                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <div class="form-text">
 
-                            <h5>
-                                Clique para enviar arquivos
-                            </h5>
-
-                            <p class="text-muted">
-                                Fotos, vídeos ou documentos
-                            </p>
-
-                            <input type="file"
-                            class="form-control mt-3"
-                            multiple>
+                            Fotos, vídeos ou documentos
 
                         </div>
 
@@ -205,9 +187,11 @@ $pagina = basename($_SERVER['PHP_SELF']);
                     <!-- BOTÃO -->
                     <div class="col-12">
 
-                        <button class="btn-report w-100">
+                        <button
+                        class="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-semibold">
 
-                            <i class="fa-solid fa-paper-plane"></i>
+                            <i class="fa-solid fa-paper-plane me-2"></i>
+
                             Enviar ocorrência
 
                         </button>
@@ -218,139 +202,40 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
             </form>
 
-            <!-- REPORTES -->
-            <div class="reports">
-
-                <h3 class="mb-4 mt-5">
-                    Últimos reportes
-                </h3>
-
-                <div class="report-item">
-
-                    <div>
-
-                        <strong>
-                            Assédio moral no setor administrativo
-                        </strong>
-
-                        <p class="text-muted mb-0">
-                            25/05/2026
-                        </p>
-
-                    </div>
-
-                    <div class="status analysis">
-                        Em análise
-                    </div>
-
-                </div>
-
-                <div class="report-item">
-
-                    <div>
-
-                        <strong>
-                            Vazamento próximo ao laboratório
-                        </strong>
-
-                        <p class="text-muted mb-0">
-                            24/05/2026
-                        </p>
-
-                    </div>
-
-                    <div class="status urgent">
-                        Urgente
-                    </div>
-
-                </div>
-
-                <div class="report-item">
-
-                    <div>
-
-                        <strong>
-                            Equipamento elétrico com defeito
-                        </strong>
-
-                        <p class="text-muted mb-0">
-                            22/05/2026
-                        </p>
-
-                    </div>
-
-                    <div class="status resolved">
-                        Resolvido
-                    </div>
-
-                </div>
-
-            </div>
-
         </div>
 
     </div>
 
-    <!-- BOOTSTRAP -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 
-    <!-- JS -->
-    <script>
+<!-- JS -->
+<script>
 
-        const form = document.getElementById('reportForm');
-        const alertBox = document.getElementById('alertBox');
+const form = document.getElementById('reportForm');
+const alertBox = document.getElementById('alertBox');
 
-        form.addEventListener('submit', function(e){
+form.addEventListener('submit', function(e){
 
-            e.preventDefault();
+    e.preventDefault();
 
-            alertBox.classList.add('show');
+    alertBox.classList.remove('d-none');
 
-            setTimeout(() => {
+    setTimeout(() => {
 
-                alertBox.classList.remove('show');
+        alertBox.classList.add('d-none');
 
-            }, 3500);
+    }, 3500);
 
-            form.reset();
+    form.reset();
 
-        });
+});
 
-        // EFEITO PARALLAX
+</script>
 
-        document.addEventListener('mousemove', (e) => {
-
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
-
-            document.querySelector('.circle1').style.transform =
-            `translate(${x * 30}px, ${y * 30}px)`;
-
-            document.querySelector('.circle2').style.transform =
-            `translate(-${x * 30}px, -${y * 30}px)`;
-
-        });
-
-        // ANIMAÇÃO DOS REPORTES
-
-        const reports = document.querySelectorAll('.report-item');
-
-        reports.forEach((item, index) => {
-
-            item.style.opacity = "0";
-            item.style.transform = "translateY(20px)";
-
-            setTimeout(() => {
-
-                item.style.transition = ".5s";
-                item.style.opacity = "1";
-                item.style.transform = "translateY(0)";
-
-            }, 300 + (index * 180));
-
-        });
-
-    </script>
+<!-- BOOTSTRAP -->
+<script
+src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
 
 </body>
 
