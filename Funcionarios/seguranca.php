@@ -76,6 +76,75 @@ style="z-index:9999">
 
                 <div class="row g-4">
 
+                    <!-- TIPO DE REPORTE -->
+                    <div class="col-12">
+
+                        <label class="form-label fw-semibold">
+
+                            Tipo de reporte
+
+                        </label>
+
+                        <div class="d-flex gap-4 mt-2">
+
+                            <div class="form-check">
+
+                                <input
+                                class="form-check-input"
+                                type="radio"
+                                name="tipoReporte"
+                                id="naoAnonimo"
+                                checked>
+
+                                <label
+                                class="form-check-label"
+                                for="naoAnonimo">
+
+                                    Identificado
+
+                                </label>
+
+                            </div>
+
+                            <div class="form-check">
+
+                                <input
+                                class="form-check-input"
+                                type="radio"
+                                name="tipoReporte"
+                                id="anonimo">
+
+                                <label
+                                class="form-check-label"
+                                for="anonimo">
+
+                                    Anônimo
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- NOME -->
+                    <div class="col-12" id="nomeBox">
+
+                        <label class="form-label fw-semibold">
+
+                            Seu nome
+
+                        </label>
+
+                        <input
+                        type="text"
+                        class="form-control"
+                        id="nomeInput"
+                        placeholder="Digite seu nome">
+
+                    </div>
+
                     <!-- CATEGORIA -->
                     <div class="col-12">
 
@@ -126,6 +195,73 @@ style="z-index:9999">
                             </option>
 
                         </select>
+
+                    </div>
+
+                    <!-- LOCAL -->
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+
+                            Andar
+
+                        </label>
+
+                        <select
+                        class="form-select"
+                        required>
+
+                            <option value="">
+                                Selecione
+                            </option>
+
+                            <option>
+                                Térreo
+                            </option>
+
+                            <option>
+                                1º Andar
+                            </option>
+
+                            <option>
+                                2º Andar
+                            </option>
+
+                            <option>
+                                3º Andar
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+
+                            Sala
+
+                        </label>
+
+                        <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Ex: Sala 12">
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+
+                            Local específico
+
+                        </label>
+
+                        <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Ex: Corredor, laboratório...">
 
                     </div>
 
@@ -214,6 +350,25 @@ style="z-index:9999">
 const form = document.getElementById('reportForm');
 const alertBox = document.getElementById('alertBox');
 
+const anonimo = document.getElementById('anonimo');
+const naoAnonimo = document.getElementById('naoAnonimo');
+
+const nomeBox = document.getElementById('nomeBox');
+const nomeInput = document.getElementById('nomeInput');
+
+anonimo.addEventListener('change', () => {
+
+    nomeBox.style.display = 'none';
+    nomeInput.value = '';
+
+});
+
+naoAnonimo.addEventListener('change', () => {
+
+    nomeBox.style.display = 'block';
+
+});
+
 form.addEventListener('submit', function(e){
 
     e.preventDefault();
@@ -227,6 +382,8 @@ form.addEventListener('submit', function(e){
     }, 3500);
 
     form.reset();
+
+    nomeBox.style.display = 'block';
 
 });
 
