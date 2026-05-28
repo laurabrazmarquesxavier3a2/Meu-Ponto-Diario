@@ -1,3 +1,4 @@
+```php
 <?php
 session_start();
 ?>
@@ -37,15 +38,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 class="position-fixed top-0 end-0 p-4"
 style="z-index:9999">
 
-    <div
-    id="alertBox"
-    class="alert alert-success shadow-lg border-0 rounded-4 d-none">
+    <?php if(isset($_GET['sucesso'])) { ?>
 
-        <i class="fa-solid fa-circle-check me-2"></i>
+        <div
+        class="alert alert-success shadow-lg border-0 rounded-4">
 
-        Reporte enviado com sucesso!
+            <i class="fa-solid fa-circle-check me-2"></i>
 
-    </div>
+            Reporte enviado com sucesso!
+
+        </div>
+
+    <?php } ?>
 
 </div>
 
@@ -72,7 +76,11 @@ style="z-index:9999">
         <div class="card-body p-4 p-lg-5">
 
             <!-- FORM -->
-            <form id="reportForm">
+            <form
+            id="reportForm"
+            action="salvar_ocorrencia.php"
+            method="POST"
+            enctype="multipart/form-data">
 
                 <div class="row g-4">
 
@@ -92,8 +100,9 @@ style="z-index:9999">
                                 <input
                                 class="form-check-input"
                                 type="radio"
-                                name="tipoReporte"
+                                name="tipo_reporte"
                                 id="naoAnonimo"
+                                value="Identificado"
                                 checked>
 
                                 <label
@@ -111,8 +120,9 @@ style="z-index:9999">
                                 <input
                                 class="form-check-input"
                                 type="radio"
-                                name="tipoReporte"
-                                id="anonimo">
+                                name="tipo_reporte"
+                                id="anonimo"
+                                value="Anônimo">
 
                                 <label
                                 class="form-check-label"
@@ -141,6 +151,7 @@ style="z-index:9999">
                         type="text"
                         class="form-control"
                         id="nomeInput"
+                        name="nome"
                         placeholder="Digite seu nome">
 
                     </div>
@@ -156,41 +167,42 @@ style="z-index:9999">
 
                         <select
                         class="form-select form-select-lg"
+                        name="categoria"
                         required>
 
                             <option value="">
                                 Selecione uma categoria
                             </option>
 
-                            <option>
+                            <option value="Assédio">
                                 Assédio
                             </option>
 
-                            <option>
+                            <option value="Agressão">
                                 Agressão
                             </option>
 
-                            <option>
+                            <option value="Discriminação">
                                 Discriminação
                             </option>
 
-                            <option>
+                            <option value="Problema elétrico">
                                 Problema elétrico
                             </option>
 
-                            <option>
+                            <option value="Equipamento danificado">
                                 Equipamento danificado
                             </option>
 
-                            <option>
+                            <option value="Risco de acidente">
                                 Risco de acidente
                             </option>
 
-                            <option>
+                            <option value="Vazamento">
                                 Vazamento
                             </option>
 
-                            <option>
+                            <option value="Outro">
                                 Outro
                             </option>
 
@@ -209,25 +221,26 @@ style="z-index:9999">
 
                         <select
                         class="form-select"
+                        name="andar"
                         required>
 
                             <option value="">
                                 Selecione
                             </option>
 
-                            <option>
+                            <option value="Térreo">
                                 Térreo
                             </option>
 
-                            <option>
+                            <option value="1º Andar">
                                 1º Andar
                             </option>
 
-                            <option>
+                            <option value="2º Andar">
                                 2º Andar
                             </option>
 
-                            <option>
+                            <option value="3º Andar">
                                 3º Andar
                             </option>
 
@@ -246,6 +259,7 @@ style="z-index:9999">
                         <input
                         type="text"
                         class="form-control"
+                        name="sala"
                         placeholder="Ex: Sala 12">
 
                     </div>
@@ -261,6 +275,7 @@ style="z-index:9999">
                         <input
                         type="text"
                         class="form-control"
+                        name="local_especifico"
                         placeholder="Ex: Corredor, laboratório...">
 
                     </div>
@@ -276,6 +291,7 @@ style="z-index:9999">
 
                         <textarea
                         class="form-control"
+                        name="descricao"
                         rows="6"
                         placeholder="Descreva detalhadamente o ocorrido..."
                         required></textarea>
@@ -294,6 +310,7 @@ style="z-index:9999">
                         <input
                         type="text"
                         class="form-control"
+                        name="testemunhas"
                         placeholder="Opcional">
 
                     </div>
@@ -310,7 +327,7 @@ style="z-index:9999">
                         <input
                         type="file"
                         class="form-control"
-                        multiple>
+                        name="evidencia">
 
                         <div class="form-text">
 
@@ -324,6 +341,7 @@ style="z-index:9999">
                     <div class="col-12">
 
                         <button
+                        type="submit"
                         class="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-semibold">
 
                             <i class="fa-solid fa-paper-plane me-2"></i>
@@ -347,9 +365,6 @@ style="z-index:9999">
 <!-- JS -->
 <script>
 
-const form = document.getElementById('reportForm');
-const alertBox = document.getElementById('alertBox');
-
 const anonimo = document.getElementById('anonimo');
 const naoAnonimo = document.getElementById('naoAnonimo');
 
@@ -369,24 +384,6 @@ naoAnonimo.addEventListener('change', () => {
 
 });
 
-form.addEventListener('submit', function(e){
-
-    e.preventDefault();
-
-    alertBox.classList.remove('d-none');
-
-    setTimeout(() => {
-
-        alertBox.classList.add('d-none');
-
-    }, 3500);
-
-    form.reset();
-
-    nomeBox.style.display = 'block';
-
-});
-
 </script>
 
 <!-- BOOTSTRAP -->
@@ -397,3 +394,4 @@ src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.j
 </body>
 
 </html>
+```
