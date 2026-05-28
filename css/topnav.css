@@ -1,0 +1,44 @@
+nav{
+    width:100%;
+    height:78px;
+    background:#143d86;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 40px;
+    box-sizing:border-box;
+}
+
+nav ul{
+    display:flex;
+    align-items:center;
+    gap:35px;
+    list-style:none;
+    margin:0;
+    padding:0;
+}
+
+nav ul li a{
+    color:white;
+    text-decoration:none;
+    font-weight:600;
+    font-size:15px;
+    transition:.2s;
+}
+
+nav ul li a:hover{
+    opacity:.8;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color:white;
+    font-weight:800;
+    font-size:30px;
+}
+
+.logo-branca{
+    width:42px;
+}

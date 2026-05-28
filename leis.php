@@ -13,30 +13,14 @@
 
     <!-- NAVBAR -->
 
-    <nav class="navbar">
 
-        <div class="logo">
+    <!-- NAVBAR -->
+    <?php include 'topnav.php'; ?>
 
-            <img class="logo-branca"
-                src="img/logo-branca.png" >
-
-            <span>MEU PONTO DIÁRIO</span>
-
-        </div>
-
-        <div class="menu">
-
-            <a href="sobre.php">Sobre</a>
-            <a href="funcionalidades.php">Funcionalidades</a>
-            <a href="ajuda.php">Ajuda</a>
-            <a href="leis.php">Leis</a>
-
-        </div>
-
-    </nav>
+  
     
         <div class="topo-botao">
-    <a href="index.html" class="btn-voltar">
+    <a href="index.php" class="btn-voltar">
         ← Voltar para página inicial
     </a>
 </div>

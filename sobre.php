@@ -2,47 +2,45 @@
 <html lang="pt-br">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
     <title>Sobre</title>
 
-    <link rel="stylesheet" href="css/ajuda.css">
+    <!-- CSS -->
+    <link
+    rel="stylesheet"
+    href="css/ajuda.css">
+
+    <link
+    rel="stylesheet"
+    href="css/style-landing.css">
+
 </head>
 
 <body>
 
     <!-- NAVBAR -->
+    <?php include 'topnav.php'; ?>
 
-    <nav class="navbar">
+    <!-- BOTÃO VOLTAR -->
+    <div class="topo-botao">
 
-        <div class="logo">
+        <a
+        href="index.php"
+        class="btn-voltar">
 
-            <img class="logo-branca"
-                src="img/logo-branca.png" >
+            ← Voltar para página inicial
 
-            <span>MEU PONTO DIÁRIO</span>
+        </a>
 
-        </div>
+    </div>
 
-        <div class="menu">
-
-            <a href="sobre.php">Sobre</a>
-            <a href="funcionalidades.php">Funcionalidades</a>
-            <a href="ajuda.php">Ajuda</a>
-            <a href="leis.php">Leis</a>
-
-        </div>
-
-    </nav>
-
-           <div class="topo-botao">
-    <a href="index.html" class="btn-voltar">
-        ← Voltar para página inicial
-    </a>
-</div>
-
-    <!-- CONTAINER -->
-
+    <!-- CONTEÚDO -->
     <div class="container">
 
         <h1 class="titulo-ajuda">
@@ -52,7 +50,6 @@
         <div class="faq-container">
 
             <!-- CARD -->
-
             <div class="faq-card">
 
                 <div class="faq-title">
@@ -68,7 +65,6 @@
             </div>
 
             <!-- CARD -->
-
             <div class="faq-card">
 
                 <div class="faq-title">
@@ -83,7 +79,6 @@
             </div>
 
             <!-- CARD -->
-
             <div class="faq-card">
 
                 <div class="faq-title">

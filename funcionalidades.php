@@ -2,46 +2,45 @@
 <html lang="pt-br">
 
 <head>
+
     <meta charset="UTF-8">
+
+    <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
     <title>Funcionalidades</title>
 
-<link rel="stylesheet" href="css/style-landing.css">
-<link rel="stylesheet" href="css/funcionalidades.css">
+    <!-- CSS -->
+    <link
+    rel="stylesheet"
+    href="css/style-landing.css">
+
+    <link
+    rel="stylesheet"
+    href="css/funcionalidades.css">
+
 </head>
 
 <body>
 
     <!-- NAVBAR -->
+    <?php include 'topnav.php'; ?>
 
-    <header class="navbar">
+    <!-- BOTÃO VOLTAR -->
+    <div class="topo-botao">
 
-        <div class="logo">
+        <a
+        href="index.html"
+        class="btn-voltar">
 
-            <img src="img/logo-branca.png" >
+            ← Voltar para página inicial
 
-            <span>MEU PONTO DIÁRIO</span>
+        </a>
 
-        </div>
-
-        <div class="menu">
-
-            <a href="sobre.php">Sobre</a>
-            <a href="funcionalidades.php">Funcionalidades</a>
-            <a href="ajuda.php">Ajuda</a>
-            <a href="leis.php">Leis</a>
-
-        </div>
-
-        <div class="topo-botao">
-    <a href="index.html" class="btn-voltar">
-        ← Voltar para página inicial
-    </a>
-</div>
-
-    </header>
+    </div>
 
     <!-- CONTAINER -->
-
     <div class="container">
 
         <h1 class="titulo">
@@ -49,12 +48,13 @@
         </h1>
 
         <!-- CARDS -->
-
         <div class="cards">
 
             <div class="card">
 
-                <h3>Gestão de Documentos</h3>
+                <h3>
+                    Gestão de Documentos
+                </h3>
 
                 <p>
                     Centralize documentos e holerites
@@ -65,7 +65,9 @@
 
             <div class="card">
 
-                <h3>Controle de Horários</h3>
+                <h3>
+                    Controle de Horários
+                </h3>
 
                 <p>
                     Controle jornada e horas extras
@@ -76,7 +78,9 @@
 
             <div class="card">
 
-                <h3>Relatórios</h3>
+                <h3>
+                    Relatórios
+                </h3>
 
                 <p>
                     Gere relatórios completos
@@ -87,7 +91,9 @@
 
             <div class="card">
 
-                <h3>Banco de Horas</h3>
+                <h3>
+                    Banco de Horas
+                </h3>
 
                 <p>
                     Acompanhe entradas, saídas
@@ -98,7 +104,9 @@
 
             <div class="card">
 
-                <h3>Alertas</h3>
+                <h3>
+                    Alertas
+                </h3>
 
                 <p>
                     Receba notificações importantes
@@ -109,7 +117,9 @@
 
             <div class="card">
 
-                <h3>Armazenamento em Nuvem</h3>
+                <h3>
+                    Armazenamento em Nuvem
+                </h3>
 
                 <p>
                     Acesse tudo de qualquer lugar
