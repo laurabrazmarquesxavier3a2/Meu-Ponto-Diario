@@ -33,7 +33,7 @@ CREATE TABLE `atividades` (
   `descricao` varchar(255) NOT NULL,
   `tipo` enum('success','primary','warning','danger') DEFAULT 'primary',
   `data_atividade` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `atividades`
@@ -61,7 +61,7 @@ CREATE TABLE `banco_horas` (
   `horas_debito_mes` decimal(6,2) DEFAULT '0.00',
   `data_atualizacao` date DEFAULT NULL,
   `status` enum('positivo','negativo','neutro') DEFAULT 'neutro'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -76,7 +76,7 @@ CREATE TABLE `banco_horas_movimentacao` (
   `tipo` enum('extra','debito') NOT NULL,
   `horas` decimal(5,2) NOT NULL,
   `descricao` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -93,7 +93,7 @@ CREATE TABLE `comunicados` (
   `autor` varchar(150) DEFAULT NULL,
   `publico` varchar(150) DEFAULT NULL,
   `data_publicacao` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `comunicados`
@@ -114,7 +114,7 @@ CREATE TABLE `duvidas` (
   `email` varchar(150) NOT NULL,
   `duvida` text NOT NULL,
   `data_envio` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `duvidas`
@@ -142,7 +142,7 @@ CREATE TABLE `funcionarios` (
   `horario_padrao` time DEFAULT '09:00:00',
   `ativo` tinyint(1) DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `funcionarios`
@@ -167,7 +167,7 @@ CREATE TABLE `holerites` (
   `periodo` varchar(20) NOT NULL,
   `data_envio` datetime DEFAULT CURRENT_TIMESTAMP,
   `status` enum('pendente','enviado') DEFAULT 'pendente'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `holerites`
@@ -195,7 +195,7 @@ CREATE TABLE `licencas_medicas` (
   `dias` int DEFAULT NULL,
   `observacao` varchar(255) DEFAULT NULL,
   `data_envio` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `licencas_medicas`
@@ -222,7 +222,7 @@ CREATE TABLE `pontos` (
   `status` enum('completo','atraso','em andamento','ausente') DEFAULT 'em andamento',
   `justificativa` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `pontos`
@@ -254,7 +254,7 @@ CREATE TABLE `usuarios` (
   `foto` varchar(255) DEFAULT NULL,
   `cargo` varchar(100) DEFAULT NULL,
   `departamento` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `usuarios`
