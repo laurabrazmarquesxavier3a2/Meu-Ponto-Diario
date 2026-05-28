@@ -1,7 +1,15 @@
 <?php require_once 'auth.php'; ?>
 
 <?php
+
+include('config/database.php');
+
+$sql = "SELECT * FROM duvidas ORDER BY data_envio DESC";
+
+$result = mysqli_query($con, $sql);
+
 $pagina = basename($_SERVER['PHP_SELF']);
+
 ?>
 
 <!DOCTYPE html>
@@ -33,14 +41,12 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
     <style>
 
-        /* CONTEÚDO */
         .content{
             margin-left:250px;
             padding:30px;
             min-height:100vh;
         }
 
-        /* TÍTULO */
         .titulo-pagina{
             font-size:52px;
             font-weight:700;
@@ -54,7 +60,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
             margin-top:8px;
         }
 
-        /* BOTÃO */
         .btn-atualizar{
 
             background:#2563eb;
@@ -74,7 +79,61 @@ $pagina = basename($_SERVER['PHP_SELF']);
             background:#1d4ed8;
         }
 
-        /* CARD */
+        .card-duvida{
+
+            background:white;
+
+            border-radius:18px;
+
+            padding:25px;
+
+            border:1px solid #d9d9d9;
+
+            box-shadow:0 2px 10px rgba(0,0,0,.03);
+
+            margin-top:25px;
+        }
+
+        .nome{
+
+            font-size:22px;
+
+            font-weight:700;
+
+            color:#14284b;
+        }
+
+        .email{
+
+            color:#64748b;
+
+            font-size:15px;
+        }
+
+        .mensagem{
+
+            background:#f8fafc;
+
+            border-radius:14px;
+
+            padding:18px;
+
+            margin-top:20px;
+
+            color:#334155;
+
+            line-height:1.6;
+        }
+
+        .data{
+
+            color:#94a3b8;
+
+            font-size:14px;
+
+            margin-top:15px;
+        }
+
         .card-vazio{
 
             margin-top:30px;
@@ -121,7 +180,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
             margin:0;
         }
 
-        /* RESPONSIVO */
         @media(max-width:768px){
 
             .content{
@@ -131,10 +189,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
             .titulo-pagina{
                 font-size:35px;
-            }
-
-            .card-vazio{
-                padding:70px 20px;
             }
 
         }
@@ -168,7 +222,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         <button
         class="btn-atualizar"
-        onclick="atualizarDuvidas()">
+        onclick="location.reload()">
 
             <i class="bi bi-arrow-clockwise me-2"></i>
 
@@ -178,103 +232,75 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
     </div>
 
-    <!-- CARD -->
-    <div class="card-vazio">
+    <?php if(mysqli_num_rows($result) > 0){ ?>
 
-        <i class="bi bi-question-circle"></i>
+        <?php while($duvida = mysqli_fetch_assoc($result)){ ?>
 
-        <h3>
-            Nenhuma dúvida encontrada
-        </h3>
+            <div class="card-duvida">
 
-        <p>
-            Ainda não existem dúvidas cadastradas no sistema.
-        </p>
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
 
-    </div>
+                    <div>
 
-</div>
+                        <div class="nome">
 
-<!-- ALERTA -->
-<div
-id="alerta"
-class="position-fixed top-0 end-0 p-3"
-style="z-index:9999;">
-</div>
+                            <?= htmlspecialchars($duvida['nome']) ?>
 
-<!-- JS SIDEBAR -->
-<script>
+                        </div>
 
-const btnSidebar =
-document.getElementById('btnSidebar');
+                        <div class="email">
 
-const sidebar =
-document.getElementById('sidebar');
+                            <?= htmlspecialchars($duvida['email']) ?>
 
-const overlay =
-document.getElementById('sidebarOverlay');
+                        </div>
 
-/* MOBILE */
+                    </div>
 
-if(btnSidebar){
+                    <span class="badge bg-primary rounded-pill px-3 py-2">
 
-    btnSidebar.addEventListener('click', () => {
+                        Nova dúvida
 
-        sidebar.classList.toggle('show');
+                    </span>
 
-        overlay.classList.toggle('show');
+                </div>
 
-    });
+                <div class="mensagem">
 
-}
+                    <?= nl2br(htmlspecialchars($duvida['duvida'])) ?>
 
-if(overlay){
+                </div>
 
-    overlay.addEventListener('click', () => {
+                <div class="data">
 
-        sidebar.classList.remove('show');
+                    <i class="bi bi-clock me-1"></i>
 
-        overlay.classList.remove('show');
+                    <?= date('d/m/Y H:i', strtotime($duvida['data_envio'])) ?>
 
-    });
+                </div>
 
-}
+            </div>
 
-/* ALERTA */
+        <?php } ?>
 
-function atualizarDuvidas(){
+    <?php } else { ?>
 
-    mostrarAlerta(
-        'Nenhuma nova dúvida encontrada.',
-        'primary'
-    );
+        <div class="card-vazio">
 
-}
+            <i class="bi bi-question-circle"></i>
 
-function mostrarAlerta(texto, tipo){
+            <h3>
+                Nenhuma dúvida encontrada
+            </h3>
 
-    const alerta =
-    document.getElementById('alerta');
-
-    alerta.innerHTML = `
-
-        <div class="alert alert-${tipo} shadow border-0 rounded-4 px-4 py-3">
-
-            ${texto}
+            <p>
+                Ainda não existem dúvidas cadastradas no sistema.
+            </p>
 
         </div>
 
-    `;
+    <?php } ?>
 
-    setTimeout(() => {
-
-        alerta.innerHTML = '';
-
-    }, 3000);
-
-}
-
-</script>
+</div>
 
 </body>
 
