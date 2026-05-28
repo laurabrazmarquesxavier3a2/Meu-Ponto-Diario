@@ -31,7 +31,7 @@
     <div class="topo-botao">
 
         <a
-        href="index.html"
+        href="index.php"
         class="btn-voltar">
 
             ← Voltar para página inicial
