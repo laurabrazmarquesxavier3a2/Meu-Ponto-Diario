@@ -27,173 +27,12 @@
       </div>
 
       <div class="hero-image">
-        <svg
-          viewBox="0 0 480 360"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect x="60" y="240" width="360" height="14" rx="7" fill="#bdd0f7" />
-          <rect x="100" y="254" width="12" height="60" rx="6" fill="#a3bbef" />
-          <rect x="368" y="254" width="12" height="60" rx="6" fill="#a3bbef" />
-          <rect
-            x="160"
-            y="165"
-            width="160"
-            height="100"
-            rx="8"
-            fill="#1e4ea1"
-          />
-          <rect
-            x="168"
-            y="173"
-            width="144"
-            height="84"
-            rx="4"
-            fill="#2d7ef7"
-            opacity=".7"
-          />
-          <rect
-            x="178"
-            y="185"
-            width="60"
-            height="6"
-            rx="3"
-            fill="white"
-            opacity=".6"
-          />
-          <rect
-            x="178"
-            y="197"
-            width="96"
-            height="5"
-            rx="2.5"
-            fill="white"
-            opacity=".35"
-          />
-          <rect
-            x="178"
-            y="208"
-            width="76"
-            height="5"
-            rx="2.5"
-            fill="white"
-            opacity=".35"
-          />
-          <rect
-            x="178"
-            y="219"
-            width="50"
-            height="5"
-            rx="2.5"
-            fill="white"
-            opacity=".35"
-          />
-          <rect
-            x="254"
-            y="215"
-            width="14"
-            height="30"
-            rx="3"
-            fill="white"
-            opacity=".5"
-          />
-          <rect
-            x="272"
-            y="200"
-            width="14"
-            height="45"
-            rx="3"
-            fill="white"
-            opacity=".7"
-          />
-          <rect
-            x="290"
-            y="210"
-            width="14"
-            height="35"
-            rx="3"
-            fill="white"
-            opacity=".5"
-          />
-          <rect x="140" y="265" width="200" height="10" rx="5" fill="#1a3a6b" />
-          <circle cx="130" cy="148" r="26" fill="#f4c9a0" />
-          <rect x="104" y="175" width="52" height="70" rx="10" fill="#1e4ea1" />
-          <rect
-            x="152"
-            y="190"
-            width="45"
-            height="10"
-            rx="5"
-            fill="#f4c9a0"
-            transform="rotate(-20 152 190)"
-          />
-          <circle cx="240" cy="148" r="24" fill="#8d5524" />
-          <rect x="216" y="173" width="48" height="68" rx="10" fill="#2d7ef7" />
-          <circle cx="348" cy="148" r="26" fill="#f4c9a0" />
-          <rect x="322" y="175" width="52" height="70" rx="10" fill="#6b8dc7" />
-          <rect
-            x="335"
-            y="146"
-            width="14"
-            height="9"
-            rx="4"
-            fill="none"
-            stroke="#555"
-            stroke-width="2"
-          />
-          <rect
-            x="352"
-            y="146"
-            width="14"
-            height="9"
-            rx="4"
-            fill="none"
-            stroke="#555"
-            stroke-width="2"
-          />
-          <line
-            x1="349"
-            y1="150"
-            x2="352"
-            y2="150"
-            stroke="#555"
-            stroke-width="2"
-          />
-          <rect
-            x="62"
-            y="150"
-            width="62"
-            height="76"
-            rx="6"
-            fill="white"
-            opacity=".9"
-            filter="url(#sh)"
-          />
-          <rect
-            x="70"
-            y="163"
-            width="40"
-            height="5"
-            rx="2.5"
-            fill="#2d7ef7"
-            opacity=".6"
-          />
-          <rect x="70" y="173" width="46" height="4" rx="2" fill="#adc3f5" />
-          <rect x="70" y="182" width="36" height="4" rx="2" fill="#adc3f5" />
-          <rect x="70" y="191" width="42" height="4" rx="2" fill="#adc3f5" />
-          <rect x="70" y="200" width="30" height="4" rx="2" fill="#adc3f5" />
-          <defs>
-            <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow
-                dx="0"
-                dy="4"
-                stdDeviation="6"
-                flood-color="#1a3a6b"
-                flood-opacity=".15"
-              />
-            </filter>
-          </defs>
-        </svg>
+  
+      <img
+        src="img/save-time.png"
+        alt="Save Time"
+        class="hero-img-custom"
+    >
       </div>
     </section>
 
@@ -214,10 +53,10 @@
         </div>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📊</div>
+        <div class="feature-icon">📋</div>
         <div>
-          <h3>Relatórios</h3>
-          <p>Gere relatórios completos e exportáveis em segundos.</p>
+          <h3>Histórico de ponto</h3>
+          <p>Acesse o histórico completo de batidas de ponto.</p>
         </div>
       </div>
     </section>
@@ -234,56 +73,98 @@
       </div>
 
       <div class="pricing-grid">
-        <!-- CARD 1: Assinatura Mensal -->
-        <div class="pricing-card card-light">
-          <div class="plan-icon">📅</div>
-          <div class="plan-name">Assinatura Mensal</div>
-          <div class="plan-desc">
-            Ideal para empresas que preferem previsibilidade: pague um valor
-            fixo e acesse todas as funcionalidades sem surpresas no final do
-            mês.
-          </div>
-          <hr class="divider" />
-          <ul class="check-list">
-            <li class="check-item">
-              <span class="check-icon">✓</span> Usuários ilimitados
-            </li>
-            <li class="check-item">
-              <span class="check-icon">✓</span> Gestão completa de ponto
-            </li>
-            <li class="check-item">
-              <span class="check-icon">✓</span> Relatórios automáticos
-            </li>
-            <li class="check-item">
-              <span class="check-icon">✓</span> Suporte via e-mail
-            </li>
-          </ul>
-        </div>
+ <!-- CARD 1: Pequenas Empresas -->
+<a href="cadastro-empresa.php" class="card-link">
+<div class="pricing-card card-light featured">
 
-        <!-- CARD 2: Cobrança por Colaborador -->
-        <div class="pricing-card card-dark featured">
-          <div class="badge">⭐ Popular</div>
-          <div class="plan-icon">👥</div>
-          <div class="plan-name">Cobrança por Colaborador</div>
-          <div class="plan-desc">
-            Perfeito para empresas em crescimento: pague somente pelos
-            colaboradores ativos cadastrados na plataforma, sem custo fixo
-            elevado.
-          </div>
-          <hr class="divider" />
-          <ul class="check-list">
-            <li class="check-item">
-              <span class="check-icon">✓</span> Escala com sua equipe
-            </li>
-            <li class="check-item">
-              <span class="check-icon">✓</span> Gestão completa de ponto
-            </li>
-            <li class="check-item">
-              <span class="check-icon">✓</span> Suporte prioritário 24/7
-            </li>
-          </ul>
-        </div>
-      </div>
+    <div class="plan-icon">🏢</div>
+
+    <div class="plan-name">
+        Plano Pequeno Porte
+    </div>
+
+    <div class="plan-desc">
+        Ideal para empresas em fase de crescimento que precisam organizar
+        funcionários, ponto eletrônico, férias, licenças e banco de horas
+        em um único sistema.
+    </div>
+
+    <hr class="divider" />
+
+    <ul class="check-list">
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            De 10 a 49 usuários
+        </li>
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            Gestão de férias e licenças
+        </li>
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            Banco de horas
+        </li>
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            Relatórios automáticos
+        </li>
+
+    </ul>
+
+</div>
+</a>
+
+
+<!-- CARD 2: Médias Empresas -->
+<a href="cadastro-empresa.php" class="card-link">
+<div class="pricing-card card-dark featured">
+
+    <div class="badge">⭐ Recomendado</div>
+
+    <div class="plan-icon">🏬</div>
+
+    <div class="plan-name">
+        Plano Médio Porte
+    </div>
+
+    <div class="plan-desc">
+        Desenvolvido para empresas com maior volume de colaboradores,
+        múltiplas lojas e necessidade de gestão centralizada do RH.
+    </div>
+
+    <hr class="divider" />
+
+    <ul class="check-list">
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            De 50 a 100 usuários
+        </li>
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            Gestão de férias e licenças
+        </li>
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            Banco de horas
+        </li>
+
+
+        <li class="check-item">
+            <span class="check-icon">✓</span>
+            Suporte prioritário
+        </li>
+
+    </ul>
+
+</div>
+</a>
     </section>
 
     <div class="footer-band">
@@ -291,7 +172,7 @@
         <h3>Pronto para transformar seu RH?</h3>
         <p>Experimente grátis por 14 dias. Sem cartão de crédito.</p>
       </div>
-      <a href="#" class="btn-primary" style="white-space: nowrap"
+      <a href="cadastro-empresa.php" class="btn-primary" style="white-space: nowrap"
         >Criar conta gratuita</a
       >
     </div>

@@ -142,13 +142,16 @@ nav ul a:hover { color: var(--white); }
 }
 
 .hero-image {
-  animation: fadeUp .7s .15s ease both;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 16px 48px rgba(30,78,161,.18);
-  aspect-ratio: 4/3;
-  background: linear-gradient(135deg, #dbe8ff 0%, #c3d6ff 100%);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-img-custom {
+  max-width: 680px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .hero-image svg { width: 85%; height: 85%; }

@@ -107,6 +107,15 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         </a>
 
+
+        <a href="cadastrarUsuario.php"
+class="<?= $pagina == 'cadastrarUsuario.php' ? 'active' : '' ?>">
+
+    <i class="bi bi-person-fill-add me-2"></i>
+    Cadastrar Usuário
+
+</a>
+        
     </div>
 
     <!-- RODAPÉ -->
@@ -136,6 +145,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         </a>
 
+        
     </div>
 
 </div>

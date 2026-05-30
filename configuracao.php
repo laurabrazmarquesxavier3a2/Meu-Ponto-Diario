@@ -109,6 +109,7 @@
 
             </div>
         </div>
+<?php require_once 'auth.php'; ?>
 
         <!-- APARÊNCIA -->
         <div class="col-md-6">
@@ -120,19 +121,24 @@
 
                 <label class="fw-semibold mb-2">Tema</label>
 
-                <div class="d-flex gap-2 mb-3">
-                <button id="lightMode"
-                    class="btn btn-primary w-100">
-                    Claro
-                </button>
+                <div class="d-flex gap-2">
+                    <button id="lightMode" class="btn btn-primary w-100">
+                        Claro
+                    </button>
 
-                <button id="darkMode"
-                    class="btn btn-outline-dark w-100">
-                    Escuro
-                </button>
+                    <button id="darkMode" class="btn btn-outline-dark w-100">
+                        Escuro
+                    </button>
                 </div>
+
             </div>
         </div>
+
+    </div>
+
+</div>
+
+<script src="js/theme.js"></script>
 
         <!-- PERMISSÕES -->
         <div class="col-md-6">
