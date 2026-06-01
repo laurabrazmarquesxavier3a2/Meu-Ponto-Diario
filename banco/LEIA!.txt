@@ -14,3 +14,14 @@ email:
 joao@empresa.com
 senha:
 123
+
+outros funcionarios testes
+
+email: jorgeLimpeza@gmail.com
+senha: 54321
+
+email: marceloADM@gmail.com
+senha: 1234
+
+email: SabrinaRH@gmail.com
+senha: sabrina

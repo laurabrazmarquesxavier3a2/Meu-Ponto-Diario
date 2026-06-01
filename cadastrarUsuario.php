@@ -1,8 +1,121 @@
-<?php
+ <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require_once 'auth.php';
+require_once 'config/database.php';
+
+$mensagem = '';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+ $tipo = $_POST['tipo'] ?? '';
+
+$nome = trim($_POST['nome'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$senha = $_POST['senha'] ?? '';
+
+$cargo = trim($_POST['cargo'] ?? '');
+$departamento = trim($_POST['departamento'] ?? '');
+$horario = trim($_POST['horario'] ?? '');
+
+    $escala = trim($_POST['escala'] ?? '');
+    $supervisor = trim($_POST['supervisor'] ?? '');
+
+    $verifica = $con->prepare(
+        "SELECT id_usuario
+         FROM usuarios
+         WHERE email = ?"
+    );
+
+    $verifica->bind_param("s", $email);
+    $verifica->execute();
+
+    $resultado = $verifica->get_result();
+
+    if ($resultado->num_rows > 0) {
+
+        echo "<script>
+                alert('Este e-mail já está cadastrado.');
+              </script>";
+
+    } else {
+
+        $stmtFunc = $con->prepare(
+            "INSERT INTO funcionarios
+            (
+                nome,
+                cargo,
+                departamento,
+                horario_padrao,
+                escala,
+                supervisor
+            )
+            VALUES
+            (?, ?, ?, ?, ?, ?)"
+        );
+
+        $stmtFunc->bind_param(
+            "ssssss",
+            $nome,
+            $cargo,
+            $departamento,
+            $horario,
+            $escala,
+            $supervisor
+        );
+
+        $stmtFunc->execute();
+
+        $idFuncionario = $con->insert_id;
+
+        $senhaHash = password_hash(
+            $senha,
+            PASSWORD_DEFAULT
+        );
+
+        $stmtUser = $con->prepare(
+            "INSERT INTO usuarios
+            (
+                id_funcionario,
+                nome,
+                email,
+                senha,
+                tipo,
+                cargo,
+                departamento
+            )
+            VALUES
+            (?, ?, ?, ?, ?, ?, ?)"
+        );
+
+        $stmtUser->bind_param(
+            "issssss",
+            $idFuncionario,
+            $nome,
+            $email,
+            $senhaHash,
+            $tipo,
+            $cargo,
+            $departamento
+        );
+
+        if ($stmtUser->execute()) {
+
+             $mensagem = '
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <strong>Sucesso!</strong> Usuário cadastrado com sucesso.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>';
+
+        } else {
+
+            echo "<script>
+                    alert('Erro ao cadastrar usuário.');
+                  </script>";
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -28,6 +141,8 @@ require_once 'auth.php';
 
 <div class="content">
 
+   <?php echo $mensagem; ?>
+
     <h1 class="fw-bold">
         Cadastrar Usuário
     </h1>
@@ -38,7 +153,7 @@ require_once 'auth.php';
 
     <div class="container-fluid">
 
-        <!-- DADOS PRINCIPAIS -->
+    <form method="POST">
 
         <div class="card card-dashboard p-4">
 
@@ -65,9 +180,12 @@ require_once 'auth.php';
                         Tipo de Usuário
                     </label>
 
-                    <select class="form-select" id="tipoUsuario">
+                    <select 
+                     class="form-select"
+                      id="tipoUsuario"
+                      name="tipo">
 
-                        <option value="colaborador">
+                        <option value="funcionario">
                             Colaborador
                         </option>
 
@@ -95,7 +213,11 @@ require_once 'auth.php';
                         E-mail
                     </label>
 
-                    <input type="email" class="form-control">
+                     <input
+                            type="email"
+                            class="form-control"
+                            name="email"
+                               required>
 
                 </div>
 
@@ -105,7 +227,11 @@ require_once 'auth.php';
                         Senha
                     </label>
 
-                    <input type="password" class="form-control">
+                     <input
+                       type="password"
+                       class="form-control"
+                       name="senha"
+                       required>
 
                 </div>
 
@@ -115,7 +241,11 @@ require_once 'auth.php';
                         Cargo
                     </label>
 
-                    <input type="text" class="form-control">
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="cargo"
+                        required>
 
                 </div>
 
@@ -125,7 +255,11 @@ require_once 'auth.php';
                         Setor
                     </label>
 
-                    <input type="text" class="form-control">
+                     <input
+                        type="text"
+                         class="form-control"
+                         name="departamento"
+                          required>
 
                 </div>
 
@@ -136,10 +270,11 @@ require_once 'auth.php';
                     </label>
 
                     <input
-                        type="text"
-                        class="form-control"
-                        placeholder="08:00 às 17:00">
-
+                      type="time"
+                      class="form-control"
+                       name="horario"
+                       value="08:00"
+                       required>
                 </div>
 
             </div>
@@ -168,6 +303,7 @@ require_once 'auth.php';
                     <input
                         type="text"
                         class="form-control"
+                        name="escala"
                         placeholder="5x2, 6x1">
 
                 </div>
@@ -178,7 +314,9 @@ require_once 'auth.php';
                         Supervisor
                     </label>
 
-                    <input type="text" class="form-control">
+                    <input type="text" 
+                    class="form-control"
+                    name="supervisor">
 
                 </div>
 
@@ -248,8 +386,8 @@ require_once 'auth.php';
 
                     <input
                         type="file"
-                        class="form-control">
-
+                        class="form-control"
+                        disabled>
                 </div>
 
             </div>
@@ -270,6 +408,7 @@ require_once 'auth.php';
                 </a>
 
                 <button
+                    type="submit"
                     class="btn btn-primary btn-lg px-5">
 
                     <i class="bi bi-floppy me-2"></i>
@@ -284,6 +423,8 @@ require_once 'auth.php';
     </div>
 
 </div>
+
+</form>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
