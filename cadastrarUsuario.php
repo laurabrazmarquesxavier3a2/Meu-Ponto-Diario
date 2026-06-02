@@ -42,6 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             LIMIT 1
         ");
 
+        if (!$verifica) {
+            die("ERRO SQL VERIFICA USUÁRIO: " . $con->error);
+        }
+
         $verifica->bind_param("s", $email);
         $verifica->execute();
         $resultado = $verifica->get_result();
@@ -65,6 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
 
+            if (!$stmtFunc) {
+                die("ERRO SQL FUNCIONÁRIO: " . $con->error);
+            }
+
             $stmtFunc->bind_param(
                 "ssssssi",
                 $nome,
@@ -76,81 +84,75 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $idEmpresa
             );
 
-            if ($stmtFunc->execute()) {
-
-                $idFuncionario = $con->insert_id;
-
-                $fotoBanco = null;
-
-                if (!empty($_FILES['foto']['name'])) {
-
-                    if (!is_dir("uploads/perfis")) {
-                        mkdir("uploads/perfis", 0777, true);
-                    }
-
-                    $extensao = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-                    $nomeFoto = uniqid("perfil_") . "." . $extensao;
-                    $destino = "uploads/perfis/" . $nomeFoto;
-
-                    if (move_uploaded_file($_FILES['foto']['tmp_name'], $destino)) {
-                        $fotoBanco = $destino;
-                    }
-                }
-
-                $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-
-                $stmtUser = $con->prepare("
-                    INSERT INTO usuarios (
-                        id_funcionario,
-                        nome,
-                        email,
-                        senha,
-                        tipo,
-                        status,
-                        telefone,
-                        cidade,
-                        foto,
-                        cargo,
-                        departamento,
-                        id_empresa
-                    )
-                    VALUES (
-                        ?, ?, ?, ?, ?, 'ativo',
-                        NULL, NULL, ?, ?, ?, ?
-                    )
-                ");
-
-                $stmtUser->bind_param(
-                    "isssssssi",
-                    $idFuncionario,
-                    $nome,
-                    $email,
-                    $senhaHash,
-                    $tipo,
-                    $fotoBanco,
-                    $cargo,
-                    $departamento,
-                    $idEmpresa
-                );
-
-                if ($stmtUser->execute()) {
-
-                    $mensagem = "Usuário cadastrado com sucesso.";
-
-                } else {
-
-                    $erro = "Erro ao cadastrar usuário: " . $stmtUser->error;
-                }
-
-            } else {
-
-                $erro = "Erro ao cadastrar funcionário: " . $stmtFunc->error;
+            if (!$stmtFunc->execute()) {
+                die("ERRO EXEC FUNCIONÁRIO: " . $stmtFunc->error);
             }
+
+            $idFuncionario = $con->insert_id;
+
+            $fotoBanco = null;
+
+            if (!empty($_FILES['foto']['name'])) {
+
+                if (!is_dir("uploads/perfis")) {
+                    mkdir("uploads/perfis", 0777, true);
+                }
+
+                $extensao = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+                $nomeFoto = uniqid("perfil_") . "." . $extensao;
+                $destino = "uploads/perfis/" . $nomeFoto;
+
+                if (move_uploaded_file($_FILES['foto']['tmp_name'], $destino)) {
+                    $fotoBanco = $destino;
+                }
+            }
+
+            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+
+            $stmtUser = $con->prepare("
+                INSERT INTO usuarios (
+                    id_funcionario,
+                    nome,
+                    email,
+                    senha,
+                    tipo,
+                    status,
+                    foto,
+                    cargo,
+                    departamento,
+                    id_empresa
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?
+                )
+            ");
+
+            if (!$stmtUser) {
+                die("ERRO SQL USUÁRIO: " . $con->error);
+            }
+
+            $stmtUser->bind_param(
+                "isssssssi",
+                $idFuncionario,
+                $nome,
+                $email,
+                $senhaHash,
+                $tipo,
+                $fotoBanco,
+                $cargo,
+                $departamento,
+                $idEmpresa
+            );
+
+            if (!$stmtUser->execute()) {
+                die("ERRO EXEC USUÁRIO: " . $stmtUser->error);
+            }
+
+            $mensagem = "Usuário cadastrado com sucesso.";
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
