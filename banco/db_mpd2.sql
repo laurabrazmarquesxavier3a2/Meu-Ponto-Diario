@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 02-Jun-2026 às 04:29
+-- Tempo de geração: 02-Jun-2026 às 04:33
 -- Versão do servidor: 5.7.36
 -- versão do PHP: 8.1.3
 
@@ -274,6 +274,29 @@ INSERT INTO `licencas_medicas` (`id`, `id_funcionario`, `arquivo_atestado`, `tip
 -- --------------------------------------------------------
 
 --
+-- Estrutura da tabela `ocorrencias`
+--
+
+CREATE TABLE `ocorrencias` (
+  `id_ocorrencia` int(11) NOT NULL,
+  `id_empresa` int(11) NOT NULL,
+  `id_usuario` int(11) DEFAULT NULL,
+  `tipo_reporte` varchar(30) DEFAULT NULL,
+  `nome` varchar(150) DEFAULT NULL,
+  `categoria` varchar(100) DEFAULT NULL,
+  `andar` varchar(50) DEFAULT NULL,
+  `sala` varchar(100) DEFAULT NULL,
+  `local_especifico` varchar(255) DEFAULT NULL,
+  `descricao` text,
+  `testemunhas` varchar(255) DEFAULT NULL,
+  `evidencia` varchar(255) DEFAULT NULL,
+  `status` enum('aberta','em_analise','resolvida') DEFAULT 'aberta',
+  `data_ocorrencia` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura da tabela `pontos`
 --
 
@@ -404,6 +427,12 @@ ALTER TABLE `licencas_medicas`
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
+-- Índices para tabela `ocorrencias`
+--
+ALTER TABLE `ocorrencias`
+  ADD PRIMARY KEY (`id_ocorrencia`);
+
+--
 -- Índices para tabela `pontos`
 --
 ALTER TABLE `pontos`
@@ -481,6 +510,12 @@ ALTER TABLE `holerites`
 --
 ALTER TABLE `licencas_medicas`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de tabela `ocorrencias`
+--
+ALTER TABLE `ocorrencias`
+  MODIFY `id_ocorrencia` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `pontos`
