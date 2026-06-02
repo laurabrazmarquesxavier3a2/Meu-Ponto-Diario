@@ -61,9 +61,7 @@ if (isset($_POST['editar_funcionario'])) {
     $resultado = $verifica->get_result();
 
     if ($resultado->num_rows > 0) {
-
         $erros[] = "Este e-mail já está sendo usado por outro usuário.";
-
     } else {
 
         $stmtFunc = $con->prepare("
@@ -680,6 +678,7 @@ Pedro Santos;pedro@email.com;Gerente;Financeiro</pre>
                                         <th>Funcionário</th>
                                         <th>Cargo</th>
                                         <th>Departamento</th>
+                                        <th>Status</th>
                                         <th class="text-end">Ações</th>
                                     </tr>
                                 </thead>
@@ -719,6 +718,24 @@ Pedro Santos;pedro@email.com;Gerente;Financeiro</pre>
                                                 <span class="badge bg-light text-dark border">
                                                     <?= htmlspecialchars($func['departamento'] ?? '-') ?>
                                                 </span>
+                                            </td>
+
+                                            <td>
+                                                <?php
+                                                $status = $func['status'] ?? 'ativo';
+
+                                                if ($status == 'ativo') {
+                                                    echo '<span class="badge bg-success">Ativo</span>';
+                                                } elseif ($status == 'inativo') {
+                                                    echo '<span class="badge bg-secondary">Inativo</span>';
+                                                } elseif ($status == 'ferias') {
+                                                    echo '<span class="badge bg-info text-dark">Férias</span>';
+                                                } elseif ($status == 'licenca') {
+                                                    echo '<span class="badge bg-warning text-dark">Licença</span>';
+                                                } elseif ($status == 'afastado') {
+                                                    echo '<span class="badge bg-danger">Afastado</span>';
+                                                }
+                                                ?>
                                             </td>
 
                                             <td class="text-end">
@@ -768,7 +785,7 @@ Pedro Santos;pedro@email.com;Gerente;Financeiro</pre>
                                 <?php else: ?>
 
                                     <tr>
-                                        <td colspan="4" class="text-center py-5">
+                                        <td colspan="5" class="text-center py-5">
 
                                             <i class="bi bi-people text-muted display-1"></i>
 
@@ -814,12 +831,6 @@ Pedro Santos;pedro@email.com;Gerente;Financeiro</pre>
                     Alterar senha padrão
                 </h5>
                 
-                <button
-                    type="button"
-                    class="btn btn-light btn-sm ms-3"
-                    data-bs-dismiss="modal">
-                    ✕
-                </button>
             </div>
 
             <form method="POST">
@@ -875,12 +886,7 @@ Pedro Santos;pedro@email.com;Gerente;Financeiro</pre>
                     Editar funcionário
                 </h5>
 
-                <button
-                    type="button"
-                    class="btn btn-light btn-sm ms-3"
-                    data-bs-dismiss="modal">
-                    ✕
-                </button>
+                
             </div>
 
             <form method="POST">
@@ -914,6 +920,9 @@ Pedro Santos;pedro@email.com;Gerente;Financeiro</pre>
                             <select name="status" id="edit_status" class="form-select" required>
                                 <option value="ativo">Ativo</option>
                                 <option value="inativo">Inativo</option>
+                                <option value="ferias">Férias</option>
+                                <option value="licenca">Licença</option>
+                                <option value="afastado">Afastado</option>
                             </select>
                         </div>
 
