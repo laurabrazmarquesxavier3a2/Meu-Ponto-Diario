@@ -1,4 +1,3 @@
-
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
@@ -10,13 +9,20 @@ require_once 'config/database.php';
 $idEmpresa = $_SESSION['id_empresa'] ?? 0;
 
 if (!$idEmpresa) {
-    die("Empresa não identificada.");
+    die("Empresa não identificada. Faça login novamente.");
 }
+
+$mensagem = '';
+$erro = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['atualizar_status'])) {
 
-    $idOcorrencia = (int) $_POST['id_ocorrencia'];
+    $idOcorrencia = (int)($_POST['id_ocorrencia'] ?? 0);
     $status = $_POST['status'] ?? '';
+
+    if (!$idOcorrencia) {
+        die("ID da ocorrência inválido.");
+    }
 
     if (!in_array($status, ['aberta', 'em_analise', 'resolvida'])) {
         die("Status inválido: " . htmlspecialchars($status));
@@ -35,55 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['atualizar_status'])) 
     header("Location: emergencias.php?status_ok=1");
     exit;
 }
-?>
-<?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 
-require_once 'auth.php';
-require_once 'config/database.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['excluir_ocorrencia'])) {
 
-$idEmpresa = $_SESSION['id_empresa'] ?? 0;
-
-if (!$idEmpresa) {
-    die("Empresa não identificada. Faça login novamente.");
-}
-
-$mensagem = '';
-$erro = '';
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['atualizar_status'])) {
-
-    $idOcorrencia = intval($_POST['id_ocorrencia'] ?? 0);
-    $status = $_POST['status'] ?? '';
-
-    if (!$idOcorrencia || !in_array($status, ['aberta', 'em_analise', 'resolvida'])) {
-        $erro = "Dados inválidos.";
-    } else {
-        $stmt = $con->prepare("
-            UPDATE ocorrencias
-            SET status = ?
-            WHERE id_ocorrencia = ?
-            AND id_empresa = ?
-        ");
-
-        if (!$stmt) {
-            die("Erro no prepare: " . $con->error);
-        }
-
-        $stmt->bind_param("sii", $status, $idOcorrencia, $idEmpresa);
-
-        if ($stmt->execute()) {
-            $mensagem = "Status atualizado com sucesso.";
-        } else {
-            $erro = "Erro ao atualizar: " . $stmt->error;
-        }
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['excluir_ocorrencia'])) {
-
-    $idOcorrencia = intval($_POST['id_ocorrencia'] ?? 0);
+    $idOcorrencia = (int)($_POST['id_ocorrencia'] ?? 0);
 
     $stmt = $con->prepare("
         DELETE FROM ocorrencias
@@ -92,12 +53,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['excluir_ocorrencia']))
     ");
 
     $stmt->bind_param("ii", $idOcorrencia, $idEmpresa);
+    $stmt->execute();
 
-    if ($stmt->execute()) {
-        $mensagem = "Ocorrência excluída com sucesso.";
-    } else {
-        $erro = "Erro ao excluir ocorrência.";
-    }
+    header("Location: emergencias.php?excluido=1");
+    exit;
+}
+
+if (isset($_GET['status_ok'])) {
+    $mensagem = "Status atualizado com sucesso.";
+}
+
+if (isset($_GET['excluido'])) {
+    $mensagem = "Ocorrência excluída com sucesso.";
 }
 
 $stmt = $con->prepare("
@@ -114,36 +81,36 @@ $result = $stmt->get_result();
 $ocorrencias = [];
 $total = 0;
 $abertas = 0;
-$andamento = 0;
+$analise = 0;
 $resolvidas = 0;
 
 while ($row = $result->fetch_assoc()) {
     $ocorrencias[] = $row;
     $total++;
 
-    if ($row['status'] == 'aberta') {
+    if ($row['status'] === 'aberta') {
         $abertas++;
     }
 
-    if ($row['status'] == 'em_analise') {
-        $andamento++;
+    if ($row['status'] === 'em_analise') {
+        $analise++;
     }
 
-    if ($row['status'] == 'resolvida') {
+    if ($row['status'] === 'resolvida') {
         $resolvidas++;
     }
 }
 
 function textoStatus($status) {
-    if ($status == 'aberta') {
+    if ($status === 'aberta') {
         return 'Aberta';
     }
 
-    if ($status == 'em_analise') {
+    if ($status === 'em_analise') {
         return 'Em análise';
     }
 
-    if ($status == 'resolvida') {
+    if ($status === 'resolvida') {
         return 'Resolvida';
     }
 
@@ -151,11 +118,11 @@ function textoStatus($status) {
 }
 
 function badgeStatus($status) {
-    if ($status == 'resolvida') {
+    if ($status === 'resolvida') {
         return 'bg-success';
     }
 
-    if ($status == 'em_analise') {
+    if ($status === 'em_analise') {
         return 'bg-warning text-dark';
     }
 
@@ -174,8 +141,8 @@ function badgeStatus($status) {
 <link rel="stylesheet" href="css/style.css">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
 </head>
 
 <body class="bg-light">
@@ -200,8 +167,7 @@ function badgeStatus($status) {
         </div>
     <?php endif; ?>
 
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
-
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <h1 class="fw-bold text-primary mb-1">
                 <i class="bi bi-shield-fill-check me-2"></i>
@@ -213,37 +179,36 @@ function badgeStatus($status) {
             </p>
         </div>
 
-        <span class="badge bg-primary rounded-pill px-4 py-3 fs-6 mt-3 mt-lg-0">
+        <span class="badge bg-primary rounded-pill px-4 py-3 fs-6">
             <?= $total ?> ocorrências
         </span>
-
     </div>
 
     <div class="row g-4 mb-4">
 
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-4">
+            <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body">
                     <p class="text-muted mb-0">Abertas</p>
-                    <h3 class="fw-bold mb-0"><?= $abertas ?></h3>
+                    <h3 class="fw-bold"><?= $abertas ?></h3>
                 </div>
             </div>
         </div>
 
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-4">
+            <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body">
                     <p class="text-muted mb-0">Em análise</p>
-                    <h3 class="fw-bold mb-0"><?= $andamento ?></h3>
+                    <h3 class="fw-bold"><?= $analise ?></h3>
                 </div>
             </div>
         </div>
 
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-4">
+            <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body">
                     <p class="text-muted mb-0">Resolvidas</p>
-                    <h3 class="fw-bold mb-0"><?= $resolvidas ?></h3>
+                    <h3 class="fw-bold"><?= $resolvidas ?></h3>
                 </div>
             </div>
         </div>
@@ -278,7 +243,7 @@ function badgeStatus($status) {
 
                     </div>
 
-                    <p class="text-muted mb-4">
+                    <p class="text-muted">
                         <?= nl2br(htmlspecialchars($e['descricao'])) ?>
                     </p>
 
@@ -286,14 +251,14 @@ function badgeStatus($status) {
 
                         <div class="col-md-3">
                             <div class="bg-light rounded-4 p-3 h-100">
-                                <small class="text-muted d-block mb-1">Reportado por</small>
+                                <small class="text-muted d-block">Reportado por</small>
                                 <strong><?= htmlspecialchars($e['nome']) ?></strong>
                             </div>
                         </div>
 
                         <div class="col-md-3">
                             <div class="bg-light rounded-4 p-3 h-100">
-                                <small class="text-muted d-block mb-1">Andar / Sala</small>
+                                <small class="text-muted d-block">Andar / Sala</small>
                                 <strong><?= htmlspecialchars($e['andar']) ?></strong><br>
                                 <small><?= htmlspecialchars($e['sala']) ?></small>
                             </div>
@@ -301,14 +266,14 @@ function badgeStatus($status) {
 
                         <div class="col-md-3">
                             <div class="bg-light rounded-4 p-3 h-100">
-                                <small class="text-muted d-block mb-1">Local</small>
+                                <small class="text-muted d-block">Local</small>
                                 <strong><?= htmlspecialchars($e['local_especifico']) ?></strong>
                             </div>
                         </div>
 
                         <div class="col-md-3">
                             <div class="bg-light rounded-4 p-3 h-100">
-                                <small class="text-muted d-block mb-1">Evidência</small>
+                                <small class="text-muted d-block">Evidência</small>
 
                                 <?php if(!empty($e['evidencia'])): ?>
                                     <a href="../<?= htmlspecialchars($e['evidencia']) ?>" target="_blank" class="btn btn-sm btn-primary">
@@ -322,22 +287,22 @@ function badgeStatus($status) {
 
                     </div>
 
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
 
                         <form method="POST" class="d-flex gap-2">
 
                             <input type="hidden" name="id_ocorrencia" value="<?= $e['id_ocorrencia'] ?>">
 
                             <select name="status" class="form-select form-select-sm">
-                                <option value="aberta" <?= $e['status'] == 'aberta' ? 'selected' : '' ?>>
+                                <option value="aberta" <?= $e['status'] === 'aberta' ? 'selected' : '' ?>>
                                     Aberta
                                 </option>
 
-                                <option value="em_analise" <?= $e['status'] == 'em_analise' ? 'selected' : '' ?>>
+                                <option value="em_analise" <?= $e['status'] === 'em_analise' ? 'selected' : '' ?>>
                                     Em análise
                                 </option>
 
-                                <option value="resolvida" <?= $e['status'] == 'resolvida' ? 'selected' : '' ?>>
+                                <option value="resolvida" <?= $e['status'] === 'resolvida' ? 'selected' : '' ?>>
                                     Resolvida
                                 </option>
                             </select>
@@ -369,7 +334,7 @@ function badgeStatus($status) {
     <?php else: ?>
 
         <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
-            <h4 class="fw-bold mt-3">
+            <h4 class="fw-bold">
                 Nenhuma ocorrência encontrada
             </h4>
 
