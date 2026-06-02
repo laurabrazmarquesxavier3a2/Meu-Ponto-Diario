@@ -2,11 +2,6 @@
 require_once 'auth.php';
 require_once 'config/database.php';
 
-/*
-==========================
-CARDS
-==========================
-*/
 
 $presentes = mysqli_num_rows(
     mysqli_query($con, "
@@ -30,12 +25,6 @@ $ausencias = mysqli_num_rows(
         WHERE ativo = 1
     ")
 );
-
-/*
-==========================
-LISTAGEM
-==========================
-*/
 
 $query = mysqli_query($con, "
 

@@ -2,16 +2,20 @@
 require_once 'auth.php';
 require_once 'config/database.php';
 
+<<<<<<< HEAD
 
 /* =========================
+=======
+/* 
+>>>>>>> 9dc2a108882bb3ebf48c6c0cc8d7c62cda4f3645
    FILTRO MÊS / ANO
-========================= */
+*/
 $mes = isset($_GET['mes']) ? $_GET['mes'] : '';
 $ano = isset($_GET['ano']) ? $_GET['ano'] : '';
 
-/* =========================
+/* 
    HOLERITES (COM FILTRO)
-========================= */
+*/
 $sql = "
 SELECT
     h.*,
@@ -34,11 +38,6 @@ $sql .= " ORDER BY h.data_envio DESC";
 
 $resultado = $con->query($sql);
 
-/*
-========================================
-PENDENTES
-========================================
-*/
 
 $sqlPendentes = "
 SELECT
@@ -120,7 +119,7 @@ style="z-index:9999;">
 
             <h1 class="fw-bold">
 
-                <i class="bi bi-file-earmark-text-fill text-primary me-2"></i>
+                <i class=" text-primary me-2"></i>
 
                 Envio de Holerite
 
