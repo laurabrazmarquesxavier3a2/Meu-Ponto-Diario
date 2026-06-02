@@ -1,43 +1,49 @@
 <?php
-session_start();
+require_once '../auth.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../login.php");
-    exit;
+$idEmpresa = $_SESSION['id_empresa'] ?? null;
+
+if (!$idEmpresa) {
+    die("Empresa não identificada. Faça login novamente.");
 }
 
-/*
-========================================
-BUSCAR COMUNICADOS
-========================================
-*/
+$stmt = $con->prepare("
+    SELECT *
+    FROM comunicados
+    WHERE id_empresa = ?
+    ORDER BY fixado DESC, data_publicacao DESC
+");
 
-$sql = "
-SELECT *
-FROM comunicados
-ORDER BY fixado DESC, data_publicacao DESC
-";
+$stmt->bind_param("i", $idEmpresa);
+$stmt->execute();
 
-$result = $con->query($sql);
+$comunicados = $stmt->get_result();
 
-$totalComunicados = $result->num_rows;
+function badgeCategoria($categoria) {
 
-/*
-========================================
-COMUNICADOS FIXADOS
-========================================
-*/
+    if ($categoria == 'Urgente') {
+        return 'bg-danger';
+    }
 
-$sqlFixados = "
-SELECT *
-FROM comunicados
-WHERE fixado = 1
-ORDER BY data_publicacao DESC
-";
+    if ($categoria == 'Evento') {
+        return 'bg-success';
+    }
 
-$fixados = $con->query($sqlFixados);
-$totalFixados = $fixados->num_rows;
+    if ($categoria == 'Comemoração') {
+        return 'bg-warning text-dark';
+    }
+
+    if ($categoria == 'Política') {
+        return 'bg-primary';
+    }
+
+    if ($categoria == 'Aviso') {
+        return 'bg-info text-dark';
+    }
+
+    return 'bg-secondary';
+}
 ?>
 
 <!DOCTYPE html>
@@ -46,72 +52,49 @@ $totalFixados = $fixados->num_rows;
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Comunicados</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
 
-<link rel="stylesheet"
+<link
+rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<link rel="stylesheet" href="../css/global.css">
+<link
+rel="stylesheet"
+href="../css/global.css">
 
 <style>
-
-body{
-    background: #f4f6f9;
+.comunicado-card{
+    border:0;
+    border-radius:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,.06);
+    transition:.25s;
 }
 
-.content{
-    margin-left: 270px;
-    padding: 30px;
+.comunicado-card:hover{
+    transform:translateY(-3px);
 }
 
-.page-title{
-    font-weight: 700;
-    color: #1f2937;
+.comunicado-fixado{
+    border-left:6px solid #f59e0b;
+    background:#fff9e6;
 }
 
-.card-comunicado{
-    border: none;
-    border-radius: 20px;
-    transition: .3s;
+.icon-empty{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    background:#eaf2ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:auto;
 }
-
-.card-comunicado:hover{
-    transform: translateY(-5px);
-}
-
-.card-fixado{
-    border-left: 6px solid #f59e0b;
-    background: #fffaf0;
-}
-
-.badge-categoria{
-    background: #0d6efd;
-    color: white;
-    border-radius: 10px;
-    padding: 8px 12px;
-    font-size: 12px;
-}
-
-.empty-box{
-    background: white;
-    padding: 40px;
-    border-radius: 20px;
-    text-align: center;
-}
-
-@media(max-width:991px){
-
-    .content{
-        margin-left: 0;
-        padding: 20px;
-    }
-
-}
-
 </style>
 
 </head>
@@ -122,58 +105,34 @@ body{
 
 <div class="content">
 
-    <!-- TOPO -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div class="title mb-4">
 
-        <div>
+        <h1>
+            Comunicados
+        </h1>
 
-            <h2 class="page-title">
-                Comunicados
-            </h2>
-
-            <p class="text-secondary mb-0">
-                Total encontrado:
-                <b><?= $totalComunicados ?></b>
-            </p>
-
-        </div>
+        <p>
+            Acompanhe os avisos importantes da sua empresa
+        </p>
 
     </div>
 
-    <!-- CARDS -->
-    <div class="row g-4 mb-4">
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
 
-        <div class="col-md-6">
+        <div class="card-body">
 
-            <div class="card shadow-sm border-0 rounded-4 p-3">
+            <div class="input-group">
 
-                <small>Total de Comunicados</small>
+                <span class="input-group-text bg-white">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
 
-                <h2 class="fw-bold d-flex justify-content-between">
-
-                    <?= $totalComunicados ?>
-
-                    <i class="fa-solid fa-bullhorn"></i>
-
-                </h2>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-6">
-
-            <div class="card shadow-sm border-0 rounded-4 p-3">
-
-                <small>Fixados</small>
-
-                <h2 class="fw-bold d-flex justify-content-between">
-
-                    <?= $totalFixados ?>
-
-                    <i class="fa-solid fa-thumbtack"></i>
-
-                </h2>
+                <input
+                    type="text"
+                    id="buscarComunicado"
+                    class="form-control"
+                    placeholder="Pesquisar comunicados..."
+                >
 
             </div>
 
@@ -181,101 +140,70 @@ body{
 
     </div>
 
-    <!-- FIXADOS -->
-    <?php if($fixados->num_rows > 0): ?>
+    <div class="row g-4" id="listaComunicados">
 
-        <h4 class="fw-bold mb-3">
-            📌 Comunicados Fixados
-        </h4>
+        <?php if($comunicados->num_rows > 0): ?>
 
-        <div class="row g-4 mb-5">
+            <?php while($com = $comunicados->fetch_assoc()): ?>
 
-            <?php while($f = $fixados->fetch_assoc()): ?>
+                <div
+                    class="col-12 comunicado-item"
+                    data-texto="<?= strtolower(htmlspecialchars($com['titulo'] . ' ' . $com['conteudo'] . ' ' . $com['categoria'] . ' ' . $com['autor'])) ?>"
+                >
 
-                <div class="col-12">
+                    <div class="card comunicado-card p-4 <?= $com['fixado'] ? 'comunicado-fixado' : '' ?>">
 
-                    <div class="card card-comunicado card-fixado shadow-sm">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
 
-                        <div class="card-body p-4">
+                            <div class="d-flex flex-wrap gap-2">
 
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-
-                                <span class="badge-categoria">
-                                    <?= $f['categoria'] ?>
+                                <span class="badge <?= badgeCategoria($com['categoria']) ?> px-3 py-2 rounded-pill">
+                                    <?= htmlspecialchars($com['categoria'] ?? 'Aviso') ?>
                                 </span>
 
-                                <small class="text-secondary">
+                                <?php if($com['fixado']): ?>
 
-                                    <?= date(
-                                        'd/m/Y H:i',
-                                        strtotime($f['data_publicacao'])
-                                    ) ?>
+                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                                        <i class="fa-solid fa-thumbtack me-1"></i>
+                                        Fixado
+                                    </span>
 
-                                </small>
+                                <?php endif; ?>
+
+                                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                                    <?= htmlspecialchars($com['publico'] ?? 'Todos') ?>
+                                </span>
 
                             </div>
 
-                            <h4 class="fw-bold">
-                                <?= $f['titulo'] ?>
-                            </h4>
-
-                            <p class="text-secondary mb-0">
-                                <?= nl2br($f['conteudo']) ?>
-                            </p>
+                            <small class="text-muted">
+                                <i class="fa-regular fa-clock me-1"></i>
+                                <?= date('d/m/Y H:i', strtotime($com['data_publicacao'])) ?>
+                            </small>
 
                         </div>
 
-                    </div>
+                        <h4 class="fw-bold mb-3">
+                            <?= htmlspecialchars($com['titulo']) ?>
+                        </h4>
 
-                </div>
+                        <p class="text-muted mb-4">
+                            <?= nl2br(htmlspecialchars($com['conteudo'])) ?>
+                        </p>
 
-            <?php endwhile; ?>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-        </div>
+                            <small class="text-secondary">
+                                <i class="fa-solid fa-user-tie me-1"></i>
+                                Publicado por <?= htmlspecialchars($com['autor'] ?? 'RH') ?>
+                            </small>
 
-    <?php endif; ?>
-
-    <!-- TODOS -->
-    <h4 class="fw-bold mb-3">
-        Todos os Comunicados
-    </h4>
-
-    <div class="row g-4">
-
-        <?php if($result->num_rows > 0): ?>
-
-            <?php while($row = $result->fetch_assoc()): ?>
-
-                <div class="col-12 col-md-6">
-
-                    <div class="card card-comunicado shadow-sm h-100">
-
-                        <div class="card-body p-4">
-
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-
-                                <span class="badge-categoria">
-                                    <?= $row['categoria'] ?>
-                                </span>
-
-                                <small class="text-secondary">
-
-                                    <?= date(
-                                        'd/m/Y',
-                                        strtotime($row['data_publicacao'])
-                                    ) ?>
-
+                            <?php if($com['fixado']): ?>
+                                <small class="text-warning fw-bold">
+                                    <i class="fa-solid fa-star me-1"></i>
+                                    Prioritário
                                 </small>
-
-                            </div>
-
-                            <h5 class="fw-bold">
-                                <?= $row['titulo'] ?>
-                            </h5>
-
-                            <p class="text-secondary mb-0">
-                                <?= nl2br($row['conteudo']) ?>
-                            </p>
+                            <?php endif; ?>
 
                         </div>
 
@@ -289,16 +217,20 @@ body{
 
             <div class="col-12">
 
-                <div class="empty-box shadow-sm">
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
 
-                    <i class="fa-solid fa-bell-slash fa-3x text-secondary mb-3"></i>
+                    <div class="icon-empty mb-3">
 
-                    <h4>
-                        Nenhum comunicado encontrado
+                        <i class="fa-regular fa-bell-slash text-primary display-5"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold">
+                        Nenhum comunicado disponível
                     </h4>
 
-                    <p class="text-secondary mb-0">
-                        Ainda não existem comunicados publicados.
+                    <p class="text-muted mb-0">
+                        Quando o RH publicar avisos, eles aparecerão aqui.
                     </p>
 
                 </div>
@@ -311,7 +243,25 @@ body{
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const buscar = document.getElementById('buscarComunicado');
+const comunicados = document.querySelectorAll('.comunicado-item');
+
+buscar.addEventListener('keyup', function(){
+
+    const termo = this.value.toLowerCase();
+
+    comunicados.forEach(function(item){
+
+        const texto = item.dataset.texto;
+
+        item.style.display =
+        texto.includes(termo) ? '' : 'none';
+
+    });
+
+});
+</script>
 
 </body>
 </html>
