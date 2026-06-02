@@ -1,4 +1,4 @@
-```php
+
 <?php
 
 include('../config/database.php');
@@ -75,4 +75,3 @@ $stmt->execute();
 header("Location: seguranca.php?sucesso=1");
 exit;
 ?>
-```
