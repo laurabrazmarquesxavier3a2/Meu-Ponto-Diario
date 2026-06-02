@@ -1,0 +1,10 @@
+nome,email,cargo,departamento,status,telefone,cidade,escala,supervisor
+Maria Souza,maria@empresa.com,Auxiliar RH,RH,Férias,(11)99999-2222,Campinas,5x2,Ana Costa
+Pedro Santos,pedro@empresa.com,Desenvolvedor,TI,Licença,(11)99999-3333,Santos,12x36,Carlos Mendes
+Ana Oliveira,ana@empresa.com,Financeiro,Financeiro,Ativo,(11)99999-4444,São Paulo,5x2,Roberto Lima
+Lucas Pereira,lucas@empresa.com,Marketing,Marketing,Afastado,(11)99999-5555,Guarulhos,5x2,Mariana Rocha
+Fernanda Costa,fernanda@empresa.com,Designer,Design,Ativo,(11)99999-6666,Osasco,Home Office,Carlos Mendes
+Ricardo Lima,ricardo@empresa.com,Supervisor de Produção,Produção,Ativo,(11)99999-7777,Sorocaba,6x1,Diretoria
+Juliana Alves,juliana@empresa.com,Analista Comercial,Comercial,Férias,(11)99999-8888,São Paulo,5x2,Patrícia Gomes
+Bruno Martins,bruno@empresa.com,Técnico de Suporte,TI,Licença,(11)99999-9999,São Bernardo,12x36,Carlos Mendes
+Carla Rocha,carla@empresa.com,Coordenadora RH,RH,Ativo,(11)98888-0000,São Paulo,5x2,Diretoria

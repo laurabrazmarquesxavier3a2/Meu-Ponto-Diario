@@ -178,7 +178,7 @@ if (isset($_POST['limpar_funcionarios'])) {
 }
 
 /* IMPORTAR CSV */
-if (isset($_POST['importar'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
 
     if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] == 0) {
 
@@ -192,7 +192,7 @@ if (isset($_POST['importar'])) {
         $linha = 0;
         $importados = 0;
 
-        while (($dados = fgetcsv($handle, 1000, ";")) !== false) {
+        while (($dados = fgetcsv($handle, 2000, ",")) !== false) {
 
             $linha++;
 
@@ -567,10 +567,10 @@ body.modal-open .sidebar-overlay{
                         </h5>
 
                         <div class="bg-light border rounded-3 p-3 small">
-<pre class="mb-0">nome;email;cargo;departamento
-João Silva;joao@email.com;Analista RH;RH
-Maria Souza;maria@email.com;Desenvolvedora;TI
-Pedro Santos;pedro@email.com;Gerente;Financeiro</pre>
+<pre class="mb-0">nome,email,cargo,departamento
+João Silva,joao@email.com,Analista RH,RH
+Maria Souza,maria@email.com,Desenvolvedora,TI
+Pedro Santos,pedro@email.com,Gerente,Financeiro</pre>
                         </div>
 
                         <div class="alert alert-info mt-3 mb-0">
