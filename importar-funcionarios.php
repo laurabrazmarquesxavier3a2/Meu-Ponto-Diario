@@ -178,10 +178,10 @@ if (isset($_POST['limpar_funcionarios'])) {
     }
 }
 
-/* IMPORTAR CSV */
+/* IMPORTAR CSV COMPLETO */
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
 
-    if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] == 0) {
+    if ($_FILES['arquivo']['error'] == 0) {
 
         $arquivo = $_FILES['arquivo']['tmp_name'];
         $handle = fopen($arquivo, "r");
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
         $linha = 0;
         $importados = 0;
 
-        while (($dados = fgetcsv($handle, 2000, ",")) !== false) {
+        while (($dados = fgetcsv($handle, 3000, ",")) !== false) {
 
             $linha++;
 
@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
                 continue;
             }
 
-            if (count($dados) < 4) {
+            if (count($dados) < 11) {
                 $erros[] = "Linha $linha ignorada: dados incompletos.";
                 continue;
             }
@@ -210,18 +210,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
             $email = trim($dados[1]);
             $cargo = trim($dados[2]);
             $departamento = trim($dados[3]);
+            $telefone = trim($dados[4]);
+            $cidade = trim($dados[5]);
+            $escala = trim($dados[6]);
+            $supervisor = trim($dados[7]);
+            $horario = trim($dados[8]);
+            $status = trim($dados[9]);
+            $senhaCSV = trim($dados[10]);
 
             if ($nome == '' || $email == '') {
                 $erros[] = "Linha $linha ignorada: nome ou e-mail vazio.";
                 continue;
             }
 
+            if ($senhaCSV == '') {
+                $senhaCSV = $senhaPadraoTexto;
+            }
+
+            $status = strtolower($status);
+
+            $statusPermitidos = [
+                'ativo',
+                'inativo',
+                'ferias',
+                'licenca',
+                'afastado'
+            ];
+
+            if (!in_array($status, $statusPermitidos)) {
+                $status = 'ativo';
+            }
+
+            if ($horario == '') {
+                $horario = '08:00:00';
+            }
+
             $verifica = $con->prepare("
-                SELECT id_usuario 
-                FROM usuarios 
+                SELECT id_usuario
+                FROM usuarios
                 WHERE email = ?
                 LIMIT 1
             ");
+
+            if (!$verifica) {
+                $erros[] = "Linha $linha: erro ao verificar e-mail.";
+                continue;
+            }
 
             $verifica->bind_param("s", $email);
             $verifica->execute();
@@ -232,32 +266,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
                 continue;
             }
 
-            $senhaPadrao = password_hash($senhaPadraoTexto, PASSWORD_DEFAULT);
-
             $stmtFunc = $con->prepare("
                 INSERT INTO funcionarios (
                     nome,
                     cargo,
                     departamento,
+                    horario_padrao,
+                    escala,
+                    supervisor,
                     id_empresa
                 )
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
 
+            if (!$stmtFunc) {
+                $erros[] = "Linha $linha: erro SQL funcionário: " . $con->error;
+                continue;
+            }
+
             $stmtFunc->bind_param(
-                "sssi",
+                "ssssssi",
                 $nome,
                 $cargo,
                 $departamento,
+                $horario,
+                $escala,
+                $supervisor,
                 $idEmpresa
             );
 
             if (!$stmtFunc->execute()) {
-                $erros[] = "Linha $linha: erro ao criar funcionário.";
+                $erros[] = "Linha $linha: erro ao criar funcionário: " . $stmtFunc->error;
                 continue;
             }
 
             $idFuncionario = $con->insert_id;
+
+            $senhaHash = password_hash($senhaCSV, PASSWORD_DEFAULT);
 
             $stmtUser = $con->prepare("
                 INSERT INTO usuarios (
@@ -267,6 +312,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
                     senha,
                     tipo,
                     status,
+                    telefone,
+                    cidade,
                     cargo,
                     departamento,
                     id_empresa
@@ -274,25 +321,69 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
                 VALUES (
                     ?, ?, ?, ?,
                     'funcionario',
-                    'ativo',
-                    ?, ?, ?
+                    ?,
+                    ?, ?, ?, ?, ?
                 )
             ");
 
+            if (!$stmtUser) {
+                $erros[] = "Linha $linha: erro SQL usuário: " . $con->error;
+                continue;
+            }
+
             $stmtUser->bind_param(
-                "isssssi",
+                "issssssssi",
                 $idFuncionario,
                 $nome,
                 $email,
-                $senhaPadrao,
+                $senhaHash,
+                $status,
+                $telefone,
+                $cidade,
                 $cargo,
                 $departamento,
                 $idEmpresa
             );
 
             if (!$stmtUser->execute()) {
-                $erros[] = "Linha $linha: erro ao criar usuário.";
+                $erros[] = "Linha $linha: erro ao criar usuário: " . $stmtUser->error;
                 continue;
+            }
+
+            $mesAtual = date('Y-m');
+
+            $stmtBanco = $con->prepare("
+                INSERT INTO banco_horas (
+                    id_funcionario,
+                    mes,
+                    saldo_total,
+                    saldo_mes,
+                    horas_extras_mes,
+                    horas_debito_mes,
+                    data_atualizacao,
+                    status,
+                    id_empresa
+                )
+                VALUES (?, ?, 0, 0, 0, 0, CURDATE(), 'neutro', ?)
+            ");
+
+            if ($stmtBanco) {
+                $stmtBanco->bind_param(
+                    "isi",
+                    $idFuncionario,
+                    $mesAtual,
+                    $idEmpresa
+                );
+
+                $stmtBanco->execute();
+            }
+
+            if (function_exists('registrarAtividade')) {
+                registrarAtividade(
+                    $con,
+                    "Importou o funcionário " . $nome,
+                    "success"
+                );
             }
 
             $importados++;
@@ -308,6 +399,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
         fclose($handle);
 
         $mensagem = "$importados funcionários importados com sucesso.";
+
     } else {
         $erros[] = "Erro ao enviar arquivo.";
     }
@@ -568,10 +660,8 @@ body.modal-open .sidebar-overlay{
                         </h5>
 
                         <div class="bg-light border rounded-3 p-3 small">
-<pre class="mb-0">nome,email,cargo,departamento
-João Silva,joao@email.com,Analista RH,RH
-Maria Souza,maria@email.com,Desenvolvedora,TI
-Pedro Santos,pedro@email.com,Gerente,Financeiro</pre>
+<pre class="mb-0">nome,email,cargo,departamento,telefone,cidade,escala,supervisor,horario_padrao,status,senha
+João Silva,joao@empresa.com,Analista de TI,TI,11999991111,São Paulo,5x2,Carlos Mendes,08:00:00,ativo,123456</pre>
                         </div>
 
                         <div class="alert alert-info mt-3 mb-0">

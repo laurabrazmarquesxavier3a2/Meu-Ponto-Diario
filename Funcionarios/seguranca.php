@@ -1,6 +1,39 @@
-```php
 <?php
 session_start();
+
+require_once '../config/database.php';
+
+$idEmpresa = $_SESSION['id_empresa'] ?? 0;
+$idUsuario = $_SESSION['id_usuario'] ?? 0;
+$idFuncionario = $_SESSION['id_funcionario'] ?? 0;
+
+if (!$idEmpresa || !$idUsuario) {
+    die("Sessão inválida. Faça login novamente.");
+}
+
+$nomeUsuario = '';
+
+$stmt = $con->prepare("
+    SELECT nome, id_funcionario
+    FROM usuarios
+    WHERE id_usuario = ?
+    AND id_empresa = ?
+    LIMIT 1
+");
+
+$stmt->bind_param("ii", $idUsuario, $idEmpresa);
+$stmt->execute();
+
+$usuario = $stmt->get_result()->fetch_assoc();
+
+if ($usuario) {
+    $nomeUsuario = $usuario['nome'] ?? '';
+
+    if (!$idFuncionario && !empty($usuario['id_funcionario'])) {
+        $idFuncionario = $usuario['id_funcionario'];
+        $_SESSION['id_funcionario'] = $idFuncionario;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -13,90 +46,73 @@ session_start();
 
 <title>Segurança</title>
 
-<!-- BOOTSTRAP -->
-<link
-href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<!-- FONT AWESOME -->
-<link
-rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<!-- CSS GLOBAL -->
 <link rel="stylesheet" href="../css/global.css">
 
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <?php include 'sidebarfunc.php'; ?>
 
-<!-- ALERT -->
-<div
-class="position-fixed top-0 end-0 p-4"
-style="z-index:9999">
+<div class="position-fixed top-0 end-0 p-4" style="z-index:9999">
 
     <?php if(isset($_GET['sucesso'])) { ?>
 
-        <div
-        class="alert alert-success shadow-lg border-0 rounded-4">
-
+        <div class="alert alert-success shadow-lg border-0 rounded-4">
             <i class="fa-solid fa-circle-check me-2"></i>
-
             Reporte enviado com sucesso!
-
         </div>
 
     <?php } ?>
 
 </div>
 
-<!-- CONTENT -->
 <div class="content">
 
-    <!-- TITLE -->
     <div class="title text-start">
 
-        <h2>
-            Reportar Ocorrência
-        </h2>
+        <h2>Reportar Ocorrência</h2>
 
         <p>
             Utilize o formulário abaixo para registrar situações de risco,
             comportamento inadequado ou problemas estruturais.
         </p>
 
+        <small class="text-muted">
+            Empresa #<?= htmlspecialchars($idEmpresa) ?>
+        </small>
+
     </div>
 
-    <!-- CARD -->
     <div class="card border-0 shadow-sm rounded-4">
 
         <div class="card-body p-4 p-lg-5">
 
-            <!-- FORM -->
             <form
             id="reportForm"
             action="salvar_ocorrencia.php"
             method="POST"
             enctype="multipart/form-data">
 
+                <input type="hidden" name="id_empresa" value="<?= htmlspecialchars($idEmpresa) ?>">
+                <input type="hidden" name="id_usuario" value="<?= htmlspecialchars($idUsuario) ?>">
+                <input type="hidden" name="id_funcionario" value="<?= htmlspecialchars($idFuncionario) ?>">
+
                 <div class="row g-4">
 
-                    <!-- TIPO DE REPORTE -->
                     <div class="col-12">
 
                         <label class="form-label fw-semibold">
-
                             Tipo de reporte
-
                         </label>
 
                         <div class="d-flex gap-4 mt-2">
 
                             <div class="form-check">
-
                                 <input
                                 class="form-check-input"
                                 type="radio"
@@ -105,18 +121,12 @@ style="z-index:9999">
                                 value="Identificado"
                                 checked>
 
-                                <label
-                                class="form-check-label"
-                                for="naoAnonimo">
-
+                                <label class="form-check-label" for="naoAnonimo">
                                     Identificado
-
                                 </label>
-
                             </div>
 
                             <div class="form-check">
-
                                 <input
                                 class="form-check-input"
                                 type="radio"
@@ -124,27 +134,19 @@ style="z-index:9999">
                                 id="anonimo"
                                 value="Anônimo">
 
-                                <label
-                                class="form-check-label"
-                                for="anonimo">
-
+                                <label class="form-check-label" for="anonimo">
                                     Anônimo
-
                                 </label>
-
                             </div>
 
                         </div>
 
                     </div>
 
-                    <!-- NOME -->
                     <div class="col-12" id="nomeBox">
 
                         <label class="form-label fw-semibold">
-
                             Seu nome
-
                         </label>
 
                         <input
@@ -152,17 +154,15 @@ style="z-index:9999">
                         class="form-control"
                         id="nomeInput"
                         name="nome"
-                        placeholder="Digite seu nome">
+                        value="<?= htmlspecialchars($nomeUsuario) ?>"
+                        readonly>
 
                     </div>
 
-                    <!-- CATEGORIA -->
                     <div class="col-12">
 
                         <label class="form-label fw-semibold">
-
                             Categoria
-
                         </label>
 
                         <select
@@ -170,53 +170,24 @@ style="z-index:9999">
                         name="categoria"
                         required>
 
-                            <option value="">
-                                Selecione uma categoria
-                            </option>
-
-                            <option value="Assédio">
-                                Assédio
-                            </option>
-
-                            <option value="Agressão">
-                                Agressão
-                            </option>
-
-                            <option value="Discriminação">
-                                Discriminação
-                            </option>
-
-                            <option value="Problema elétrico">
-                                Problema elétrico
-                            </option>
-
-                            <option value="Equipamento danificado">
-                                Equipamento danificado
-                            </option>
-
-                            <option value="Risco de acidente">
-                                Risco de acidente
-                            </option>
-
-                            <option value="Vazamento">
-                                Vazamento
-                            </option>
-
-                            <option value="Outro">
-                                Outro
-                            </option>
+                            <option value="">Selecione uma categoria</option>
+                            <option value="Assédio">Assédio</option>
+                            <option value="Agressão">Agressão</option>
+                            <option value="Discriminação">Discriminação</option>
+                            <option value="Problema elétrico">Problema elétrico</option>
+                            <option value="Equipamento danificado">Equipamento danificado</option>
+                            <option value="Risco de acidente">Risco de acidente</option>
+                            <option value="Vazamento">Vazamento</option>
+                            <option value="Outro">Outro</option>
 
                         </select>
 
                     </div>
 
-                    <!-- LOCAL -->
                     <div class="col-md-4">
 
                         <label class="form-label fw-semibold">
-
                             Andar
-
                         </label>
 
                         <select
@@ -224,25 +195,11 @@ style="z-index:9999">
                         name="andar"
                         required>
 
-                            <option value="">
-                                Selecione
-                            </option>
-
-                            <option value="Térreo">
-                                Térreo
-                            </option>
-
-                            <option value="1º Andar">
-                                1º Andar
-                            </option>
-
-                            <option value="2º Andar">
-                                2º Andar
-                            </option>
-
-                            <option value="3º Andar">
-                                3º Andar
-                            </option>
+                            <option value="">Selecione</option>
+                            <option value="Térreo">Térreo</option>
+                            <option value="1º Andar">1º Andar</option>
+                            <option value="2º Andar">2º Andar</option>
+                            <option value="3º Andar">3º Andar</option>
 
                         </select>
 
@@ -251,9 +208,7 @@ style="z-index:9999">
                     <div class="col-md-4">
 
                         <label class="form-label fw-semibold">
-
                             Sala
-
                         </label>
 
                         <input
@@ -267,9 +222,7 @@ style="z-index:9999">
                     <div class="col-md-4">
 
                         <label class="form-label fw-semibold">
-
                             Local específico
-
                         </label>
 
                         <input
@@ -280,13 +233,10 @@ style="z-index:9999">
 
                     </div>
 
-                    <!-- DESCRIÇÃO -->
                     <div class="col-12">
 
                         <label class="form-label fw-semibold">
-
                             Descrição detalhada
-
                         </label>
 
                         <textarea
@@ -298,13 +248,10 @@ style="z-index:9999">
 
                     </div>
 
-                    <!-- TESTEMUNHAS -->
                     <div class="col-12">
 
                         <label class="form-label fw-semibold">
-
                             Pessoas envolvidas ou testemunhas
-
                         </label>
 
                         <input
@@ -315,13 +262,10 @@ style="z-index:9999">
 
                     </div>
 
-                    <!-- EVIDÊNCIAS -->
                     <div class="col-12">
 
                         <label class="form-label fw-semibold">
-
                             Evidências
-
                         </label>
 
                         <input
@@ -330,14 +274,11 @@ style="z-index:9999">
                         name="evidencia">
 
                         <div class="form-text">
-
                             Fotos, vídeos ou documentos
-
                         </div>
 
                     </div>
 
-                    <!-- BOTÃO -->
                     <div class="col-12">
 
                         <button
@@ -345,7 +286,6 @@ style="z-index:9999">
                         class="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-semibold">
 
                             <i class="fa-solid fa-paper-plane me-2"></i>
-
                             Enviar ocorrência
 
                         </button>
@@ -362,36 +302,27 @@ style="z-index:9999">
 
 </div>
 
-<!-- JS -->
 <script>
-
 const anonimo = document.getElementById('anonimo');
 const naoAnonimo = document.getElementById('naoAnonimo');
 
 const nomeBox = document.getElementById('nomeBox');
 const nomeInput = document.getElementById('nomeInput');
 
-anonimo.addEventListener('change', () => {
+const nomeOriginal = "<?= htmlspecialchars($nomeUsuario, ENT_QUOTES) ?>";
 
+anonimo.addEventListener('change', () => {
     nomeBox.style.display = 'none';
     nomeInput.value = '';
-
 });
 
 naoAnonimo.addEventListener('change', () => {
-
     nomeBox.style.display = 'block';
-
+    nomeInput.value = nomeOriginal;
 });
-
 </script>
 
-<!-- BOOTSTRAP -->
-<script
-src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
-
 </html>
-```
