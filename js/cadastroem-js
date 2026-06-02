@@ -1,0 +1,19 @@
+document
+.getElementById('btnFinalizarCadastro')
+.addEventListener('click', function(){
+
+    const aceitou =
+        document.getElementById('aceitarTermos');
+
+    if(!aceitou.checked){
+
+        alert(
+            'Você precisa aceitar os termos para continuar.'
+        );
+
+        return;
+    }
+
+    document.querySelector('form').submit();
+
+});

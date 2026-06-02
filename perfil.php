@@ -220,12 +220,6 @@ body.dark-mode .activity-item{
                         </div>
 
                     </div>
-
-                    <button class="btn btn-primary w-100 mt-3">
-                        <i class="bi bi-pencil-square me-2"></i>
-                        Editar Perfil
-                    </button>
-
                 </div>
 
             </div>

@@ -25,16 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $usuario = $resultado->fetch_assoc();
 
-        // VERIFICA SENHA HASH
         if (password_verify($senha, $usuario['senha'])) {
 
-            // SESSÕES
+            session_regenerate_id(true);
+
             $_SESSION['id_usuario'] = $usuario['id_usuario'];
+            $_SESSION['id_empresa'] = $usuario['id_empresa'];
             $_SESSION['id_funcionario'] = $usuario['id_funcionario'];
             $_SESSION['nome'] = $usuario['nome'];
             $_SESSION['tipo'] = $usuario['tipo'];
 
-            // ATUALIZA ÚLTIMO LOGIN
             $update = "UPDATE usuarios
                        SET ultimo_login = NOW()
                        WHERE id_usuario = ?";
@@ -43,29 +43,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmtUpdate->bind_param("i", $usuario['id_usuario']);
             $stmtUpdate->execute();
 
-            // REDIRECIONAMENTO POR TIPO
-            if ($usuario['tipo'] == 'rh') {
-
+            if ($usuario['tipo'] == 'empresa' || $usuario['tipo'] == 'rh') {
                 header("Location: ponto.php");
                 exit;
+            }
 
-            } else if ($usuario['tipo'] == 'funcionario') {
-
+            if ($usuario['tipo'] == 'funcionario') {
                 header("Location: Funcionarios/pontoF.php");
                 exit;
-
             }
 
         } else {
-
             $erro = "Senha incorreta.";
-
         }
 
     } else {
-
         $erro = "Usuário não encontrado.";
-
     }
 }
 ?>
@@ -100,12 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             Gestão de RH rápida <br> e segura.
         </div>
 
-        <?php if($erro): ?>
+        <?php if(isset($_GET['cadastro'])): ?>
+            <div class="alert alert-success">
+                Conta criada com sucesso.
+                Agora faça login para acessar o sistema.
+            </div>
+        <?php endif; ?>
 
+        <?php if($erro): ?>
             <div class="alert alert-danger">
                 <?= $erro ?>
             </div>
-
         <?php endif; ?>
 
         <form method="POST">

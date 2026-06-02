@@ -108,6 +108,13 @@ $pagina = basename($_SERVER['PHP_SELF']);
         </a>
 
 
+        <a href="importar-funcionarios.php"
+        class="<?= $pagina == 'importar-funcionarios.php' ? 'active' : '' ?>">
+            <i class="bi bi-file-earmark-arrow-up me-2"></i>
+            Importar Funcionários
+        </a>
+
+
         <a href="cadastrarUsuario.php"
 class="<?= $pagina == 'cadastrarUsuario.php' ? 'active' : '' ?>">
 

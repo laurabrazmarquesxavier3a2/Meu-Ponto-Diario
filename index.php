@@ -74,7 +74,7 @@
 
       <div class="pricing-grid">
  <!-- CARD 1: Pequenas Empresas -->
-<a href="cadastro-empresa.php" class="card-link">
+<a href="cadastro-empresa.php?plano=pequeno">
 <div class="pricing-card card-light featured">
 
     <div class="plan-icon">🏢</div>
@@ -82,6 +82,12 @@
     <div class="plan-name">
         Plano Pequeno Porte
     </div>
+
+<div class="plan-price">
+    <span class="currency">R$</span>
+    <span class="value">79,90</span>
+    <span class="period">/mês</span>
+</div>
 
     <div class="plan-desc">
         Ideal para empresas em fase de crescimento que precisam organizar
@@ -120,7 +126,7 @@
 
 
 <!-- CARD 2: Médias Empresas -->
-<a href="cadastro-empresa.php" class="card-link">
+<a href="cadastro-empresa.php?plano=medio">
 <div class="pricing-card card-dark featured">
 
     <div class="badge">⭐ Recomendado</div>
@@ -130,6 +136,12 @@
     <div class="plan-name">
         Plano Médio Porte
     </div>
+
+<div class="plan-price">
+    <span class="currency">R$</span>
+    <span class="value">149,99</span>
+    <span class="period">/mês</span>
+</div>
 
     <div class="plan-desc">
         Desenvolvido para empresas com maior volume de colaboradores,
