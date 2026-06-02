@@ -2,10 +2,6 @@
 require_once 'auth.php';
 require_once 'config/database.php';
 
-<<<<<<< HEAD
-
-/* =========================
-=======
 /* 
 >>>>>>> 9dc2a108882bb3ebf48c6c0cc8d7c62cda4f3645
    FILTRO MÊS / ANO
