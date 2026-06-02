@@ -134,12 +134,6 @@
             </div>
         </div>
 
-    </div>
-
-</div>
-
-<script src="js/theme.js"></script>
-
         <!-- PERMISSÕES -->
         <div class="col-md-6">
             <div class="card card-dashboard p-4 h-100">
@@ -165,15 +159,15 @@
             </div>
         </div>
 
-    </div>
+            <!-- BOTÕES -->
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button class="btn btn-outline-secondary">Cancelar</button>
+            <button class="btn btn-primary">Salvar Alterações</button>
+        </div>
 
-    <!-- BOTÕES -->
-    <div class="d-flex justify-content-end gap-2 mt-4">
-        <button class="btn btn-outline-secondary">Cancelar</button>
-        <button class="btn btn-primary">Salvar Alterações</button>
     </div>
 
 </div>
-
+<script src="js/theme.js"></script>
 </body>
 </html>
