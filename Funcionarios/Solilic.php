@@ -24,7 +24,8 @@ $stmtFerias = $con->prepare("
         status,
         data_solicitacao AS data_envio,
         data_visto,
-        mensagem_colaborador
+        mensagem_colaborador,
+        motivo_rejeicao
     FROM ferias
     WHERE id_funcionario = ?
     AND id_empresa = ?
@@ -48,8 +49,9 @@ $stmtLicencas = $con->prepare("
         dias,
         status,
         data_envio,
-        data_visto,
-        mensagem_colaborador
+        NULL AS data_visto,
+        NULL AS mensagem_colaborador,
+        NULL AS motivo_rejeicao
     FROM licencas_medicas
     WHERE id_funcionario = ?
     AND id_empresa = ?
@@ -69,11 +71,23 @@ usort($solicitacoes, function($a, $b) {
 });
 
 function badgeStatus($status) {
-    if ($status == 'visto') {
-        return '<span class="badge bg-success">Visualizado pelo RH</span>';
+    if ($status == 'pendente') {
+        return '<span class="badge bg-warning text-dark">Em andamento</span>';
     }
 
-    return '<span class="badge bg-warning text-dark">Em andamento</span>';
+    if ($status == 'visto') {
+        return '<span class="badge bg-info text-dark">Visualizado pelo RH</span>';
+    }
+
+    if ($status == 'aprovado') {
+        return '<span class="badge bg-success">Aprovado</span>';
+    }
+
+    if ($status == 'rejeitado') {
+        return '<span class="badge bg-danger">Rejeitado</span>';
+    }
+
+    return '<span class="badge bg-secondary">Indefinido</span>';
 }
 
 function textoMensagem($item) {
@@ -81,11 +95,23 @@ function textoMensagem($item) {
         return $item['mensagem_colaborador'];
     }
 
+    if ($item['status'] == 'pendente') {
+        return 'Aguardando análise do RH.';
+    }
+
     if ($item['status'] == 'visto') {
         return 'Sua solicitação foi visualizada pelo RH.';
     }
 
-    return 'Aguardando visualização do RH.';
+    if ($item['status'] == 'aprovado') {
+        return 'Sua solicitação foi aprovada pelo RH.';
+    }
+
+    if ($item['status'] == 'rejeitado') {
+        return 'Sua solicitação foi rejeitada pelo RH.';
+    }
+
+    return '-';
 }
 ?>
 
@@ -175,10 +201,17 @@ function textoMensagem($item) {
                                 <td>
                                     <?= htmlspecialchars(textoMensagem($s)) ?>
 
-                                    <?php if($s['status'] == 'visto' && !empty($s['data_visto'])): ?>
+                                    <?php if(!empty($s['data_visto']) && in_array($s['status'], ['visto', 'aprovado', 'rejeitado'])): ?>
                                         <br>
                                         <small class="text-muted">
-                                            Visto em <?= date('d/m/Y H:i', strtotime($s['data_visto'])) ?>
+                                            Atualizado em <?= date('d/m/Y H:i', strtotime($s['data_visto'])) ?>
+                                        </small>
+                                    <?php endif; ?>
+
+                                    <?php if($s['status'] == 'rejeitado' && !empty($s['motivo_rejeicao'])): ?>
+                                        <br>
+                                        <small class="text-danger">
+                                            Motivo: <?= htmlspecialchars($s['motivo_rejeicao']) ?>
                                         </small>
                                     <?php endif; ?>
                                 </td>

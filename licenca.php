@@ -1,7 +1,7 @@
-Substitua esse arquivo inteiro por este. Ele pega `id_empresa` da sessão, filtra tudo pela empresa logada e protege o link do arquivo:
-
-```php
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once 'auth.php';
 require_once 'config/database.php';
 
@@ -11,6 +11,34 @@ if (!$idEmpresa) {
     die("Empresa não identificada. Faça login novamente.");
 }
 
+/* MARCAR COMO VISTO */
+if (isset($_GET['visto'])) {
+
+    $idLicenca = (int) $_GET['visto'];
+
+    $mensagem = "Sua licença médica foi visualizada pelo RH.";
+
+    $stmtVisto = $con->prepare("
+        UPDATE licencas_medicas
+        SET
+            status = 'visto',
+            data_visto = NOW(),
+            mensagem_colaborador = ?
+        WHERE id = ?
+        AND id_empresa = ?
+    ");
+
+    if (!$stmtVisto) {
+        die("Erro SQL visto: " . $con->error);
+    }
+
+    $stmtVisto->bind_param("sii", $mensagem, $idLicenca, $idEmpresa);
+    $stmtVisto->execute();
+
+    header("Location: licenca.php");
+    exit;
+}
+
 /* BUSCAR LICENÇAS DA EMPRESA */
 $sql = "
 SELECT
@@ -18,8 +46,8 @@ SELECT
     f.nome
 FROM licencas_medicas lm
 INNER JOIN funcionarios f
-ON lm.id_funcionario = f.id_funcionario
-AND lm.id_empresa = f.id_empresa
+    ON lm.id_funcionario = f.id_funcionario
+    AND lm.id_empresa = f.id_empresa
 WHERE lm.id_empresa = ?
 ORDER BY lm.data_envio DESC
 ";
@@ -32,10 +60,9 @@ if (!$stmt) {
 
 $stmt->bind_param("i", $idEmpresa);
 $stmt->execute();
-
 $result = $stmt->get_result();
 
-/* TOTAL DE SUBMISSÕES DA EMPRESA */
+/* TOTAL */
 $stmtTotal = $con->prepare("
     SELECT COUNT(*) AS total
     FROM licencas_medicas
@@ -44,12 +71,9 @@ $stmtTotal = $con->prepare("
 
 $stmtTotal->bind_param("i", $idEmpresa);
 $stmtTotal->execute();
+$totalSubmissoes = $stmtTotal->get_result()->fetch_assoc()['total'] ?? 0;
 
-$totalSubmissoes = $stmtTotal
-    ->get_result()
-    ->fetch_assoc()['total'];
-
-/* LICENÇAS ATIVAS DA EMPRESA */
+/* ATIVAS */
 $stmtAtivas = $con->prepare("
     SELECT COUNT(*) AS total
     FROM licencas_medicas
@@ -59,24 +83,34 @@ $stmtAtivas = $con->prepare("
 
 $stmtAtivas->bind_param("i", $idEmpresa);
 $stmtAtivas->execute();
+$licencasAtivas = $stmtAtivas->get_result()->fetch_assoc()['total'] ?? 0;
 
-$licencasAtivas = $stmtAtivas
-    ->get_result()
-    ->fetch_assoc()['total'];
+/* VISTAS */
+$stmtVistas = $con->prepare("
+    SELECT COUNT(*) AS total
+    FROM licencas_medicas
+    WHERE id_empresa = ?
+    AND status = 'visto'
+");
+
+$stmtVistas->bind_param("i", $idEmpresa);
+$stmtVistas->execute();
+$licencasVistas = $stmtVistas->get_result()->fetch_assoc()['total'] ?? 0;
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Licença Médica</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="css/style.css">
+<title>Licença Médica</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
 <body>
@@ -85,155 +119,196 @@ $licencasAtivas = $stmtAtivas
 
 <div class="content">
 
-    <div class="container-fluid">
+<div class="container-fluid">
 
-        <h1 class="fw-bold">Licenças Médicas</h1>
+    <h1 class="fw-bold">Licenças Médicas</h1>
 
-        <h5 class="text-muted mb-4">
-            Gerencie envios de atestados e licenças médicas da sua empresa
-        </h5>
+    <h5 class="text-muted mb-4">
+        Gerencie envios de atestados e licenças médicas da sua empresa
+    </h5>
 
-        <div class="row g-4 mb-4">
+    <div class="row g-4 mb-4">
 
-            <div class="col-12 col-md-6">
-                <div class="card card-dashboard p-3 text-start">
-                    <h5>Licenças Ativas</h5>
+        <div class="col-12 col-md-4">
+            <div class="card card-dashboard p-3 text-start">
+                <h5>Licenças Ativas</h5>
 
-                    <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                        <?= $licencasAtivas ?>
-                        <i class="bi bi-heart-pulse"></i>
-                    </h1>
-                </div>
+                <h1 class="fw-bolder d-flex justify-content-between align-items-center">
+                    <?= $licencasAtivas ?>
+                    <i class="bi bi-heart-pulse"></i>
+                </h1>
             </div>
-
-            <div class="col-12 col-md-6">
-                <div class="card card-dashboard p-3 text-start">
-                    <h5>Total de Submissões</h5>
-
-                    <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                        <?= $totalSubmissoes ?>
-                        <i class="bi bi-file-earmark-medical"></i>
-                    </h1>
-                </div>
-            </div>
-
         </div>
 
-        <div class="card card-dashboard p-3">
+        <div class="col-12 col-md-4">
+            <div class="card card-dashboard p-3 text-start">
+                <h5>Total de Submissões</h5>
 
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-
-                <h5 class="mb-0">Atestados e Licenças</h5>
-
-                <input
-                    type="text"
-                    class="form-control"
-                    id="pesquisarLicenca"
-                    placeholder="Pesquisar funcionário, motivo ou período..."
-                    style="max-width:320px;"
-                >
-
+                <h1 class="fw-bolder d-flex justify-content-between align-items-center">
+                    <?= $totalSubmissoes ?>
+                    <i class="bi bi-file-earmark-medical"></i>
+                </h1>
             </div>
+        </div>
 
-            <div class="table-responsive">
+        <div class="col-12 col-md-4">
+            <div class="card card-dashboard p-3 text-start">
+                <h5>Visualizadas</h5>
 
-                <table class="table table-hover mt-3 align-middle">
-
-                    <thead class="table-light">
-                        <tr>
-                            <th>Funcionário</th>
-                            <th>Período</th>
-                            <th>Dias</th>
-                            <th>Motivo</th>
-                            <th>Data Envio</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="tabelaLicencas">
-
-                    <?php if($result->num_rows > 0){ ?>
-
-                        <?php while($licenca = $result->fetch_assoc()){ ?>
-
-                            <?php
-                            $arquivo = $licenca['arquivo_atestado'];
-
-                            if (!empty($arquivo) && strpos($arquivo, '../') !== 0) {
-                                $arquivoLink = $arquivo;
-                            } else {
-                                $arquivoLink = str_replace('../', '', $arquivo);
-                            }
-                            ?>
-
-                            <tr>
-
-                                <td>
-                                    <i class="bi bi-person me-2"></i>
-                                    <?= htmlspecialchars($licenca['nome']) ?>
-                                </td>
-
-                                <td>
-                                    <?= date('d/m/Y', strtotime($licenca['data_inicio'])) ?>
-                                    -
-                                    <?= date('d/m/Y', strtotime($licenca['data_fim'])) ?>
-                                </td>
-
-                                <td>
-                                    <?= htmlspecialchars($licenca['dias']) ?> dias
-                                </td>
-
-                                <td>
-                                    <?= htmlspecialchars($licenca['motivo']) ?>
-                                </td>
-
-                                <td>
-                                    <?= date('d/m/Y H:i', strtotime($licenca['data_envio'])) ?>
-                                </td>
-
-                                <td>
-                                    <?php if(!empty($arquivoLink)): ?>
-
-                                        <a
-                                            href="<?= htmlspecialchars($arquivoLink) ?>"
-                                            target="_blank"
-                                            class="btn btn-outline-primary btn-sm"
-                                        >
-                                            <i class="bi bi-eye me-1"></i>
-                                            Ver atestado
-                                        </a>
-
-                                    <?php else: ?>
-
-                                        <span class="text-muted">
-                                            Sem arquivo
-                                        </span>
-
-                                    <?php endif; ?>
-                                </td>
-
-                            </tr>
-
-                        <?php } ?>
-
-                    <?php } else { ?>
-
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                Nenhuma licença enviada para esta empresa
-                            </td>
-                        </tr>
-
-                    <?php } ?>
-
-                    </tbody>
-
-                </table>
-
+                <h1 class="fw-bolder d-flex justify-content-between align-items-center">
+                    <?= $licencasVistas ?>
+                    <i class="bi bi-eye"></i>
+                </h1>
             </div>
         </div>
 
     </div>
+
+    <div class="card card-dashboard p-3">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            <h5 class="mb-0">Atestados e Licenças</h5>
+
+            <input
+                type="text"
+                class="form-control"
+                id="pesquisarLicenca"
+                placeholder="Pesquisar funcionário, motivo ou período..."
+                style="max-width:320px;"
+            >
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover mt-3 align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Funcionário</th>
+                        <th>Período</th>
+                        <th>Dias</th>
+                        <th>Motivo</th>
+                        <th>Data Envio</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tabelaLicencas">
+
+                <?php if($result->num_rows > 0): ?>
+
+                    <?php while($licenca = $result->fetch_assoc()): ?>
+
+                        <?php
+                        $arquivo = $licenca['arquivo_atestado'] ?? '';
+
+                        if (!empty($arquivo)) {
+                            $arquivoLink = str_replace('../', '', $arquivo);
+                        } else {
+                            $arquivoLink = '';
+                        }
+
+                        $status = $licenca['status'] ?? 'pendente';
+                        ?>
+
+                        <tr>
+
+                            <td>
+                                <i class="bi bi-person me-2"></i>
+                                <?= htmlspecialchars($licenca['nome']) ?>
+                            </td>
+
+                            <td>
+                                <?= date('d/m/Y', strtotime($licenca['data_inicio'])) ?>
+                                -
+                                <?= date('d/m/Y', strtotime($licenca['data_fim'])) ?>
+                            </td>
+
+                            <td>
+                                <?= htmlspecialchars($licenca['dias']) ?> dias
+                            </td>
+
+                            <td>
+                                <?= htmlspecialchars($licenca['motivo']) ?>
+                            </td>
+
+                            <td>
+                                <?= date('d/m/Y H:i', strtotime($licenca['data_envio'])) ?>
+                            </td>
+
+                            <td>
+                                <?php if($status == 'visto'): ?>
+                                    <span class="badge bg-success">Visualizado</span>
+
+                                    <?php if(!empty($licenca['data_visto'])): ?>
+                                        <br>
+                                        <small class="text-muted">
+                                            <?= date('d/m/Y H:i', strtotime($licenca['data_visto'])) ?>
+                                        </small>
+                                    <?php endif; ?>
+
+                                <?php else: ?>
+                                    <span class="badge bg-warning text-dark">Pendente</span>
+                                <?php endif; ?>
+                            </td>
+
+                            <td>
+                                <?php if(!empty($arquivoLink)): ?>
+
+                                    <a
+                                        href="<?= htmlspecialchars($arquivoLink) ?>"
+                                        target="_blank"
+                                        class="btn btn-outline-primary btn-sm"
+                                    >
+                                        <i class="bi bi-eye me-1"></i>
+                                        Ver atestado
+                                    </a>
+
+                                <?php else: ?>
+
+                                    <span class="text-muted">Sem arquivo</span>
+
+                                <?php endif; ?>
+
+                                <?php if($status != 'visto'): ?>
+
+                                    <a
+                                        href="licenca.php?visto=<?= $licenca['id'] ?>"
+                                        class="btn btn-success btn-sm ms-2"
+                                        onclick="return confirm('Marcar licença como visualizada?')"
+                                    >
+                                        <i class="bi bi-check-lg"></i>
+                                        Visto
+                                    </a>
+
+                                <?php endif; ?>
+                            </td>
+
+                        </tr>
+
+                    <?php endwhile; ?>
+
+                <?php else: ?>
+
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Nenhuma licença enviada para esta empresa
+                        </td>
+                    </tr>
+
+                <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
 
 </div>
 
@@ -249,8 +324,7 @@ pesquisa.addEventListener('keyup', function(){
 
         const texto = linha.innerText.toLowerCase();
 
-        linha.style.display =
-            texto.includes(termo) ? '' : 'none';
+        linha.style.display = texto.includes(termo) ? '' : 'none';
 
     });
 
@@ -261,4 +335,3 @@ pesquisa.addEventListener('keyup', function(){
 
 </body>
 </html>
-```
