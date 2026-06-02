@@ -1,8 +1,17 @@
- <?php
+Substitua esse arquivo inteiro por este. Ele pega `id_empresa` da sessão, filtra tudo pela empresa logada e protege o link do arquivo:
+
+```php
+<?php
 require_once 'auth.php';
 require_once 'config/database.php';
 
-// BUSCAR LICENÇAS
+$idEmpresa = $_SESSION['id_empresa'] ?? null;
+
+if (!$idEmpresa) {
+    die("Empresa não identificada. Faça login novamente.");
+}
+
+/* BUSCAR LICENÇAS DA EMPRESA */
 $sql = "
 SELECT
     lm.*,
@@ -10,23 +19,50 @@ SELECT
 FROM licencas_medicas lm
 INNER JOIN funcionarios f
 ON lm.id_funcionario = f.id_funcionario
+AND lm.id_empresa = f.id_empresa
+WHERE lm.id_empresa = ?
 ORDER BY lm.data_envio DESC
 ";
 
-$result = $con->query($sql);
+$stmt = $con->prepare($sql);
 
-// CARDS
-$totalSubmissoes = $con->query(
-    "SELECT COUNT(*) as total FROM licencas_medicas"
-)->fetch_assoc()['total'];
+if (!$stmt) {
+    die("Erro SQL licenças: " . $con->error);
+}
 
-$licencasAtivas = $con->query(
-    "SELECT COUNT(*) as total
-     FROM licencas_medicas
-     WHERE CURDATE()
-     BETWEEN data_inicio AND data_fim"
-)->fetch_assoc()['total'];
+$stmt->bind_param("i", $idEmpresa);
+$stmt->execute();
 
+$result = $stmt->get_result();
+
+/* TOTAL DE SUBMISSÕES DA EMPRESA */
+$stmtTotal = $con->prepare("
+    SELECT COUNT(*) AS total
+    FROM licencas_medicas
+    WHERE id_empresa = ?
+");
+
+$stmtTotal->bind_param("i", $idEmpresa);
+$stmtTotal->execute();
+
+$totalSubmissoes = $stmtTotal
+    ->get_result()
+    ->fetch_assoc()['total'];
+
+/* LICENÇAS ATIVAS DA EMPRESA */
+$stmtAtivas = $con->prepare("
+    SELECT COUNT(*) AS total
+    FROM licencas_medicas
+    WHERE id_empresa = ?
+    AND CURDATE() BETWEEN data_inicio AND data_fim
+");
+
+$stmtAtivas->bind_param("i", $idEmpresa);
+$stmtAtivas->execute();
+
+$licencasAtivas = $stmtAtivas
+    ->get_result()
+    ->fetch_assoc()['total'];
 ?>
 
 <!DOCTYPE html>
@@ -36,32 +72,27 @@ $licencasAtivas = $con->query(
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Licença Médica</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <?php include 'sidebar.php'; ?>
 
-<!-- CONTEÚDO -->
 <div class="content">
 
     <div class="container-fluid">
 
         <h1 class="fw-bold">Licenças Médicas</h1>
+
         <h5 class="text-muted mb-4">
-            Gerencie envios de atestados e licenças médicas
+            Gerencie envios de atestados e licenças médicas da sua empresa
         </h5>
 
-        <!-- CARDS -->
         <div class="row g-4 mb-4">
 
             <div class="col-12 col-md-6">
@@ -88,14 +119,25 @@ $licencasAtivas = $con->query(
 
         </div>
 
-        <!-- TABELA -->
         <div class="card card-dashboard p-3">
 
-            <h5>Atestados e Licenças</h5>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <h5 class="mb-0">Atestados e Licenças</h5>
+
+                <input
+                    type="text"
+                    class="form-control"
+                    id="pesquisarLicenca"
+                    placeholder="Pesquisar funcionário, motivo ou período..."
+                    style="max-width:320px;"
+                >
+
+            </div>
 
             <div class="table-responsive">
 
-                <table class="table table-hover mt-3">
+                <table class="table table-hover mt-3 align-middle">
 
                     <thead class="table-light">
                         <tr>
@@ -108,11 +150,21 @@ $licencasAtivas = $con->query(
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody id="tabelaLicencas">
 
                     <?php if($result->num_rows > 0){ ?>
 
                         <?php while($licenca = $result->fetch_assoc()){ ?>
+
+                            <?php
+                            $arquivo = $licenca['arquivo_atestado'];
+
+                            if (!empty($arquivo) && strpos($arquivo, '../') !== 0) {
+                                $arquivoLink = $arquivo;
+                            } else {
+                                $arquivoLink = str_replace('../', '', $arquivo);
+                            }
+                            ?>
 
                             <tr>
 
@@ -122,19 +174,13 @@ $licencasAtivas = $con->query(
                                 </td>
 
                                 <td>
-                                    <?= date(
-                                        'd/m/Y',
-                                        strtotime($licenca['data_inicio'])
-                                    ) ?>
+                                    <?= date('d/m/Y', strtotime($licenca['data_inicio'])) ?>
                                     -
-                                    <?= date(
-                                        'd/m/Y',
-                                        strtotime($licenca['data_fim'])
-                                    ) ?>
+                                    <?= date('d/m/Y', strtotime($licenca['data_fim'])) ?>
                                 </td>
 
                                 <td>
-                                    <?= $licenca['dias'] ?> dias
+                                    <?= htmlspecialchars($licenca['dias']) ?> dias
                                 </td>
 
                                 <td>
@@ -142,21 +188,28 @@ $licencasAtivas = $con->query(
                                 </td>
 
                                 <td>
-                                    <?= date(
-                                        'd/m/Y H:i',
-                                        strtotime($licenca['data_envio'])
-                                    ) ?>
+                                    <?= date('d/m/Y H:i', strtotime($licenca['data_envio'])) ?>
                                 </td>
 
                                 <td>
-                                    <a
-                                        href="<?= $licenca['arquivo_atestado'] ?>"
-                                        target="_blank"
-                                        class="d-flex align-items-center gap-2 text-primary text-decoration-none"
-                                    >
-                                        <i class="bi bi-eye"></i>
-                                        Ver atestado
-                                    </a>
+                                    <?php if(!empty($arquivoLink)): ?>
+
+                                        <a
+                                            href="<?= htmlspecialchars($arquivoLink) ?>"
+                                            target="_blank"
+                                            class="btn btn-outline-primary btn-sm"
+                                        >
+                                            <i class="bi bi-eye me-1"></i>
+                                            Ver atestado
+                                        </a>
+
+                                    <?php else: ?>
+
+                                        <span class="text-muted">
+                                            Sem arquivo
+                                        </span>
+
+                                    <?php endif; ?>
                                 </td>
 
                             </tr>
@@ -166,8 +219,8 @@ $licencasAtivas = $con->query(
                     <?php } else { ?>
 
                         <tr>
-                            <td colspan="6" class="text-center text-muted">
-                                Nenhuma licença enviada
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Nenhuma licença enviada para esta empresa
                             </td>
                         </tr>
 
@@ -183,6 +236,29 @@ $licencasAtivas = $con->query(
     </div>
 
 </div>
+
+<script>
+const pesquisa = document.getElementById('pesquisarLicenca');
+const linhas = document.querySelectorAll('#tabelaLicencas tr');
+
+pesquisa.addEventListener('keyup', function(){
+
+    const termo = this.value.toLowerCase();
+
+    linhas.forEach(function(linha){
+
+        const texto = linha.innerText.toLowerCase();
+
+        linha.style.display =
+            texto.includes(termo) ? '' : 'none';
+
+    });
+
+});
+</script>
+
 <script src="js/theme.js"></script>
+
 </body>
 </html>
+```

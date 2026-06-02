@@ -2,45 +2,96 @@
 require_once 'auth.php';
 require_once 'config/database.php';
 
+$id_empresa = $_SESSION['id_empresa'] ?? 0;
 
-$presentes = mysqli_num_rows(
-    mysqli_query($con, "
-        SELECT * FROM pontos
-        WHERE status = 'completo'
-        AND data = CURDATE()
-    ")
-);
+if (!$id_empresa) {
+    die("Erro: empresa não identificada. Faça login novamente.");
+}
 
-$atrasos = mysqli_num_rows(
-    mysqli_query($con, "
-        SELECT * FROM pontos
-        WHERE status = 'atraso'
-        AND data = CURDATE()
-    ")
-);
+/* PRESENTES */
+$sqlPresentes = "
+SELECT COUNT(*) AS total
+FROM pontos p
+INNER JOIN funcionarios f
+    ON f.id_funcionario = p.id_funcionario
+WHERE p.status = 'completo'
+AND p.id_empresa = ?
+AND f.id_empresa = ?
+";
 
-$ausencias = mysqli_num_rows(
-    mysqli_query($con, "
-        SELECT * FROM funcionarios
-        WHERE ativo = 1
-    ")
-);
+$stmt = $con->prepare($sqlPresentes);
+$stmt->bind_param("ii", $id_empresa, $id_empresa);
+$stmt->execute();
+$presentes = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
 
-$query = mysqli_query($con, "
+/* ATRASOS */
+$sqlAtrasos = "
+SELECT COUNT(*) AS total
+FROM pontos p
+INNER JOIN funcionarios f
+    ON f.id_funcionario = p.id_funcionario
+WHERE p.status = 'atraso'
+AND p.id_empresa = ?
+AND f.id_empresa = ?
+";
 
+$stmt = $con->prepare($sqlAtrasos);
+$stmt->bind_param("ii", $id_empresa, $id_empresa);
+$stmt->execute();
+$atrasos = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
+
+/* FUNCIONÁRIOS ATIVOS */
+$sqlAtivos = "
+SELECT COUNT(*) AS total
+FROM funcionarios
+WHERE ativo = 1
+AND id_empresa = ?
+";
+
+$stmt = $con->prepare($sqlAtivos);
+$stmt->bind_param("i", $id_empresa);
+$stmt->execute();
+$ativos = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
+
+/* REGISTROS DE PONTO */
+$sqlPontos = "
 SELECT
-    pontos.*,
-    funcionarios.nome
+    p.id_ponto,
+    p.id_funcionario,
+    p.data,
+    p.hora_entrada,
+    p.hora_saida,
+    p.total_horas,
+    p.status,
+    f.nome
+FROM pontos p
+INNER JOIN funcionarios f
+    ON f.id_funcionario = p.id_funcionario
+WHERE p.id_empresa = ?
+AND f.id_empresa = ?
+ORDER BY p.data DESC, p.hora_entrada DESC
+";
 
-FROM pontos
+$stmtPontos = $con->prepare($sqlPontos);
+$stmtPontos->bind_param("ii", $id_empresa, $id_empresa);
+$stmtPontos->execute();
+$query = $stmtPontos->get_result();
 
-INNER JOIN funcionarios
-ON funcionarios.id_funcionario = pontos.id_funcionario
+function formatarHora($hora) {
+    if (!$hora || $hora == '00:00:00') {
+        return '-';
+    }
 
-ORDER BY pontos.data DESC
+    return date('H:i', strtotime($hora));
+}
 
-");
+function formatarTotalHoras($total) {
+    if ($total === null || $total === '') {
+        return 'Em andamento';
+    }
 
+    return number_format((float)$total, 2, ',', '.') . 'h';
+}
 ?>
 
 <!DOCTYPE html>
@@ -66,19 +117,18 @@ ORDER BY pontos.data DESC
 
 <div class="content">
 
-    <h1 class="fw-bold">Horários de Ponto</h1>
+    <h1 class="fw-bold">Histórico de Ponto</h1>
 
     <h5 class="text-muted mb-4">
         Controle de entrada e saída dos funcionários
     </h5>
 
-    <!-- CARDS -->
     <div class="row g-4 mb-4">
 
         <div class="col-12 col-md-4">
             <div class="card card-dashboard p-3 text-start">
 
-                <h5>Funcionários Presentes</h5>
+                <h5>Registros completos</h5>
 
                 <h1 class="fw-bolder d-flex justify-content-between align-items-center">
                     <?= $presentes ?>
@@ -91,11 +141,11 @@ ORDER BY pontos.data DESC
         <div class="col-12 col-md-4">
             <div class="card card-dashboard p-3 text-start">
 
-                <h5>Atrasos Hoje</h5>
+                <h5>Atrasos registrados</h5>
 
                 <h1 class="fw-bolder d-flex justify-content-between align-items-center">
                     <?= $atrasos ?>
-                    <i class="bi bi-clock"></i>
+                    <i class="bi bi-clock-history"></i>
                 </h1>
 
             </div>
@@ -107,7 +157,7 @@ ORDER BY pontos.data DESC
                 <h5>Funcionários Ativos</h5>
 
                 <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                    <?= $ausencias ?>
+                    <?= $ativos ?>
                     <i class="bi bi-people"></i>
                 </h1>
 
@@ -116,7 +166,6 @@ ORDER BY pontos.data DESC
 
     </div>
 
-    <!-- TABELA -->
     <div class="card card-dashboard p-3">
 
         <h5>Registros de Ponto</h5>
@@ -140,66 +189,60 @@ ORDER BY pontos.data DESC
 
                 <tbody>
 
-                <?php while($ponto = mysqli_fetch_assoc($query)): ?>
+                <?php if ($query->num_rows > 0): ?>
+
+                    <?php while($ponto = $query->fetch_assoc()): ?>
+
+                        <tr>
+
+                            <td>
+                                <i class="bi bi-person me-2"></i>
+                                <?= htmlspecialchars($ponto['nome']) ?>
+                            </td>
+
+                            <td>
+                                <?= date('d/m/Y', strtotime($ponto['data'])) ?>
+                            </td>
+
+                            <td>
+                                <?= formatarHora($ponto['hora_entrada']) ?>
+                            </td>
+
+                            <td>
+                                <?= formatarHora($ponto['hora_saida']) ?>
+                            </td>
+
+                            <td>
+                                <?= formatarTotalHoras($ponto['total_horas']) ?>
+                            </td>
+
+                            <td>
+                                <?php
+                                if($ponto['status'] == 'completo') {
+                                    echo '<span class="badge bg-success">Completo</span>';
+                                } elseif($ponto['status'] == 'atraso') {
+                                    echo '<span class="badge bg-danger">Atraso</span>';
+                                } elseif($ponto['status'] == 'em andamento') {
+                                    echo '<span class="badge bg-warning text-dark">Em andamento</span>';
+                                } else {
+                                    echo '<span class="badge bg-secondary">Ausente</span>';
+                                }
+                                ?>
+                            </td>
+
+                        </tr>
+
+                    <?php endwhile; ?>
+
+                <?php else: ?>
 
                     <tr>
-
-                        <td>
-                            <i class="bi bi-person me-2"></i>
-                            <?= $ponto['nome'] ?>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Nenhum registro de ponto encontrado para esta empresa.
                         </td>
-
-                        <td>
-                            <?= date('d/m/Y', strtotime($ponto['data'])) ?>
-                        </td>
-
-                        <td>
-                            <?= $ponto['hora_entrada'] ?>
-                        </td>
-
-                        <td>
-                            <?= $ponto['hora_saida'] ?? '-' ?>
-                        </td>
-
-                        <td>
-
-                            <?php
-                            if($ponto['total_horas']) {
-                                echo $ponto['total_horas'] . 'h';
-                            } else {
-                                echo 'Em andamento';
-                            }
-                            ?>
-
-                        </td>
-
-                        <td>
-
-                            <?php
-                            
-                            if($ponto['status'] == 'completo') {
-                                echo '<span class="badge bg-success">Completo</span>';
-                            }
-
-                            elseif($ponto['status'] == 'atraso') {
-                                echo '<span class="badge bg-danger">Atraso</span>';
-                            }
-
-                            elseif($ponto['status'] == 'em andamento') {
-                                echo '<span class="badge bg-warning">Em andamento</span>';
-                            }
-
-                            else {
-                                echo '<span class="badge bg-secondary">Ausente</span>';
-                            }
-
-                            ?>
-
-                        </td>
-
                     </tr>
 
-                <?php endwhile; ?>
+                <?php endif; ?>
 
                 </tbody>
 
@@ -210,6 +253,7 @@ ORDER BY pontos.data DESC
     </div>
 
 </div>
+
 <script src="js/theme.js"></script>
 </body>
 </html>

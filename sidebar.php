@@ -91,14 +91,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         </a>
 
-        <a href="duvidasRH.php"
-        class="<?= $pagina == 'duvidasRH.php' ? 'active' : '' ?>">
-
-         <i class="bi bi-patch-question me-2"></i>
-         Dúvidas
-
-        </a>
-
         <a href="funcionarios.php"
         class="<?= $pagina == 'funcionarios.php' ? 'active' : '' ?>">
 
@@ -107,6 +99,17 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         </a>
 
+        <a href="importar-banco-horas.php"
+class="<?= $pagina == 'importar-banco-horas.php' ? 'active' : '' ?>">
+    <i class="bi bi-hourglass-split me-2"></i>
+    Importar banco
+</a>
+
+<a href="importar-pontos.php"
+class="<?= $pagina == 'importar-pontos.php' ? 'active' : '' ?>">
+    <i class="bi bi-clock-history me-2"></i>
+    Importar pontos
+</a>
 
         <a href="importar-funcionarios.php"
         class="<?= $pagina == 'importar-funcionarios.php' ? 'active' : '' ?>">

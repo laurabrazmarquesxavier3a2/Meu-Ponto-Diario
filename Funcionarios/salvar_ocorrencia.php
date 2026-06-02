@@ -1,45 +1,73 @@
-
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-include('../config/database.php');
+session_start();
 
-$tipo_reporte = $_POST['tipo_reporte'] ?? '';
-$nome = $_POST['nome'] ?? 'Anônimo';
-$categoria = $_POST['categoria'] ?? '';
+require_once '../config/database.php';
 
-$andar = $_POST['andar'] ?? '';
-$sala = $_POST['sala'] ?? '';
-$local_especifico = $_POST['local_especifico'] ?? '';
+$id_empresa = $_SESSION['id_empresa'] ?? 0;
+$id_usuario = $_SESSION['id_usuario'] ?? 0;
 
-$descricao = $_POST['descricao'] ?? '';
-$testemunhas = $_POST['testemunhas'] ?? '';
-
-$evidencia = '';
-
-if(isset($_FILES['evidencia']) && $_FILES['evidencia']['error'] == 0){
-
-    $pasta = "../uploads/ocorrencias/";
-
-    if(!is_dir($pasta)){
-        mkdir($pasta, 0777, true);
-    }
-
-    $arquivo = time() . "_" . $_FILES['evidencia']['name'];
-
-    move_uploaded_file(
-        $_FILES['evidencia']['tmp_name'],
-        $pasta . $arquivo
-    );
-
-    $evidencia = $arquivo;
+if (!$id_empresa || !$id_usuario) {
+    die("Sessão inválida. Faça login novamente.");
 }
 
-if($tipo_reporte == 'Anônimo'){
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: seguranca.php");
+    exit;
+}
+
+$tipo_reporte = $_POST['tipo_reporte'] ?? '';
+$nome = trim($_POST['nome'] ?? '');
+$categoria = trim($_POST['categoria'] ?? '');
+$andar = trim($_POST['andar'] ?? '');
+$sala = trim($_POST['sala'] ?? '');
+$local_especifico = trim($_POST['local_especifico'] ?? '');
+$descricao = trim($_POST['descricao'] ?? '');
+$testemunhas = trim($_POST['testemunhas'] ?? '');
+
+if ($tipo_reporte === 'Anônimo') {
     $nome = 'Anônimo';
 }
 
-$sql = "INSERT INTO ocorrencias (
+if ($nome === '') {
+    $nome = 'Anônimo';
+}
 
+$evidencia = null;
+
+if (isset($_FILES['evidencia']) && $_FILES['evidencia']['error'] === UPLOAD_ERR_OK) {
+
+    $pasta = "../uploads/ocorrencias/";
+
+    if (!is_dir($pasta)) {
+        mkdir($pasta, 0777, true);
+    }
+
+    $nomeOriginal = basename($_FILES['evidencia']['name']);
+    $extensao = strtolower(pathinfo($nomeOriginal, PATHINFO_EXTENSION));
+
+    $permitidos = ['jpg', 'jpeg', 'png', 'pdf', 'mp4', 'mov', 'webp'];
+
+    if (!in_array($extensao, $permitidos)) {
+        die("Tipo de arquivo não permitido.");
+    }
+
+    $arquivo = uniqid('ocorrencia_', true) . "." . $extensao;
+    $destino = $pasta . $arquivo;
+
+    if (!move_uploaded_file($_FILES['evidencia']['tmp_name'], $destino)) {
+        die("Erro ao salvar evidência.");
+    }
+
+    $evidencia = "uploads/ocorrencias/" . $arquivo;
+}
+
+$sql = "
+INSERT INTO ocorrencias (
+    id_empresa,
+    id_usuario,
     tipo_reporte,
     nome,
     categoria,
@@ -48,16 +76,22 @@ $sql = "INSERT INTO ocorrencias (
     local_especifico,
     descricao,
     testemunhas,
-    evidencia
-
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    evidencia,
+    status,
+    data_ocorrencia
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aberta', NOW())
+";
 
 $stmt = $con->prepare($sql);
 
+if (!$stmt) {
+    die("Erro no prepare: " . $con->error);
+}
+
 $stmt->bind_param(
-
-    "sssssssss",
-
+    "iisssssssss",
+    $id_empresa,
+    $id_usuario,
     $tipo_reporte,
     $nome,
     $categoria,
@@ -67,11 +101,11 @@ $stmt->bind_param(
     $descricao,
     $testemunhas,
     $evidencia
-
 );
 
-$stmt->execute();
+if (!$stmt->execute()) {
+    die("Erro ao salvar ocorrência: " . $stmt->error);
+}
 
 header("Location: seguranca.php?sucesso=1");
 exit;
-?>

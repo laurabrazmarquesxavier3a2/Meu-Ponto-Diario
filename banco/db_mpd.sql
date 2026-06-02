@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 01-Jun-2026 às 22:36
+-- Tempo de geração: 02-Jun-2026 às 04:33
 -- Versão do servidor: 5.7.36
--- versão do PHP: 8.0.16
+-- versão do PHP: 8.1.3
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -92,7 +92,8 @@ CREATE TABLE `banco_horas_movimentacao` (
   `data` date NOT NULL,
   `tipo` enum('extra','debito') NOT NULL,
   `horas` decimal(5,2) NOT NULL,
-  `descricao` varchar(255) DEFAULT NULL
+  `descricao` varchar(255) DEFAULT NULL,
+  `id_empresa` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -159,6 +160,8 @@ CREATE TABLE `empresas` (
   `segmento` varchar(100) DEFAULT NULL,
   `email` varchar(150) DEFAULT NULL,
   `telefone` varchar(30) DEFAULT NULL,
+  `responsavel` varchar(150) DEFAULT NULL,
+  `cargo_responsavel` varchar(100) DEFAULT NULL,
   `endereco` varchar(255) DEFAULT NULL,
   `cidade` varchar(100) DEFAULT NULL,
   `estado` varchar(2) DEFAULT NULL,
@@ -168,6 +171,13 @@ CREATE TABLE `empresas` (
   `status` enum('ativa','inativa','teste') DEFAULT 'teste',
   `data_cadastro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Extraindo dados da tabela `empresas`
+--
+
+INSERT INTO `empresas` (`id_empresa`, `razao_social`, `nome_fantasia`, `cnpj`, `segmento`, `email`, `telefone`, `responsavel`, `cargo_responsavel`, `endereco`, `cidade`, `estado`, `cep`, `logo`, `plano`, `status`, `data_cadastro`) VALUES
+(1, 'Desenvolver tecnologias revolucionárias', 'Revotech', '79.468.715/0001-23', 'Tecnologia', 'RevoTech1234@gmail.com', '13 98192-3276', 'Félix Almeida', 'Dono', 'Rua Borboletas Psicodélicas', 'São Paulo', 'SP', '04313-110', NULL, 'medio', 'ativa', '2026-06-02 03:09:13');
 
 -- --------------------------------------------------------
 
@@ -183,18 +193,29 @@ CREATE TABLE `funcionarios` (
   `horario_padrao` time DEFAULT '09:00:00',
   `ativo` tinyint(1) DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `id_empresa` int(11) NOT NULL
+  `id_empresa` int(11) NOT NULL,
+  `escala` varchar(50) DEFAULT NULL,
+  `supervisor` varchar(150) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Extraindo dados da tabela `funcionarios`
 --
 
-INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `horario_padrao`, `ativo`, `created_at`, `id_empresa`) VALUES
-(2, 'Administrador RH', 'Gerente RH', 'Recursos Humanos', '09:00:00', 1, '2026-05-16 00:18:27', 0),
-(3, 'Mara Silva', 'Analista RH', 'RH', '08:00:00', 1, '2026-05-16 01:11:55', 0),
-(4, 'João Santos', 'Assistente Administrativo', 'Financeiro', '09:00:00', 1, '2026-05-16 01:11:55', 0),
-(5, 'Ana Silva', 'Desenvolvedora', 'TI', '08:30:00', 1, '2026-05-16 01:11:55', 0);
+INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `horario_padrao`, `ativo`, `created_at`, `id_empresa`, `escala`, `supervisor`) VALUES
+(2, 'Administrador RH', 'Gerente RH', 'Recursos Humanos', '09:00:00', 1, '2026-05-16 00:18:27', 0, NULL, NULL),
+(3, 'Mara Silva', 'Analista RH', 'RH', '08:00:00', 1, '2026-05-16 01:11:55', 0, NULL, NULL),
+(4, 'João Santos', 'Assistente Administrativo', 'Financeiro', '09:00:00', 1, '2026-05-16 01:11:55', 0, NULL, NULL),
+(5, 'Ana Silva', 'Desenvolvedora', 'TI', '08:30:00', 1, '2026-05-16 01:11:55', 0, NULL, NULL),
+(6, 'Maria Souza', 'Auxiliar RH', 'RH', '09:00:00', 1, '2026-06-02 03:45:52', 1, NULL, NULL),
+(7, 'Pedro Santos', 'Desenvolvedor', 'TI', '09:00:00', 1, '2026-06-02 03:45:52', 1, NULL, NULL),
+(8, 'Ana Oliveira', 'Financeiro', 'Financeiro', '09:00:00', 1, '2026-06-02 03:45:52', 1, NULL, NULL),
+(9, 'Lucas Pereira', 'Marketing', 'Marketing', '09:00:00', 1, '2026-06-02 03:45:53', 1, NULL, NULL),
+(10, 'Fernanda Costa', 'Designer', 'Design', '09:00:00', 1, '2026-06-02 03:45:53', 1, NULL, NULL),
+(11, 'Ricardo Lima', 'Supervisor de Produção', 'Produção', '09:00:00', 1, '2026-06-02 03:45:53', 1, NULL, NULL),
+(12, 'Juliana Alves', 'Analista Comercial', 'Comercial', '09:00:00', 1, '2026-06-02 03:45:53', 1, NULL, NULL),
+(13, 'Bruno Martins', 'Técnico de Suporte', 'TI', '09:00:00', 1, '2026-06-02 03:45:53', 1, NULL, NULL),
+(14, 'Carla Rocha', 'Coordenadora RH', 'RH', '09:00:00', 1, '2026-06-02 03:45:53', 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -253,6 +274,29 @@ INSERT INTO `licencas_medicas` (`id`, `id_funcionario`, `arquivo_atestado`, `tip
 -- --------------------------------------------------------
 
 --
+-- Estrutura da tabela `ocorrencias`
+--
+
+CREATE TABLE `ocorrencias` (
+  `id_ocorrencia` int(11) NOT NULL,
+  `id_empresa` int(11) NOT NULL,
+  `id_usuario` int(11) DEFAULT NULL,
+  `tipo_reporte` varchar(30) DEFAULT NULL,
+  `nome` varchar(150) DEFAULT NULL,
+  `categoria` varchar(100) DEFAULT NULL,
+  `andar` varchar(50) DEFAULT NULL,
+  `sala` varchar(100) DEFAULT NULL,
+  `local_especifico` varchar(255) DEFAULT NULL,
+  `descricao` text,
+  `testemunhas` varchar(255) DEFAULT NULL,
+  `evidencia` varchar(255) DEFAULT NULL,
+  `status` enum('aberta','em_analise','resolvida') DEFAULT 'aberta',
+  `data_ocorrencia` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura da tabela `pontos`
 --
 
@@ -291,7 +335,7 @@ CREATE TABLE `usuarios` (
   `email` varchar(150) NOT NULL,
   `senha` varchar(255) NOT NULL,
   `tipo` enum('empresa','rh','funcionario') NOT NULL DEFAULT 'funcionario',
-  `status` enum('ativo','inativo') DEFAULT 'ativo',
+  `status` enum('ativo','inativo','ferias','licenca','afastado') DEFAULT 'ativo',
   `ultimo_login` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `telefone` varchar(20) DEFAULT NULL,
@@ -307,8 +351,9 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`, `tipo`, `status`, `ultimo_login`, `created_at`, `telefone`, `cidade`, `foto`, `cargo`, `departamento`, `id_empresa`) VALUES
-(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-06-01 19:02:46', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos', 0),
-(4, 4, 'João Santos', 'joao@empresa.com', '$2y$10$ptIRnPXcMYLzUncmVeBfGOk4Cyb5TWkW5TQW1DolVevkhTrcCygqy', 'funcionario', 'ativo', '2026-05-26 20:47:50', '2026-05-26 23:29:03', NULL, NULL, NULL, NULL, NULL, 0);
+(3, 2, 'Administrador RH', 'rh@empresa.com', '$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2', 'rh', 'ativo', '2026-06-01 23:54:14', '2026-05-16 00:24:30', '(11) 98765-1234', 'São Paulo, SP', NULL, 'Gerente de RH', 'Recursos Humanos', 0),
+(4, 4, 'João Santos', 'joao@empresa.com', '$2y$10$ptIRnPXcMYLzUncmVeBfGOk4Cyb5TWkW5TQW1DolVevkhTrcCygqy', 'funcionario', 'ativo', '2026-05-26 20:47:50', '2026-05-26 23:29:03', NULL, NULL, NULL, NULL, NULL, 0),
+(5, NULL, 'Félix Almeida', 'RevoTech1234@gmail.com', '$2y$10$5hfVbcTUT6bW2PEvTr1vIuJIc9HuZIWQuuLTLOoC1Iw46yBek0oXS', 'rh', 'ativo', '2026-06-02 00:09:53', '2026-06-02 03:09:13', '13 98192-3276', 'São Paulo', NULL, 'Dono', NULL, 1);
 
 --
 -- Índices para tabelas despejadas
@@ -382,6 +427,12 @@ ALTER TABLE `licencas_medicas`
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
+-- Índices para tabela `ocorrencias`
+--
+ALTER TABLE `ocorrencias`
+  ADD PRIMARY KEY (`id_ocorrencia`);
+
+--
 -- Índices para tabela `pontos`
 --
 ALTER TABLE `pontos`
@@ -440,13 +491,13 @@ ALTER TABLE `duvidas`
 -- AUTO_INCREMENT de tabela `empresas`
 --
 ALTER TABLE `empresas`
-  MODIFY `id_empresa` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_empresa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de tabela `funcionarios`
 --
 ALTER TABLE `funcionarios`
-  MODIFY `id_funcionario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_funcionario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de tabela `holerites`
@@ -461,6 +512,12 @@ ALTER TABLE `licencas_medicas`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT de tabela `ocorrencias`
+--
+ALTER TABLE `ocorrencias`
+  MODIFY `id_ocorrencia` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de tabela `pontos`
 --
 ALTER TABLE `pontos`
@@ -470,7 +527,7 @@ ALTER TABLE `pontos`
 -- AUTO_INCREMENT de tabela `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Restrições para despejos de tabelas

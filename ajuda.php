@@ -58,7 +58,7 @@
                     Como solicitar suporte?
                 </div>
                 <div class="faq-answer">
-                    Entre em contato com o RH ou utilize a área de suporte.
+                    Entre em contato com o RH ou registre sua dúvida abaixo.
                 </div>
             </div>
 

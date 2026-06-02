@@ -1,0 +1,31 @@
+﻿email,data,hora_entrada,hora_saida,total_horas,status,justificativa
+joao@empresa.com,2026-06-01,08:00:00,18:00:00,9.00,completo,
+joao@empresa.com,2026-06-02,08:05:00,17:00:00,7.92,completo,
+joao@empresa.com,2026-06-03,08:00:00,18:30:00,9.50,completo,Hora extra
+maria@empresa.com,2026-06-01,08:00:00,17:00:00,8.00,completo,
+maria@empresa.com,2026-06-02,08:10:00,17:00:00,7.83,completo,Atraso justificado
+maria@empresa.com,2026-06-03,08:00:00,18:00:00,9.00,completo,
+pedro@empresa.com,2026-06-01,08:15:00,17:00:00,7.75,atraso,Atraso
+pedro@empresa.com,2026-06-02,08:00:00,17:00:00,8.00,completo,
+pedro@empresa.com,2026-06-03,08:30:00,17:00:00,7.50,atraso,
+ana@empresa.com,2026-06-01,09:00:00,18:00:00,8.00,completo,
+ana@empresa.com,2026-06-02,09:00:00,18:30:00,8.50,completo,
+ana@empresa.com,2026-06-03,09:10:00,18:00:00,7.83,completo,
+lucas@empresa.com,2026-06-01,08:30:00,17:30:00,8.00,completo,
+lucas@empresa.com,2026-06-02,08:30:00,17:30:00,8.00,completo,
+lucas@empresa.com,2026-06-03,,,,ausente,Afastamento
+fernanda@empresa.com,2026-06-01,09:00:00,18:30:00,8.50,completo,
+fernanda@empresa.com,2026-06-02,09:00:00,19:00:00,9.00,completo,Projeto extra
+fernanda@empresa.com,2026-06-03,09:10:00,18:00:00,7.83,completo,
+ricardo@empresa.com,2026-06-01,07:00:00,17:00:00,9.00,completo,
+ricardo@empresa.com,2026-06-02,07:00:00,18:00:00,10.00,completo,Hora extra
+ricardo@empresa.com,2026-06-03,07:15:00,17:00:00,8.75,completo,
+juliana@empresa.com,2026-06-01,08:00:00,17:00:00,8.00,completo,
+juliana@empresa.com,2026-06-02,08:00:00,18:00:00,9.00,completo,
+juliana@empresa.com,2026-06-03,08:20:00,17:00:00,7.67,completo,
+bruno@empresa.com,2026-06-01,08:00:00,18:00:00,9.00,completo,
+bruno@empresa.com,2026-06-02,08:10:00,17:00:00,7.83,completo,
+bruno@empresa.com,2026-06-03,08:00:00,19:00:00,10.00,completo,Plantão extra
+carla@empresa.com,2026-06-01,08:00:00,17:00:00,8.00,completo,
+carla@empresa.com,2026-06-02,08:00:00,17:30:00,8.50,completo,
+carla@empresa.com,2026-06-03,08:05:00,17:00:00,7.92,completo,
