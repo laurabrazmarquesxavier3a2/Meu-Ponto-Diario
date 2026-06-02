@@ -1041,6 +1041,6 @@ document.querySelectorAll('.btnEditarFuncionario').forEach(function(botao){
 
 });
 </script>
-
+<script src="js/theme.js"></script>
 </body>
 </html>

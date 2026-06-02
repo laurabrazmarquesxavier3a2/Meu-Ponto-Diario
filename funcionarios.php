@@ -579,6 +579,6 @@ function filtrarFuncionarios(){
 pesquisa.addEventListener('keyup', filtrarFuncionarios);
 filtroStatus.addEventListener('change', filtrarFuncionarios);
 </script>
-
+<script src="js/theme.js"></script>
 </body>
 </html>

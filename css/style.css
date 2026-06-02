@@ -83,44 +83,39 @@ body {
 /* =========================
    DARK MODE 
 ========================= */
+/* =========================
+   DARK MODE PROFISSIONAL
+========================= */
 
 body.dark-mode {
-    background-color: #102038;
-    color: #f1f5f9;
+    background: #111827;
+    color: #f9fafb;
 }
 
 /* CONTEÚDO */
 body.dark-mode .content {
-    background-color: #162b49;
+    background: #1f2937;
 }
 
 /* SIDEBAR */
 body.dark-mode .sidebar {
-    background-color: #14284b;
+    background: #0f172a;
+    border-right: 1px solid #374151;
 }
 
-/* LINKS SIDEBAR */
+/* LINKS */
 body.dark-mode .sidebar a {
-    color: white;
+    color: #d1d5db;
 }
 
-/* LINK ATIVO */
-body.dark-mode .sidebar a.active {
-    background: rgba(255,255,255,0.08);
-    border-left: 4px solid #60a5fa;
-}
-
-/* HOVER */
 body.dark-mode .sidebar a:hover {
-    background: rgba(255,255,255,0.1);
+    background: #374151;
 }
 
-/* CARDS */
-body.dark-mode .card-dashboard {
-    background-color: #1b3457;
-    border: 1px solid #2b4b77;
+body.dark-mode .sidebar a.active {
+    background: #374151;
+    border-left: 4px solid #10b981;
     color: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
 }
 
 /* TÍTULOS */
@@ -132,94 +127,127 @@ body.dark-mode h5,
 body.dark-mode h6,
 body.dark-mode strong,
 body.dark-mode label {
+    color: #ffffff !important;
+}
+
+/* TEXTOS SECUNDÁRIOS */
+body.dark-mode .text-muted,
+body.dark-mode small {
+    color: #9ca3af !important;
+}
+
+/* CARDS */
+body.dark-mode .card,
+body.dark-mode .card-dashboard,
+body.dark-mode .faq-card,
+body.dark-mode .modal-content,
+body.dark-mode .config-item {
+    background: #374151;
+    color: white;
+    border: 1px solid #4b5563;
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
+}
+
+/* FORMULÁRIOS */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select,
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+    background: #1f2937;
+    color: white;
+    border: 1px solid #4b5563;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    background: #1f2937;
+    color: white;
+    border-color: #10b981;
+    box-shadow: 0 0 0 .2rem rgba(16,185,129,.25);
+}
+
+/* PLACEHOLDER */
+body.dark-mode ::placeholder {
+    color: #9ca3af;
+}
+
+/* TABELAS */
+body.dark-mode .table {
+    color: white;
+    border-color: #4b5563;
+}
+
+body.dark-mode .table-light,
+body.dark-mode .table-light th {
+    background: #4b5563 !important;
+    color: white !important;
+    border-color: #6b7280 !important;
+}
+
+body.dark-mode .table tbody tr {
+    background: #374151;
     color: white;
 }
 
-/* TEXTO SECUNDÁRIO */
-body.dark-mode .text-muted {
-    color: #b7c7dd !important;
+body.dark-mode .table-hover tbody tr:hover {
+    background: #4b5563;
+}
+
+body.dark-mode .table td,
+body.dark-mode .table th {
+    border-color: #6b7280;
+}
+
+/* MODAL */
+body.dark-mode .modal-content {
+    background: #374151;
+}
+
+/* FAQ */
+body.dark-mode .faq-title {
+    color: white;
+}
+
+body.dark-mode .faq-answer {
+    color: #d1d5db;
+}
+
+/* BOTÕES */
+body.dark-mode .btn-primary {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+body.dark-mode .btn-primary:hover {
+    background: #059669;
+    border-color: #059669;
+}
+
+body.dark-mode .btn-outline-secondary {
+    color: #d1d5db;
+    border-color: #6b7280;
+}
+
+/* BADGES */
+body.dark-mode .bg-success {
+    background-color: #16a34a !important;
+}
+
+body.dark-mode .bg-danger {
+    background-color: #dc2626 !important;
+}
+
+body.dark-mode .bg-warning {
+    background-color: #f59e0b !important;
+    color: black !important;
 }
 
 /* ÍCONES */
 body.dark-mode i {
-    color: white;
+    color: #e5e7eb;
 }
-
-/* =========================
-   TABELA
-========================= */
-
-body.dark-mode .table {
-    color: white;
-    border-color: #355884;
-}
-
-/* HEADER TABELA */
-body.dark-mode .table-light {
-    background-color: #244266 !important;
-    color: white !important;
-}
-
-body.dark-mode .table-light th {
-    background-color: #244266 !important;
-    color: white !important;
-    border-color: #355884 !important;
-}
-
-/* LINHAS */
-body.dark-mode .table tbody tr {
-    background-color: #1b3457;
-    color: white;
-    border-color: #355884;
-}
-
-/* HOVER LINHAS */
-body.dark-mode .table-hover tbody tr:hover {
-    background-color: #28476b;
-    color: white;
-}
-
-/* CÉLULAS */
-body.dark-mode .table td,
-body.dark-mode .table th {
-    border-color: #355884;
-}
-
-/* =========================
-   BADGES
-========================= */
-
-body.dark-mode .bg-success {
-    background-color: #198754 !important;
-}
-
-body.dark-mode .bg-danger {
-    background-color: #dc3545 !important;
-}
-
-body.dark-mode .bg-warning {
-    background-color: #ffc107 !important;
-    color: black !important;
-}
-
-/* =========================
-   TRANSIÇÕES
-========================= */
-
-body,
-.content,
-.sidebar,
-.card-dashboard,
-.table,
-.table tbody tr,
-.table td,
-.table th,
-.btn,
-.sidebar a {
-    transition: 0.3s;
-}
-
-
 
 /* RESPONSIVO */
 @media (max-width: 768px) {

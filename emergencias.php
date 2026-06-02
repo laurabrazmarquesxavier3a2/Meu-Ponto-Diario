@@ -696,6 +696,6 @@ filtroStatus.addEventListener('change', filtrarOcorrencias);
 filtroNivel.addEventListener('change', filtrarOcorrencias);
 pesquisa.addEventListener('keyup', filtrarOcorrencias);
 </script>
-
+<script src="js/theme.js"></script>
 </body>
 </html>

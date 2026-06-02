@@ -210,6 +210,6 @@ ORDER BY pontos.data DESC
     </div>
 
 </div>
-
+<script src="js/theme.js"></script>
 </body>
 </html>

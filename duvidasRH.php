@@ -301,7 +301,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
     <?php } ?>
 
 </div>
-
+<script src="js/theme.js"></script>
 </body>
 
 </html>

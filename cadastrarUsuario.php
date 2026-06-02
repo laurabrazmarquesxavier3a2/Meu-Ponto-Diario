@@ -508,6 +508,6 @@ foto.addEventListener('change', function(){
 });
 
 </script>
-
+<script src="js/theme.js"></script>
 </body>
 </html>
