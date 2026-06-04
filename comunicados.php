@@ -5,9 +5,7 @@ ini_set('display_errors', 1);
 
 require_once 'auth.php';
 require_once 'config/database.php';
-echo "<pre>";
-print_r($_SESSION);
-echo "</pre>";
+
 
 
 $idEmpresa = $_SESSION['id_empresa'] ?? null;
