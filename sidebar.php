@@ -155,9 +155,6 @@ class="<?= $pagina == 'cadastrarUsuario.php' ? 'active' : '' ?>">
 
         </a>
 
-        
-    </div>
-
 </div>
 
 <!-- ESTILO DA LOGO -->
