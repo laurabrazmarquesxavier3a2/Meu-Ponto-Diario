@@ -5,6 +5,7 @@ ini_set('display_errors', 1);
 require_once 'auth.php';
 require_once 'config/database.php';
 require_once 'registrar-atividade.php';
+require_once 'lang.php';
 
 $mensagem = '';
 $erros = [];
@@ -1246,6 +1247,6 @@ document.querySelectorAll('.btnEditarFuncionario').forEach(function(botao){
 </script>
 
 <script src="js/theme.js"></script>
-
+<script src="js/translate.js"></script>
 </body>
 </html>

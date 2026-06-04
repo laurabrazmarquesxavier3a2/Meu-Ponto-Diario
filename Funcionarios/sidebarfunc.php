@@ -1,129 +1,92 @@
 <?php
+require_once '../lang.php';
+
 $pagina = basename($_SERVER['PHP_SELF']);
 ?>
 
-<link rel="stylesheet" href="../css/sidebarfunc.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="../css/sidebar.css">
 
-<button class="btn-sidebar-mobile" id="btnSidebar">
-
-    <i class="fa-solid fa-bars"></i>
-
+<button class="mpd-sidebar-toggle d-md-none" id="btnSidebar" type="button">
+    <i class="bi bi-list"></i>
 </button>
 
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="mpd-sidebar-overlay" id="sidebarOverlay"></div>
 
-<aside class="sidebar" id="sidebar">
+<aside class="mpd-sidebar" id="sidebar">
 
-    <div class="logo">
+    <div class="mpd-sidebar-header">
+        <div class="mpd-brand">
+            <div class="mpd-brand-icon">
+                <img src="../img/logo-branca.png" alt="Meu Ponto Diário">
+            </div>
 
-        <img src="../img/logo-azul.png">
+            <div class="mpd-brand-text">
+                <strong>Meu Ponto Diário</strong>
+                <span><?= t('colaborador') ?></span>
+            </div>
+        </div>
+    </div>
 
-        <span>
-            Meu Ponto Diário
-        </span>
+    <div class="mpd-sidebar-section">
+
+        <span class="mpd-section-title"><?= t('minha_area') ?></span>
+
+        <a href="banco-HorasColab.php" class="mpd-link <?= $pagina == 'banco-HorasColab.php' ? 'active' : '' ?>">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span><?= t('banco_horas') ?></span>
+        </a>
+
+        <a href="pontoF.php" class="mpd-link <?= $pagina == 'pontoF.php' ? 'active' : '' ?>">
+            <i class="bi bi-clock-history"></i>
+            <span><?= t('historico_ponto') ?></span>
+        </a>
+
+        <a href="holerite.php" class="mpd-link <?= $pagina == 'holerite.php' ? 'active' : '' ?>">
+            <i class="bi bi-file-earmark-text"></i>
+            <span><?= t('holerite') ?></span>
+        </a>
+
+        <a href="pedidosf.php" class="mpd-link <?= $pagina == 'pedidosf.php' ? 'active' : '' ?>">
+            <i class="bi bi-calendar-check"></i>
+            <span><?= t('pedidos') ?></span>
+        </a>
+
+        <a href="SoliLic.php" class="mpd-link <?= $pagina == 'SoliLic.php' ? 'active' : '' ?>">
+            <i class="bi bi-file-medical"></i>
+            <span><?= t('solicitacoes') ?></span>
+        </a>
+
+        <a href="seguranca.php" class="mpd-link <?= $pagina == 'seguranca.php' ? 'active' : '' ?>">
+            <i class="bi bi-shield-check"></i>
+            <span><?= t('seguranca') ?></span>
+        </a>
+
+        <a href="comunicafunc.php" class="mpd-link <?= $pagina == 'comunicafunc.php' ? 'active' : '' ?>">
+            <i class="bi bi-megaphone"></i>
+            <span><?= t('comunicados') ?></span>
+        </a>
 
     </div>
 
-    <nav class="menu">
+    <div class="mpd-sidebar-footer">
 
-    <a href="banco-HorasColab.php"
-    class="<?= $pagina == 'banco-HorasColab.php' ? 'active' : '' ?>">
-
-        <i class="fa-solid fa-chart-line"></i>
-
-        <span>
-            Banco de Horas
-        </span>
-
-    </a>
-
-        <a href="pontoF.php"
-        class="<?= $pagina == 'pontoF.php' ? 'active' : '' ?>">
-
-            <i class="fa-solid fa-clock"></i>
-
-            <span>
-                Histórico de Ponto
-            </span>
-
+        <a href="perfilfunc.php" class="mpd-link <?= $pagina == 'perfilfunc.php' ? 'active' : '' ?>">
+            <i class="bi bi-person"></i>
+            <span><?= t('perfil') ?></span>
         </a>
 
-        <a href="holerite.php"
-        class="<?= $pagina == 'holerite.php' ? 'active' : '' ?>">
-
-            <i class="fa-solid fa-file-lines"></i>
-
-            <span>
-                Holerite
-            </span>
-
+        <a href="configuracaofunc.php" class="mpd-link <?= $pagina == 'configuracaofunc.php' ? 'active' : '' ?>">
+            <i class="bi bi-gear"></i>
+            <span><?= t('configuracoes') ?></span>
         </a>
 
-        <a href="pedidosf.php"
-        class="<?= $pagina == 'pedidosf.php' ? 'active' : '' ?>">
-
-            <i class="fa-solid fa-calendar-days"></i>
-
-            <span>
-                Pedidos
-            </span>
-
+        <a href="../logout.php" class="mpd-link danger" onclick="return confirm('<?= t('confirmar_sair') ?>')">
+            <i class="bi bi-box-arrow-right"></i>
+            <span><?= t('sair') ?></span>
         </a>
 
-        <a href="SoliLic.php"
-        class="<?= $pagina == 'SoliLic.php' ? 'active' : '' ?>">
-
-            <i class="fa-solid fa-file-circle-plus"></i>
-
-            <span>
-                Solicitações E Licenças
-            </span>
-
-        </a>
-
-        <a href="seguranca.php"
-        class="<?= $pagina == 'seguranca.php' ? 'active' : '' ?>">
-
-            <i class="fa-solid fa-shield-halved"></i>
-
-            <span>
-                Segurança
-            </span>
-
-        </a>
-
-         <a href="comunicafunc.php"
-        class="<?= $pagina == 'comunicafunc.php' ? 'active' : '' ?>">
-
-             <i class="fa-solid fa-bullhorn"></i>
-
-            <span>
-                Comunicados
-            </span>
-
-        <a href="perfilfunc.php"
-        class="<?= $pagina == 'perfilfunc.php' ? 'active' : '' ?>">
-
-            <i class="fa-solid fa-user"></i>
-
-            <span>
-                Perfil
-            </span>
-
-        </a>
-
-<a href="../login.php"
-onclick="return confirm('Deseja realmente sair?')">
-
-    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>
-
-    <span>
-        Sair
-    </span>
-
-</a>
-
-    </nav>
+    </div>
 
 </aside>
 

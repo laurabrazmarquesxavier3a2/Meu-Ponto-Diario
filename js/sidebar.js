@@ -1,74 +1,94 @@
-const sidebar = document.getElementById("sidebar");
+document.addEventListener("DOMContentLoaded", () => {
 
-const btn = document.getElementById("btnSidebar");
+    const sidebar = document.getElementById("sidebar");
+    const btnSidebar = document.getElementById("btnSidebar");
+    const overlay = document.getElementById("sidebarOverlay");
 
-const overlay = document.getElementById("sidebarOverlay");
+    let timerAbrir = null;
+    let timerFechar = null;
 
-// MOBILE
-btn.addEventListener("click", () => {
+    localStorage.removeItem("mpdSidebarCollapsed");
 
-    sidebar.classList.toggle("show");
+    function aplicarModoSidebar(){
+        if(window.innerWidth > 900){
+            document.body.classList.add("sidebar-collapsed");
 
-    overlay.classList.toggle("show");
+            if(sidebar){
+                sidebar.classList.remove("active");
+                sidebar.classList.remove("hover-open");
+            }
 
-});
+            if(overlay){
+                overlay.classList.remove("active");
+            }
 
-// FECHAR
-overlay.addEventListener("click", () => {
+        }else{
+            document.body.classList.remove("sidebar-collapsed");
+        }
+    }
 
-    sidebar.classList.remove("show");
+    aplicarModoSidebar();
+    window.addEventListener("resize", aplicarModoSidebar);
 
-    overlay.classList.remove("show");
+    if(sidebar){
 
-});
+        sidebar.addEventListener("mouseenter", () => {
 
-// EFEITO FOFO LINKS
-const links = document.querySelectorAll(".sidebar a");
+            if(window.innerWidth <= 900){
+                return;
+            }
 
-links.forEach(link => {
+            clearTimeout(timerFechar);
 
-    link.addEventListener("mouseenter", () => {
+            timerAbrir = setTimeout(() => {
+                sidebar.classList.add("hover-open");
+            }, 450);
 
-        link.style.transition = ".2s";
+        });
+
+        sidebar.addEventListener("mouseleave", () => {
+
+            if(window.innerWidth <= 900){
+                return;
+            }
+
+            clearTimeout(timerAbrir);
+
+            timerFechar = setTimeout(() => {
+                sidebar.classList.remove("hover-open");
+            }, 180);
+
+        });
+
+    }
+
+    if(btnSidebar && sidebar && overlay){
+
+        btnSidebar.addEventListener("click", () => {
+            sidebar.classList.add("active");
+            overlay.classList.add("active");
+        });
+
+        overlay.addEventListener("click", () => {
+            sidebar.classList.remove("active");
+            overlay.classList.remove("active");
+        });
+
+    }
+
+    const links = document.querySelectorAll(".mpd-link");
+
+    links.forEach((link) => {
+
+        link.addEventListener("click", () => {
+
+            if(window.innerWidth <= 900 && sidebar && overlay){
+                sidebar.classList.remove("active");
+                overlay.classList.remove("active");
+            }
+
+        });
 
     });
-
-});
-
-// ANIMAÇÃO LOGO
-const logo = document.querySelector(".logo-branca");
-
-if(logo){
-
-    logo.addEventListener("mouseenter", () => {
-
-        logo.style.transform = "rotate(-6deg) scale(1.05)";
-
-    });
-
-    logo.addEventListener("mouseleave", () => {
-
-        logo.style.transform = "rotate(0deg) scale(1)";
-
-    });
-
-}
-
-// ENTRADA SUAVE SIDEBAR
-window.addEventListener("load", () => {
-
-    sidebar.style.opacity = "0";
-
-    sidebar.style.transform = "translateX(-20px)";
-
-    setTimeout(() => {
-
-        sidebar.style.transition = ".4s";
-
-        sidebar.style.opacity = "1";
-
-        sidebar.style.transform = "translateX(0px)";
-
-    }, 100);
 
 });

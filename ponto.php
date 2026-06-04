@@ -1,6 +1,7 @@
 <?php
 require_once 'auth.php';
 require_once 'config/database.php';
+require_once 'lang.php';
 
 $id_empresa = $_SESSION['id_empresa'] ?? 0;
 
@@ -92,6 +93,43 @@ function formatarTotalHoras($total) {
 
     return number_format((float)$total, 2, ',', '.') . 'h';
 }
+
+$registros = [];
+$hoje = date('Y-m-d');
+
+$entradasHoje = 0;
+$saidasHoje = 0;
+$emAndamento = 0;
+$atrasosHoje = 0;
+$ultimosRegistros = [];
+
+while ($ponto = $query->fetch_assoc()) {
+    $registros[] = $ponto;
+
+    if ($ponto['data'] == $hoje) {
+        if (!empty($ponto['hora_entrada']) && $ponto['hora_entrada'] != '00:00:00') {
+            $entradasHoje++;
+        }
+
+        if (!empty($ponto['hora_saida']) && $ponto['hora_saida'] != '00:00:00') {
+            $saidasHoje++;
+        }
+
+        if ($ponto['status'] == 'em andamento') {
+            $emAndamento++;
+        }
+
+        if ($ponto['status'] == 'atraso') {
+            $atrasosHoje++;
+        }
+    }
+
+    if (count($ultimosRegistros) < 5) {
+        $ultimosRegistros[] = $ponto;
+    }
+}
+
+$percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
 ?>
 
 <!DOCTYPE html>
@@ -109,6 +147,355 @@ function formatarTotalHoras($total) {
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
+<style>
+    :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --card-soft: #f8fafc;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --blue: #2563eb;
+        --green: #16a34a;
+        --red: #dc2626;
+        --yellow: #d97706;
+        --shadow: 0 10px 26px rgba(15, 23, 42, .06);
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    .content {
+        min-height: 100vh;
+        padding: 32px;
+    }
+
+    .dashboard-header,
+    .kpi-card,
+    .panel-card,
+    .table-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+    }
+
+    .dashboard-header {
+        border-radius: 22px;
+        padding: 26px;
+        margin-bottom: 22px;
+    }
+
+    .dashboard-title {
+        font-size: 31px;
+        font-weight: 850;
+        margin: 0 0 6px;
+        color: var(--text);
+    }
+
+    .dashboard-subtitle {
+        color: var(--muted);
+        margin: 0;
+    }
+
+    .date-pill {
+        background: #eff6ff;
+        color: var(--blue);
+        border-radius: 999px;
+        padding: 9px 15px;
+        font-size: 14px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .kpi-card {
+        border-radius: 20px;
+        padding: 20px;
+        height: 100%;
+    }
+
+    .kpi-label {
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .kpi-value {
+        color: var(--text);
+        font-size: 30px;
+        font-weight: 850;
+        margin-bottom: 3px;
+    }
+
+    .kpi-small {
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .kpi-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: #eff6ff;
+        color: var(--blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    .panel-card {
+        border-radius: 20px;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .panel-header,
+    .table-card-header {
+        padding: 20px 22px;
+        border-bottom: 1px solid var(--border);
+        background: var(--card-soft);
+    }
+
+    .panel-header h5,
+    .table-card-header h5 {
+        color: var(--text);
+        font-weight: 850;
+        margin-bottom: 4px;
+    }
+
+    .panel-header p,
+    .table-card-header p {
+        color: var(--muted);
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+
+    .panel-body-custom {
+        padding: 20px 22px;
+    }
+
+    .progress-clean {
+        height: 10px;
+        border-radius: 999px;
+        background: var(--border);
+        overflow: hidden;
+    }
+
+    .progress-clean div {
+        height: 100%;
+        width: <?= (int)$percentualPresentes ?>%;
+        background: var(--blue);
+        border-radius: 999px;
+    }
+
+    .last-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .last-item:last-child {
+        border-bottom: none;
+    }
+
+    .employee-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #eff6ff;
+        color: var(--blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .employee-name {
+        color: var(--text);
+        font-weight: 800;
+    }
+
+    .table-card {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .search-input,
+    .status-filter {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        height: 42px;
+        color: var(--text);
+        background: var(--card);
+    }
+
+    .search-input::placeholder {
+        color: var(--muted);
+    }
+
+    .table {
+        margin-bottom: 0;
+        color: var(--text);
+    }
+
+    .table thead th {
+        background: var(--card-soft);
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        padding: 15px 20px;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table tbody td {
+        background: var(--card);
+        color: var(--text);
+        padding: 16px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table tbody tr:hover td {
+        background: var(--card-soft);
+    }
+
+    .hour-text {
+        color: var(--text);
+        font-weight: 750;
+    }
+
+    .total-text {
+        color: var(--blue);
+        font-weight: 850;
+    }
+
+    .badge-status {
+        border-radius: 999px;
+        padding: 7px 11px;
+        font-size: 12px;
+        font-weight: 800;
+        display: inline-block;
+    }
+
+    .badge-completo {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-atraso {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-andamento {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-ausente {
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 36px 20px;
+        color: var(--muted);
+    }
+
+    body.dark,
+    body.dark-mode {
+        --bg: #0f172a;
+        --card: #111c2f;
+        --card-soft: #17233a;
+        --text: #f8fafc;
+        --muted: #cbd5e1;
+        --border: #2b3a55;
+        --shadow: 0 10px 28px rgba(0, 0, 0, .22);
+    }
+
+    body.dark .date-pill,
+    body.dark-mode .date-pill,
+    body.dark .kpi-icon,
+    body.dark-mode .kpi-icon,
+    body.dark .employee-avatar,
+    body.dark-mode .employee-avatar {
+        background: rgba(37, 99, 235, .16);
+        color: #93c5fd;
+    }
+
+    body.dark .search-input,
+    body.dark-mode .search-input,
+    body.dark .status-filter,
+    body.dark-mode .status-filter {
+        background: #0b1220;
+        color: #f8fafc;
+        border-color: #334155;
+    }
+
+    body.dark .search-input::placeholder,
+    body.dark-mode .search-input::placeholder {
+        color: #94a3b8;
+    }
+
+    body.dark .status-filter option,
+    body.dark-mode .status-filter option {
+        background: #0b1220;
+        color: #f8fafc;
+    }
+
+    body.dark .badge-completo,
+    body.dark-mode .badge-completo {
+        background: rgba(22, 163, 74, .20);
+        color: #86efac;
+    }
+
+    body.dark .badge-atraso,
+    body.dark-mode .badge-atraso {
+        background: rgba(220, 38, 38, .20);
+        color: #fca5a5;
+    }
+
+    body.dark .badge-andamento,
+    body.dark-mode .badge-andamento {
+        background: rgba(217, 119, 6, .22);
+        color: #fcd34d;
+    }
+
+    body.dark .badge-ausente,
+    body.dark-mode .badge-ausente {
+        background: rgba(148, 163, 184, .18);
+        color: #cbd5e1;
+    }
+
+    @media (max-width: 768px) {
+        .content {
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            padding: 22px;
+        }
+
+        .dashboard-title {
+            font-size: 26px;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+        }
+    }
+</style>
+
 </head>
 
 <body>
@@ -117,136 +504,317 @@ function formatarTotalHoras($total) {
 
 <div class="content">
 
-    <h1 class="fw-bold">Histórico de Ponto</h1>
+    <div class="container-fluid">
 
-    <h5 class="text-muted mb-4">
-        Controle de entrada e saída dos funcionários
-    </h5>
+        <div class="dashboard-header">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                <div>
+                    <h1 class="dashboard-title">Dashboard de Ponto</h1>
+                    <p class="dashboard-subtitle">
+                        Acompanhe entradas, saídas, atrasos e registros em andamento.
+                    </p>
+                </div>
 
-    <div class="row g-4 mb-4">
-
-        <div class="col-12 col-md-4">
-            <div class="card card-dashboard p-3 text-start">
-
-                <h5>Registros completos</h5>
-
-                <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                    <?= $presentes ?>
-                    <i class="bi bi-clock"></i>
-                </h1>
-
+                <div class="d-flex align-items-start">
+                    <span class="date-pill">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <?= date('d/m/Y') ?>
+                    </span>
+                </div>
             </div>
         </div>
 
-        <div class="col-12 col-md-4">
-            <div class="card card-dashboard p-3 text-start">
+        <div class="row g-3 mb-4">
 
-                <h5>Atrasos registrados</h5>
-
-                <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                    <?= $atrasos ?>
-                    <i class="bi bi-clock-history"></i>
-                </h1>
-
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Entradas hoje</div>
+                            <h2 class="kpi-value"><?= (int)$entradasHoje ?></h2>
+                            <div class="kpi-small">Funcionários que iniciaram jornada</div>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Saídas hoje</div>
+                            <h2 class="kpi-value"><?= (int)$saidasHoje ?></h2>
+                            <div class="kpi-small">Jornadas finalizadas hoje</div>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Atrasos hoje</div>
+                            <h2 class="kpi-value"><?= (int)$atrasosHoje ?></h2>
+                            <div class="kpi-small">Registros com atraso no dia</div>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Em andamento</div>
+                            <h2 class="kpi-value"><?= (int)$emAndamento ?></h2>
+                            <div class="kpi-small">Pontos ainda abertos</div>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <div class="col-12 col-md-4">
-            <div class="card card-dashboard p-3 text-start">
+        <div class="row g-3 mb-4">
 
-                <h5>Funcionários Ativos</h5>
+            <div class="col-12 col-xl-5">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h5>Resumo operacional</h5>
+                        <p>Visão rápida da situação geral.</p>
+                    </div>
 
-                <h1 class="fw-bolder d-flex justify-content-between align-items-center">
-                    <?= $ativos ?>
-                    <i class="bi bi-people"></i>
-                </h1>
+                    <div class="panel-body-custom">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Registros completos</span>
+                            <strong class="employee-name"><?= (int)$presentes ?></strong>
+                        </div>
 
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Funcionários ativos</span>
+                            <strong class="employee-name"><?= (int)$ativos ?></strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Atrasos registrados</span>
+                            <strong class="employee-name"><?= (int)$atrasos ?></strong>
+                        </div>
+
+                        <div class="progress-clean mb-2">
+                            <div></div>
+                        </div>
+
+                        <small class="text-muted">
+                            <?= (int)$percentualPresentes ?>% de registros completos em relação aos funcionários ativos.
+                        </small>
+                    </div>
+                </div>
             </div>
+
+            <div class="col-12 col-xl-7">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h5>Últimos registros</h5>
+                        <p>Movimentações mais recentes de ponto.</p>
+                    </div>
+
+                    <div class="panel-body-custom">
+
+                        <?php if (count($ultimosRegistros) > 0): ?>
+
+                            <?php foreach ($ultimosRegistros as $item): ?>
+
+                                <?php
+                                $inicial = mb_strtoupper(mb_substr($item['nome'], 0, 1, 'UTF-8'), 'UTF-8');
+                                ?>
+
+                                <div class="last-item">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="employee-avatar">
+                                            <?= htmlspecialchars($inicial) ?>
+                                        </div>
+
+                                        <div>
+                                            <div class="employee-name">
+                                                <?= htmlspecialchars($item['nome']) ?>
+                                            </div>
+                                            <div class="text-muted small">
+                                                <?= date('d/m/Y', strtotime($item['data'])) ?> · Entrada <?= formatarHora($item['hora_entrada']) ?>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <span class="badge-status 
+                                        <?php
+                                            if ($item['status'] == 'completo') echo 'badge-completo';
+                                            elseif ($item['status'] == 'atraso') echo 'badge-atraso';
+                                            elseif ($item['status'] == 'em andamento') echo 'badge-andamento';
+                                            else echo 'badge-ausente';
+                                        ?>">
+                                        <?= htmlspecialchars(ucfirst($item['status'] ?: 'Ausente')) ?>
+                                    </span>
+                                </div>
+
+                            <?php endforeach; ?>
+
+                        <?php else: ?>
+
+                            <div class="empty-state">
+                                Nenhum registro recente encontrado.
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-    </div>
+        <div class="table-card">
 
-    <div class="card card-dashboard p-3">
+            <div class="table-card-header">
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-6">
+                        <h5>Registros de Ponto</h5>
+                        <p>Consulte entradas, saídas e status dos funcionários.</p>
+                    </div>
 
-        <h5>Registros de Ponto</h5>
+                    <div class="col-lg-3">
+                        <input 
+                            type="text" 
+                            id="pesquisaTabela" 
+                            class="form-control search-input" 
+                            placeholder="Pesquisar funcionário"
+                        >
+                    </div>
 
-        <div class="table-responsive">
+                    <div class="col-lg-3">
+                        <select id="filtroStatus" class="form-select status-filter">
+                            <option value="todos">Todos</option>
+                            <option value="completo">Completo</option>
+                            <option value="atraso">Atraso</option>
+                            <option value="em andamento">Em andamento</option>
+                            <option value="ausente">Ausente</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-            <table class="table table-hover mt-3">
+            <div class="table-responsive">
 
-                <thead class="table-light">
+                <table class="table table-hover align-middle">
 
-                    <tr>
-                        <th>Funcionário</th>
-                        <th>Data</th>
-                        <th>Entrada</th>
-                        <th>Saída</th>
-                        <th>Total de Horas</th>
-                        <th>Status</th>
-                    </tr>
+                    <thead>
+                        <tr>
+                            <th>Funcionário</th>
+                            <th>Data</th>
+                            <th>Entrada</th>
+                            <th>Saída</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
 
-                </thead>
+                    <tbody id="corpoTabela">
 
-                <tbody>
+                    <?php if (count($registros) > 0): ?>
 
-                <?php if ($query->num_rows > 0): ?>
+                        <?php foreach ($registros as $ponto): ?>
 
-                    <?php while($ponto = $query->fetch_assoc()): ?>
+                            <?php
+                            $statusLinha = $ponto['status'] ?: 'ausente';
+
+                            if ($statusLinha == 'completo') {
+                                $badge = '<span class="badge-status badge-completo">Completo</span>';
+                            } elseif ($statusLinha == 'atraso') {
+                                $badge = '<span class="badge-status badge-atraso">Atraso</span>';
+                            } elseif ($statusLinha == 'em andamento') {
+                                $badge = '<span class="badge-status badge-andamento">Em andamento</span>';
+                            } else {
+                                $badge = '<span class="badge-status badge-ausente">Ausente</span>';
+                                $statusLinha = 'ausente';
+                            }
+
+                            $inicial = mb_strtoupper(mb_substr($ponto['nome'], 0, 1, 'UTF-8'), 'UTF-8');
+                            ?>
+
+                            <tr 
+                                data-nome="<?= htmlspecialchars(mb_strtolower($ponto['nome'], 'UTF-8')) ?>"
+                                data-status="<?= htmlspecialchars($statusLinha) ?>"
+                            >
+
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="employee-avatar">
+                                            <?= htmlspecialchars($inicial) ?>
+                                        </div>
+                                        <span class="employee-name">
+                                            <?= htmlspecialchars($ponto['nome']) ?>
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td><?= date('d/m/Y', strtotime($ponto['data'])) ?></td>
+
+                                <td>
+                                    <span class="hour-text">
+                                        <?= formatarHora($ponto['hora_entrada']) ?>
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="hour-text">
+                                        <?= formatarHora($ponto['hora_saida']) ?>
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="total-text">
+                                        <?= formatarTotalHoras($ponto['total_horas']) ?>
+                                    </span>
+                                </td>
+
+                                <td><?= $badge ?></td>
+
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
 
                         <tr>
-
-                            <td>
-                                <i class="bi bi-person me-2"></i>
-                                <?= htmlspecialchars($ponto['nome']) ?>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    Nenhum registro de ponto encontrado para esta empresa.
+                                </div>
                             </td>
-
-                            <td>
-                                <?= date('d/m/Y', strtotime($ponto['data'])) ?>
-                            </td>
-
-                            <td>
-                                <?= formatarHora($ponto['hora_entrada']) ?>
-                            </td>
-
-                            <td>
-                                <?= formatarHora($ponto['hora_saida']) ?>
-                            </td>
-
-                            <td>
-                                <?= formatarTotalHoras($ponto['total_horas']) ?>
-                            </td>
-
-                            <td>
-                                <?php
-                                if($ponto['status'] == 'completo') {
-                                    echo '<span class="badge bg-success">Completo</span>';
-                                } elseif($ponto['status'] == 'atraso') {
-                                    echo '<span class="badge bg-danger">Atraso</span>';
-                                } elseif($ponto['status'] == 'em andamento') {
-                                    echo '<span class="badge bg-warning text-dark">Em andamento</span>';
-                                } else {
-                                    echo '<span class="badge bg-secondary">Ausente</span>';
-                                }
-                                ?>
-                            </td>
-
                         </tr>
 
-                    <?php endwhile; ?>
+                    <?php endif; ?>
 
-                <?php else: ?>
+                    </tbody>
 
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
-                            Nenhum registro de ponto encontrado para esta empresa.
-                        </td>
-                    </tr>
+                </table>
 
-                <?php endif; ?>
+            </div>
 
-                </tbody>
-
-            </table>
+            <div id="semResultado" class="empty-state d-none">
+                Nenhum funcionário encontrado.
+            </div>
 
         </div>
 
@@ -254,6 +822,48 @@ function formatarTotalHoras($total) {
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/theme.js"></script>
+
+<script>
+    const pesquisaTabela = document.getElementById('pesquisaTabela');
+    const filtroStatus = document.getElementById('filtroStatus');
+    const linhas = document.querySelectorAll('#corpoTabela tr[data-nome]');
+    const semResultado = document.getElementById('semResultado');
+
+    function removerAcentos(texto) {
+        return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function filtrarTabela() {
+        const pesquisa = removerAcentos(pesquisaTabela.value.toLowerCase().trim());
+        const status = filtroStatus.value;
+
+        let visiveis = 0;
+
+        linhas.forEach(linha => {
+            const nome = removerAcentos(linha.dataset.nome || '');
+            const statusLinha = linha.dataset.status || 'ausente';
+
+            const combinaNome = nome.includes(pesquisa);
+            const combinaStatus = status === 'todos' || status === statusLinha;
+
+            if (combinaNome && combinaStatus) {
+                linha.style.display = '';
+                visiveis++;
+            } else {
+                linha.style.display = 'none';
+            }
+        });
+
+        if (linhas.length > 0) {
+            semResultado.classList.toggle('d-none', visiveis > 0);
+        }
+    }
+
+    pesquisaTabela.addEventListener('input', filtrarTabela);
+    filtroStatus.addEventListener('change', filtrarTabela);
+</script>
+<script src="js/translate.js"></script>
 </body>
 </html>

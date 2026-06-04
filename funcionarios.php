@@ -1,6 +1,7 @@
 <?php
 require_once 'auth.php';
 require_once 'config/database.php';
+require_once 'lang.php';
 
 $idEmpresa = $_SESSION['id_empresa'] ?? null;
 
@@ -580,5 +581,6 @@ pesquisa.addEventListener('keyup', filtrarFuncionarios);
 filtroStatus.addEventListener('change', filtrarFuncionarios);
 </script>
 <script src="js/theme.js"></script>
+<script src="js/translate.js"></script>
 </body>
 </html>

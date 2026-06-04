@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 require_once 'auth.php';
 require_once 'config/database.php';
+require_once 'lang.php';
 
 $idEmpresa = $_SESSION['id_empresa'] ?? null;
 
@@ -217,5 +218,7 @@ bruno@empresa.com,2026-06,12.50,4.00,6.00,2.00</pre>
 </div>
 </div>
 
+<script src="js/theme.js"></script>
+<script src="js/translate.js"></script>
 </body>
 </html>

@@ -1,4 +1,6 @@
-<?php require_once 'auth.php'; ?>
+<?php require_once 'auth.php'; 
+require_once 'lang.php';
+?>
 
 <?php
 
@@ -302,6 +304,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
 </div>
 <script src="js/theme.js"></script>
+<script src="js/translate.js"></script>
 </body>
 
 </html>

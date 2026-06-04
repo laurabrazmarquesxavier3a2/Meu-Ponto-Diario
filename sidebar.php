@@ -1,224 +1,126 @@
-<?php require_once 'auth.php'; ?>
-
 <?php
+require_once 'auth.php';
+require_once 'lang.php';
+
 $pagina = basename($_SERVER['PHP_SELF']);
 ?>
 
-<!-- BOTÃO MOBILE -->
-<button class="btn btn-primary d-md-none m-3" id="btnSidebar">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/sidebar.css">
+
+<button class="mpd-sidebar-toggle d-md-none" id="btnSidebar" type="button">
     <i class="bi bi-list"></i>
 </button>
 
-<!-- OVERLAY -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="mpd-sidebar-overlay" id="sidebarOverlay"></div>
 
-<!-- SIDEBAR -->
-<div class="sidebar p-3 fs-5 d-flex flex-column" id="sidebar">
+<aside class="mpd-sidebar" id="sidebar">
 
-    <!-- TOPO -->
-    <div>
+    <div class="mpd-sidebar-header">
+        <div class="mpd-brand">
+            <div class="mpd-brand-icon">
+                <img src="img/logo-branca.png" alt="Meu Ponto Diário">
+            </div>
 
-        <!-- LOGO -->
-        <h5 
-            class="mb-4 d-flex align-items-center sidebar-logo"
-        >
-
-            <img 
-                src="img/logo-branca.png"
-                class="logo-branca me-2"
-            >
-
-            <span>
-                Meu Ponto Diário
-            </span>
-
-        </h5>
-
-        <!-- LINKS -->
-        <a href="ponto.php"
-        class="<?= $pagina == 'ponto.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-clock me-2"></i>
-            Ponto
-
-        </a>
-
-        <a href="banco-horas.php"
-        class="<?= $pagina == 'banco-horas.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-hourglass-split me-2"></i>
-            Banco de horas
-
-        </a>
-
-        <a href="ferias.php"
-        class="<?= $pagina == 'ferias.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-umbrella me-2"></i>
-            Férias
-
-        </a>
-
-        <a href="holerite.php"
-        class="<?= $pagina == 'holerite.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-file-earmark-text me-2"></i>
-            Holerite
-
-        </a>
-
-        <a href="licenca.php"
-        class="<?= $pagina == 'licenca.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-heart-pulse me-2"></i>
-            Licenças médicas
-
-        </a>
-
-        <a href="emergencias.php"
-        class="<?= $pagina == 'emergencias.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            Emergências
-
-        </a>
-
-        <a href="comunicados.php"
-        class="<?= $pagina == 'comunicados.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-bell me-2"></i>
-            Comunicados
-
-        </a>
-
-        <a href="funcionarios.php"
-        class="<?= $pagina == 'funcionarios.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-people me-2"></i>
-            Funcionários
-
-        </a>
-
-        <a href="importar-banco-horas.php"
-class="<?= $pagina == 'importar-banco-horas.php' ? 'active' : '' ?>">
-    <i class="bi bi-hourglass-split me-2"></i>
-    Importar banco
-</a>
-
-<a href="importar-pontos.php"
-class="<?= $pagina == 'importar-pontos.php' ? 'active' : '' ?>">
-    <i class="bi bi-clock-history me-2"></i>
-    Importar pontos
-</a>
-
-        <a href="importar-funcionarios.php"
-        class="<?= $pagina == 'importar-funcionarios.php' ? 'active' : '' ?>">
-            <i class="bi bi-file-earmark-arrow-up me-2"></i>
-            Importar Funcionários
-        </a>
-
-
-        <a href="cadastrarUsuario.php"
-class="<?= $pagina == 'cadastrarUsuario.php' ? 'active' : '' ?>">
-
-    <i class="bi bi-person-fill-add me-2"></i>
-    Cadastrar Usuário
-
-</a>
-        
+            <div class="mpd-brand-text">
+                <strong>Meu Ponto Diário</strong>
+                <span>RH</span>
+            </div>
+        </div>
     </div>
 
-    <!-- RODAPÉ -->
-    <div class="mt-auto">
+    <div class="mpd-sidebar-section">
 
-        <a href="perfil.php"
-        class="<?= $pagina == 'perfil.php' ? 'active' : '' ?>">
+        <span class="mpd-section-title"><?= t('gestao') ?></span>
 
-            <i class="bi bi-person me-2"></i>
-            Meu perfil
-
+        <a href="ponto.php" class="mpd-link <?= $pagina == 'ponto.php' ? 'active' : '' ?>">
+            <i class="bi bi-clock"></i>
+            <span><?= t('ponto') ?></span>
         </a>
 
-        <a href="configuracao.php"
-        class="<?= $pagina == 'configuracao.php' ? 'active' : '' ?>">
-
-            <i class="bi bi-gear me-2"></i>
-            Configurações
-
+        <a href="banco-horas.php" class="mpd-link <?= $pagina == 'banco-horas.php' ? 'active' : '' ?>">
+            <i class="bi bi-hourglass-split"></i>
+            <span><?= t('banco_horas') ?></span>
         </a>
 
-        <a href="logout.php"
-        onclick="return confirm('Deseja realmente sair?')">
-
-            <i class="bi bi-box-arrow-right me-2"></i>
-            Sair
-
+        <a href="ferias.php" class="mpd-link <?= $pagina == 'ferias.php' ? 'active' : '' ?>">
+            <i class="bi bi-umbrella"></i>
+            <span><?= t('ferias') ?></span>
         </a>
 
-</div>
+        <a href="holerite.php" class="mpd-link <?= $pagina == 'holerite.php' ? 'active' : '' ?>">
+            <i class="bi bi-file-earmark-text"></i>
+            <span><?= t('holerite') ?></span>
+        </a>
 
-<!-- ESTILO DA LOGO -->
-<style>
+        <a href="licenca.php" class="mpd-link <?= $pagina == 'licenca.php' ? 'active' : '' ?>">
+            <i class="bi bi-heart-pulse"></i>
+            <span><?= t('licencas') ?></span>
+        </a>
 
-.sidebar-logo{
+        <a href="emergencias.php" class="mpd-link <?= $pagina == 'emergencias.php' ? 'active' : '' ?>">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span><?= t('emergencias') ?></span>
+        </a>
 
-    font-size:32px !important;
-    font-weight:700;
-    color:white !important;
-    line-height:1;
-    font-family:'Segoe UI', sans-serif;
+        <a href="comunicados.php" class="mpd-link <?= $pagina == 'comunicados.php' ? 'active' : '' ?>">
+            <i class="bi bi-bell"></i>
+            <span><?= t('comunicados') ?></span>
+        </a>
 
-}
+    </div>
 
-.sidebar-logo span{
+    <div class="mpd-sidebar-section">
 
-    color:white !important;
-    font-family:'Segoe UI', sans-serif;
-    font-weight:700;
-    letter-spacing:-1px;
+        <span class="mpd-section-title"><?= t('administracao') ?></span>
 
-}
+        <a href="funcionarios.php" class="mpd-link <?= $pagina == 'funcionarios.php' ? 'active' : '' ?>">
+            <i class="bi bi-people"></i>
+            <span><?= t('funcionarios') ?></span>
+        </a>
 
-.logo-branca{
+        <a href="importar-banco-horas.php" class="mpd-link <?= $pagina == 'importar-banco-horas.php' ? 'active' : '' ?>">
+            <i class="bi bi-hourglass-bottom"></i>
+            <span><?= t('importar_banco') ?></span>
+        </a>
 
-    width:48px;
-    height:auto;
-    transition:.3s;
+        <a href="importar-pontos.php" class="mpd-link <?= $pagina == 'importar-pontos.php' ? 'active' : '' ?>">
+            <i class="bi bi-clock-history"></i>
+            <span><?= t('importar_pontos') ?></span>
+        </a>
 
-}
+        <a href="importar-funcionarios.php" class="mpd-link <?= $pagina == 'importar-funcionarios.php' ? 'active' : '' ?>">
+            <i class="bi bi-file-earmark-arrow-up"></i>
+            <span><?= t('importar_funcionarios') ?></span>
+        </a>
 
-/* LINKS */
+        <a href="cadastrarUsuario.php" class="mpd-link <?= $pagina == 'cadastrarUsuario.php' ? 'active' : '' ?>">
+            <i class="bi bi-person-fill-add"></i>
+            <span><?= t('cadastrar_usuario') ?></span>
+        </a>
 
-.sidebar a{
+    </div>
 
-    transition:.25s;
-    border-radius:10px;
-    color:white !important;
-    font-family:'Segoe UI', sans-serif;
-    font-weight:500;
+    <div class="mpd-sidebar-footer">
 
-}
+        <a href="perfil.php" class="mpd-link <?= $pagina == 'perfil.php' ? 'active' : '' ?>">
+            <i class="bi bi-person"></i>
+            <span><?= t('perfil') ?></span>
+        </a>
 
-.sidebar a i{
+        <a href="configuracao.php" class="mpd-link <?= $pagina == 'configuracao.php' ? 'active' : '' ?>">
+            <i class="bi bi-gear"></i>
+            <span><?= t('configuracoes') ?></span>
+        </a>
 
-    color:white !important;
+        <a href="logout.php" class="mpd-link danger" onclick="return confirm('<?= t('confirmar_sair') ?>')">
+            <i class="bi bi-box-arrow-right"></i>
+            <span><?= t('sair') ?></span>
+        </a>
 
-}
+    </div>
 
-/* HOVER */
+</aside>
 
-.sidebar a:hover{
-
-    transform:translateX(4px);
-
-}
-
-/* ATIVO */
-
-.sidebar a.active{
-
-    transform:scale(1.02);
-
-}
-
-</style>
+<script src="js/sidebar.js"></script>
+<script src="js/translate.js"></script>

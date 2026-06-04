@@ -1,3 +1,6 @@
+<?php
+require_once 'lang.php';
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -131,7 +134,7 @@
         </div>
 
     </div>
-
+<script src="js/translate.js"></script>
 </body>
 
 </html>

@@ -1,3 +1,7 @@
+<?php
+require_once 'lang.php';
+?>
+
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -47,8 +51,7 @@
                 </div>
 
                 <p class="hero-desc mb-4">
-                    Organize ponto, banco de horas, férias, licenças, holerites,
-                    comunicados e colaboradores em uma plataforma moderna para empresas.
+                 Aqui fornecemos uma plataforma eficiente e prática para focar no que realmente importa: o crescimento da sua empresa e a satisfação da sua equipe.
                 </p>
 
                 <div class="d-flex flex-wrap gap-3 mb-5">
@@ -221,7 +224,7 @@
                     </h4>
 
                     <p class="text-muted mb-0">
-                        Registre entradas, saídas, atrasos e acompanhe o histórico de ponto por colaborador.
+                        Verifique entradas, saídas, atrasos e acompanhe o histórico de ponto por colaborador.
                     </p>
                 </div>
             </div>
@@ -253,7 +256,7 @@
                     </h4>
 
                     <p class="text-muted mb-0">
-                        Funcionários solicitam, RH visualiza e o status aparece em tempo real.
+                        Funcionários solicitam de acordo com os meses disponiveis, RH visualiza e o status aparece em tempo real.
                     </p>
                 </div>
             </div>
@@ -421,7 +424,7 @@
 
                     <div class="my-4">
                         <span class="fs-4 fw-bold">R$</span>
-                        <span class="price">79,90</span>
+                        <span class="price">740,00</span>
                         <span class="text-muted">/mês</span>
                     </div>
 
@@ -468,7 +471,7 @@
 
                     <div class="my-4">
                         <span class="fs-4 fw-bold">R$</span>
-                        <span class="price">149,99</span>
+                        <span class="price">1500,00</span>
                         <span style="color:#cbd5e1;">/mês</span>
                     </div>
 
@@ -614,6 +617,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script src="js/index-landing.js"></script>
-
+<script src="js/translate.js"></script>
 </body>
 </html>

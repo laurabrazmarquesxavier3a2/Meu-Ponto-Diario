@@ -134,3 +134,8 @@ body {
     }
 
 }
+.content{
+    margin-left:88px;
+    padding:30px;
+    transition:.35s ease;
+}

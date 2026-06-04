@@ -1,4 +1,5 @@
 <?php
+require_once 'lang.php';
 
 // PARTE DO BANCO
 
@@ -112,7 +113,7 @@ mysqli_close($conexao);
         </a>
 
     </div>
-
+<script src="js/translate.js"></script>
 </body>
 
 </html>

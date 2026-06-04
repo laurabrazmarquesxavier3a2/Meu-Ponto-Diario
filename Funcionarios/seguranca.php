@@ -2,6 +2,7 @@
 session_start();
 
 require_once '../config/database.php';
+require_once '../lang.php';
 
 $idEmpresa = $_SESSION['id_empresa'] ?? 0;
 $idUsuario = $_SESSION['id_usuario'] ?? 0;

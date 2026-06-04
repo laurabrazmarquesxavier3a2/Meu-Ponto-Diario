@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 require_once 'auth.php';
 require_once 'config/database.php';
+require_once 'lang.php';
 
 $mensagem = '';
 $erro = '';
@@ -509,5 +510,6 @@ foto.addEventListener('change', function(){
 
 </script>
 <script src="js/theme.js"></script>
+<script src="js/translate.js"></script>
 </body>
 </html>

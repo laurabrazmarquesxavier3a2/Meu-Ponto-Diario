@@ -5,6 +5,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 require_once 'auth.php';
 require_once 'config/database.php';
+require_once 'lang.php';
 
 $idEmpresa = $_SESSION['id_empresa'] ?? 0;
 
@@ -351,6 +352,6 @@ function badgeStatus($status) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/theme.js"></script>
-
+<script src="js/translate.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 
 session_start();
 require_once 'config/database.php';
+require_once 'lang.php';
 
 if (!isset($_SESSION['cadastro_empresa'])) {
     die("Sessão de cadastro não encontrada.");

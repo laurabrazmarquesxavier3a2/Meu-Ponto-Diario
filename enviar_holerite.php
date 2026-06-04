@@ -4,6 +4,7 @@ error_reporting(E_ALL);
 
 require_once 'auth.php';
 require_once 'config/database.php';
+require_once 'lang.php';
 
 $id_empresa = $_SESSION['id_empresa'] ?? 0;
 

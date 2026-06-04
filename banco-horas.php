@@ -4,6 +4,7 @@ error_reporting(E_ALL);
 
 require_once 'auth.php';
 require_once 'config/database.php';
+require_once 'lang.php';
 
 $id_empresa = $_SESSION['id_empresa'] ?? 0;
 
@@ -122,19 +123,48 @@ while ($stmt->fetch()) {
 }
 
 $stmt->close();
+
+/* DASHBOARD */
+$totalFuncionarios = count($registros);
+$maiorPositivo = null;
+$maiorNegativo = null;
+$alertasNegativos = [];
+
+foreach ($registros as $registro) {
+    if ($maiorPositivo === null || (float)$registro['saldo_total'] > (float)$maiorPositivo['saldo_total']) {
+        $maiorPositivo = $registro;
+    }
+
+    if ($maiorNegativo === null || (float)$registro['saldo_total'] < (float)$maiorNegativo['saldo_total']) {
+        $maiorNegativo = $registro;
+    }
+
+    if ((float)$registro['saldo_total'] < 0) {
+        $alertasNegativos[] = $registro;
+    }
+}
+
+usort($alertasNegativos, function($a, $b) {
+    return (float)$a['saldo_total'] <=> (float)$b['saldo_total'];
+});
+
+$mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionarios) : 0;
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco de Horas</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="css/style.css">
+<title>Banco de Horas</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/banco-horas.css" >
+
 </head>
 
 <body>
@@ -143,61 +173,224 @@ $stmt->close();
 
 <div class="content">
 
-    <h1 class="fw-bold">Banco de Horas</h1>
-    <h5 class="text-muted mb-4">Controle de saldo de horas dos funcionários</h5>
-
     <div class="container-fluid">
 
-        <div class="row g-4 mb-4">
+        <div class="dashboard-header">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                <div>
+                    <h1 class="dashboard-title">Banco de Horas</h1>
+                    <p class="dashboard-subtitle">
+                        Acompanhe saldos, horas extras e pendências de compensação.
+                    </p>
+                </div>
 
-            <div class="col-6 col-md-3">
-                <div class="card card-dashboard p-3">
-                    <h5>Saldo positivo</h5>
-                    <h1 class="fw-bold d-flex justify-content-between">
-                        <?= $positivos ?>
-                        <i class="bi bi-graph-up-arrow"></i>
-                    </h1>
+                <div class="d-flex align-items-start">
+                    <span class="month-pill">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <?= htmlspecialchars($mesNome) ?> / <?= date('Y') ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Saldos positivos</div>
+                            <h2 class="kpi-value"><?= (int)$positivos ?></h2>
+                            <div class="kpi-small">Funcionários acima do saldo</div>
+                        </div>
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-arrow-up-right"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-6 col-md-3">
-                <div class="card card-dashboard p-3">
-                    <h5>Saldo negativo</h5>
-                    <h1 class="fw-bold d-flex justify-content-between">
-                        <?= $negativos ?>
-                        <i class="bi bi-graph-down-arrow"></i>
-                    </h1>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Saldos negativos</div>
+                            <h2 class="kpi-value"><?= (int)$negativos ?></h2>
+                            <div class="kpi-small">Funcionários em atenção</div>
+                        </div>
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-6 col-md-3">
-                <div class="card card-dashboard p-3">
-                    <h5>Total de horas extras</h5>
-                    <h1 class="fw-bold d-flex justify-content-between">
-                        <?= number_format((float)$totalExtras, 2, ',', '.') ?>h
-                        <i class="bi bi-clock"></i>
-                    </h1>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Horas extras</div>
+                            <h2 class="kpi-value"><?= number_format((float)$totalExtras, 2, ',', '.') ?>h</h2>
+                            <div class="kpi-small">Total acumulado no mês</div>
+                        </div>
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-6 col-md-3">
-                <div class="card card-dashboard p-3">
-                    <h5>Este mês</h5>
-                    <h1 class="fw-bold d-flex justify-content-between">
-                        <?= $mesNome ?>
-                        <i class="bi bi-calendar"></i>
-                    </h1>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="kpi-label">Monitorados</div>
+                            <h2 class="kpi-value"><?= (int)$totalFuncionarios ?></h2>
+                            <div class="kpi-small">Com registro neste mês</div>
+                        </div>
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
 
-        <div class="card card-dashboard p-3">
-            <h5>Saldos de Banco de Horas</h5>
+        <div class="row g-3 mb-4">
+
+            <div class="col-12 col-xl-7">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h5>Funcionários em alerta</h5>
+                        <p>Maiores saldos negativos para acompanhamento do RH.</p>
+                    </div>
+
+                    <div class="panel-body-custom">
+
+                        <?php if (count($alertasNegativos) > 0): ?>
+
+                            <?php foreach (array_slice($alertasNegativos, 0, 5) as $alerta): ?>
+
+                                <?php
+                                $inicialAlerta = mb_strtoupper(mb_substr($alerta['nome'], 0, 1, 'UTF-8'), 'UTF-8');
+                                ?>
+
+                                <div class="alert-user">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="employee-avatar">
+                                            <?= htmlspecialchars($inicialAlerta) ?>
+                                        </div>
+
+                                        <div>
+                                            <div class="employee-name">
+                                                <?= htmlspecialchars($alerta['nome']) ?>
+                                            </div>
+                                            <div class="text-muted small">
+                                                Saldo total negativo
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <span class="saldo-negativo">
+                                        <?= formatarHoras($alerta['saldo_total']) ?>
+                                    </span>
+                                </div>
+
+                            <?php endforeach; ?>
+
+                        <?php else: ?>
+
+                            <div class="empty-state">
+                                <i class="bi bi-check-circle"></i>
+                                Nenhum funcionário com saldo negativo.
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-xl-5">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h5>Resumo do mês</h5>
+                        <p>Indicadores rápidos do período atual.</p>
+                    </div>
+
+                    <div class="panel-body-custom">
+
+                        <div class="metric-line">
+                            <span>Maior saldo positivo</span>
+                            <strong class="saldo-positivo">
+                                <?= $maiorPositivo ? htmlspecialchars($maiorPositivo['nome']) . ' ' . formatarHoras($maiorPositivo['saldo_total']) : '-' ?>
+                            </strong>
+                        </div>
+
+                        <div class="metric-line">
+                            <span>Maior saldo negativo</span>
+                            <strong class="saldo-negativo">
+                                <?= $maiorNegativo ? htmlspecialchars($maiorNegativo['nome']) . ' ' . formatarHoras($maiorNegativo['saldo_total']) : '-' ?>
+                            </strong>
+                        </div>
+
+                        <div class="metric-line">
+                            <span>Média de extras</span>
+                            <strong>
+                                <?= number_format((float)$mediaExtras, 2, ',', '.') ?>h
+                            </strong>
+                        </div>
+
+                        <div class="metric-line">
+                            <span>Total de registros</span>
+                            <strong>
+                                <?= (int)$totalFuncionarios ?>
+                            </strong>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="table-card">
+
+            <div class="table-card-header">
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-6">
+                        <h5>Saldos dos Funcionários</h5>
+                        <p>Consulte o saldo total e mensal de cada funcionário.</p>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <input 
+                            type="text" 
+                            id="pesquisaTabela" 
+                            class="form-control search-input" 
+                            placeholder="Pesquisar funcionário"
+                        >
+                    </div>
+
+                    <div class="col-lg-3">
+                        <select id="filtroStatus" class="form-select status-filter">
+                            <option value="todos">Todos</option>
+                            <option value="positivo">Positivo</option>
+                            <option value="negativo">Negativo</option>
+                            <option value="neutro">Neutro</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <div class="table-responsive">
-                <table class="table table-hover mt-3">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle">
+                    <thead>
                         <tr>
                             <th>Funcionário</th>
                             <th>Saldo Total</th>
@@ -207,37 +400,74 @@ $stmt->close();
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody id="corpoTabela">
 
                     <?php if (count($registros) > 0): ?>
 
                         <?php foreach ($registros as $row): ?>
 
                             <?php
-                            if ($row['status'] == 'positivo') {
-                                $badge = '<span class="badge bg-success">Positivo</span>';
-                            } elseif ($row['status'] == 'negativo') {
-                                $badge = '<span class="badge bg-danger">Negativo</span>';
+                            $statusLinha = $row['status'] ?: 'neutro';
+
+                            if ($statusLinha == 'positivo') {
+                                $badge = '<span class="badge-status badge-positivo">Positivo</span>';
+                            } elseif ($statusLinha == 'negativo') {
+                                $badge = '<span class="badge-status badge-negativo">Negativo</span>';
                             } else {
-                                $badge = '<span class="badge bg-secondary">Neutro</span>';
+                                $badge = '<span class="badge-status badge-neutro">Neutro</span>';
+                                $statusLinha = 'neutro';
                             }
 
                             $dataAtualizacao = $row['data_atualizacao']
                                 ? date('d/m/Y', strtotime($row['data_atualizacao']))
                                 : 'Sem atualização';
+
+                            $saldoTotalClass = 'saldo-neutro';
+                            if ((float)$row['saldo_total'] > 0) {
+                                $saldoTotalClass = 'saldo-positivo';
+                            } elseif ((float)$row['saldo_total'] < 0) {
+                                $saldoTotalClass = 'saldo-negativo';
+                            }
+
+                            $saldoMesClass = 'saldo-neutro';
+                            if ((float)$row['saldo_mes'] > 0) {
+                                $saldoMesClass = 'saldo-positivo';
+                            } elseif ((float)$row['saldo_mes'] < 0) {
+                                $saldoMesClass = 'saldo-negativo';
+                            }
+
+                            $inicial = mb_strtoupper(mb_substr($row['nome'], 0, 1, 'UTF-8'), 'UTF-8');
                             ?>
 
-                            <tr>
+                            <tr 
+                                data-nome="<?= htmlspecialchars(mb_strtolower($row['nome'], 'UTF-8')) ?>" 
+                                data-status="<?= htmlspecialchars($statusLinha) ?>"
+                            >
                                 <td>
-                                    <i class="bi bi-person me-2"></i>
-                                    <?= htmlspecialchars($row['nome']) ?>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="employee-avatar">
+                                            <?= htmlspecialchars($inicial) ?>
+                                        </div>
+
+                                        <span class="employee-name">
+                                            <?= htmlspecialchars($row['nome']) ?>
+                                        </span>
+                                    </div>
                                 </td>
 
-                                <td><?= formatarHoras($row['saldo_total']) ?></td>
+                                <td>
+                                    <span class="<?= $saldoTotalClass ?>">
+                                        <?= formatarHoras($row['saldo_total']) ?>
+                                    </span>
+                                </td>
 
-                                <td><?= formatarHoras($row['saldo_mes']) ?></td>
+                                <td>
+                                    <span class="<?= $saldoMesClass ?>">
+                                        <?= formatarHoras($row['saldo_mes']) ?>
+                                    </span>
+                                </td>
 
-                                <td><?= $dataAtualizacao ?></td>
+                                <td><?= htmlspecialchars($dataAtualizacao) ?></td>
 
                                 <td><?= $badge ?></td>
                             </tr>
@@ -247,8 +477,11 @@ $stmt->close();
                     <?php else: ?>
 
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                Nenhum saldo encontrado para este mês.
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox"></i>
+                                    Nenhum saldo encontrado para este mês.
+                                </div>
                             </td>
                         </tr>
 
@@ -257,12 +490,60 @@ $stmt->close();
                     </tbody>
                 </table>
             </div>
+
+            <div id="semResultado" class="empty-state d-none">
+                <i class="bi bi-search"></i>
+                Nenhum funcionário encontrado.
+            </div>
+
         </div>
 
     </div>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/theme.js"></script>
+
+<script>
+    const pesquisaTabela = document.getElementById('pesquisaTabela');
+    const filtroStatus = document.getElementById('filtroStatus');
+    const linhas = document.querySelectorAll('#corpoTabela tr[data-nome]');
+    const semResultado = document.getElementById('semResultado');
+
+    function removerAcentos(texto) {
+        return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function filtrarTabela() {
+        const pesquisa = removerAcentos(pesquisaTabela.value.toLowerCase().trim());
+        const status = filtroStatus.value;
+
+        let visiveis = 0;
+
+        linhas.forEach(linha => {
+            const nome = removerAcentos(linha.dataset.nome || '');
+            const statusLinha = linha.dataset.status || 'neutro';
+
+            const combinaNome = nome.includes(pesquisa);
+            const combinaStatus = status === 'todos' || status === statusLinha;
+
+            if (combinaNome && combinaStatus) {
+                linha.style.display = '';
+                visiveis++;
+            } else {
+                linha.style.display = 'none';
+            }
+        });
+
+        if (linhas.length > 0) {
+            semResultado.classList.toggle('d-none', visiveis > 0);
+        }
+    }
+
+    pesquisaTabela.addEventListener('input', filtrarTabela);
+    filtroStatus.addEventListener('change', filtrarTabela);
+</script>
+<script src="js/translate.js"></script>
 </body>
 </html>

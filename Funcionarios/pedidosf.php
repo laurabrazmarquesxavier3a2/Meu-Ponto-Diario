@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 require_once '../auth.php';
 require_once '../config/database.php';
+require_once '../lang.php';
 
 $idUsuario = $_SESSION['id_usuario'] ?? null;
 $idFuncionario = $_SESSION['id_funcionario'] ?? null;
@@ -30,6 +31,46 @@ $meses = [
     "Novembro" => 11,
     "Dezembro" => 12
 ];
+
+/* CRIA TABELA CASO NÃO EXISTA */
+$con->query("
+    CREATE TABLE IF NOT EXISTS ferias_meses_disponiveis (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_empresa INT NOT NULL,
+        mes TINYINT NOT NULL,
+        disponivel TINYINT NOT NULL DEFAULT 1,
+        atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY empresa_mes (id_empresa, mes)
+    )
+");
+
+/* GARANTE OS 12 MESES */
+foreach ($meses as $nomeMes => $numeroMes) {
+    $stmtMes = $con->prepare("
+        INSERT IGNORE INTO ferias_meses_disponiveis
+        (id_empresa, mes, disponivel)
+        VALUES (?, ?, 1)
+    ");
+    $stmtMes->bind_param("ii", $idEmpresa, $numeroMes);
+    $stmtMes->execute();
+}
+
+/* MESES DISPONÍVEIS */
+$mesesDisponiveis = [];
+
+$stmtMeses = $con->prepare("
+    SELECT mes, disponivel
+    FROM ferias_meses_disponiveis
+    WHERE id_empresa = ?
+");
+
+$stmtMeses->bind_param("i", $idEmpresa);
+$stmtMeses->execute();
+$resMeses = $stmtMeses->get_result();
+
+while ($row = $resMeses->fetch_assoc()) {
+    $mesesDisponiveis[(int)$row['mes']] = (int)$row['disponivel'];
+}
 
 /* BUSCAR FUNCIONÁRIO */
 $stmtFunc = $con->prepare("
@@ -80,103 +121,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
     } else {
 
         $numeroMes = $meses[$mesNome];
-        $anoAtual = date('Y');
 
-        if ($numeroMes < date('n')) {
-            $anoAtual++;
-        }
+        if (empty($mesesDisponiveis[$numeroMes])) {
 
-        $dataInicio = date('Y-m-d', strtotime("$anoAtual-$numeroMes-01"));
-        $dataFim = date('Y-m-d', strtotime($dataInicio . ' +29 days'));
-        $dias = 30;
-
-        if ($pedidoAtual && $alteracoesRestantes <= 0) {
-
-            $erro = "Você já usou suas 2 alterações. Aguarde o RH visualizar sua solicitação.";
-
-        } elseif ($pedidoAtual) {
-
-            $novoRestante = $alteracoesRestantes - 1;
-
-            $stmt = $con->prepare("
-                UPDATE ferias
-                SET 
-                    data_inicio = ?,
-                    data_fim = ?,
-                    dias = ?,
-                    alteracoes_restantes = ?,
-                    mensagem_colaborador = 'Solicitação alterada. Aguardando visualização do RH.'
-                WHERE id_ferias = ?
-                AND id_funcionario = ?
-                AND id_empresa = ?
-            ");
-
-            if (!$stmt) {
-                die("Erro SQL alterar férias: " . $con->error);
-            }
-
-            $stmt->bind_param(
-                "ssiiiii",
-                $dataInicio,
-                $dataFim,
-                $dias,
-                $novoRestante,
-                $pedidoAtual['id_ferias'],
-                $idFuncionario,
-                $idEmpresa
-            );
-
-            if ($stmt->execute()) {
-                $mensagem = "Solicitação de férias alterada com sucesso. Alterações restantes: " . $novoRestante;
-                $alteracoesRestantes = $novoRestante;
-                $possuiPedidoPendente = true;
-            } else {
-                $erro = "Erro ao alterar solicitação: " . $stmt->error;
-            }
+            $erro = "Este mês não está disponível para solicitação de férias.";
 
         } else {
 
-            $stmt = $con->prepare("
-                INSERT INTO ferias (
-                    id_funcionario,
-                    data_inicio,
-                    data_fim,
-                    dias,
-                    status,
-                    data_solicitacao,
-                    mensagem_colaborador,
-                    alteracoes_restantes,
-                    id_empresa
-                )
-                VALUES (
-                    ?, ?, ?, ?,
-                    'pendente',
-                    NOW(),
-                    'Solicitação enviada. Aguardando visualização do RH.',
-                    2,
-                    ?
-                )
-            ");
+            $anoAtual = date('Y');
 
-            if (!$stmt) {
-                die("Erro SQL férias: " . $con->error);
+            if ($numeroMes < date('n')) {
+                $anoAtual++;
             }
 
-            $stmt->bind_param(
-                "issii",
-                $idFuncionario,
-                $dataInicio,
-                $dataFim,
-                $dias,
-                $idEmpresa
-            );
+            $dataInicio = date('Y-m-d', strtotime("$anoAtual-$numeroMes-01"));
+            $dataFim = date('Y-m-d', strtotime($dataInicio . ' +29 days'));
+            $dias = 30;
 
-            if ($stmt->execute()) {
-                $mensagem = "Solicitação de férias enviada para o RH.";
-                $possuiPedidoPendente = true;
-                $alteracoesRestantes = 2;
+            if ($pedidoAtual && $alteracoesRestantes <= 0) {
+
+                $erro = "Você já usou suas 2 alterações. Aguarde o RH visualizar sua solicitação.";
+
+            } elseif ($pedidoAtual) {
+
+                $novoRestante = $alteracoesRestantes - 1;
+
+                $stmt = $con->prepare("
+                    UPDATE ferias
+                    SET 
+                        data_inicio = ?,
+                        data_fim = ?,
+                        dias = ?,
+                        alteracoes_restantes = ?,
+                        mensagem_colaborador = 'Solicitação alterada. Aguardando visualização do RH.'
+                    WHERE id_ferias = ?
+                    AND id_funcionario = ?
+                    AND id_empresa = ?
+                ");
+
+                if (!$stmt) {
+                    die("Erro SQL alterar férias: " . $con->error);
+                }
+
+                $stmt->bind_param(
+                    "ssiiiii",
+                    $dataInicio,
+                    $dataFim,
+                    $dias,
+                    $novoRestante,
+                    $pedidoAtual['id_ferias'],
+                    $idFuncionario,
+                    $idEmpresa
+                );
+
+                if ($stmt->execute()) {
+                    $mensagem = "Solicitação de férias alterada com sucesso. Alterações restantes: " . $novoRestante;
+                    $alteracoesRestantes = $novoRestante;
+                    $possuiPedidoPendente = true;
+                } else {
+                    $erro = "Erro ao alterar solicitação: " . $stmt->error;
+                }
+
             } else {
-                $erro = "Erro ao solicitar férias: " . $stmt->error;
+
+                $stmt = $con->prepare("
+                    INSERT INTO ferias (
+                        id_funcionario,
+                        data_inicio,
+                        data_fim,
+                        dias,
+                        status,
+                        data_solicitacao,
+                        mensagem_colaborador,
+                        alteracoes_restantes,
+                        id_empresa
+                    )
+                    VALUES (
+                        ?, ?, ?, ?,
+                        'pendente',
+                        NOW(),
+                        'Solicitação enviada. Aguardando visualização do RH.',
+                        2,
+                        ?
+                    )
+                ");
+
+                if (!$stmt) {
+                    die("Erro SQL férias: " . $con->error);
+                }
+
+                $stmt->bind_param(
+                    "issii",
+                    $idFuncionario,
+                    $dataInicio,
+                    $dataFim,
+                    $dias,
+                    $idEmpresa
+                );
+
+                if ($stmt->execute()) {
+                    $mensagem = "Solicitação de férias enviada para o RH.";
+                    $possuiPedidoPendente = true;
+                    $alteracoesRestantes = 2;
+                } else {
+                    $erro = "Erro ao solicitar férias: " . $stmt->error;
+                }
             }
         }
     }
@@ -211,7 +260,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
 <div class="container-fluid">
 
-    <?php if(isset($_GET['sucesso'])){ ?>
+    <?php if(isset($_GET['sucesso'])): ?>
 
         <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm border-0 rounded-4">
             <i class="fa-solid fa-circle-check me-2"></i>
@@ -219,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-    <?php } ?>
+    <?php endif; ?>
 
     <?php if($mensagem): ?>
 
@@ -241,30 +290,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
     <?php endif; ?>
 
-    <div class="mb-4">
+    <div class="pedidos-header mb-4">
 
-        <h2 class="fw-bold mb-1">
-            Pedidos
-        </h2>
+        <div>
+            <h2 class="fw-bold mb-1">
+                Pedidos
+            </h2>
 
-        <p class="text-muted mb-0">
-            Olá, <?= htmlspecialchars($nomeFuncionario) ?>. Solicite férias ou envie licenças médicas.
-        </p>
+            <p class="text-muted mb-0">
+                Olá, <?= htmlspecialchars($nomeFuncionario) ?>. Solicite férias ou envie licenças médicas.
+            </p>
+        </div>
+
+        <div class="header-badge">
+            <i class="fa-solid fa-calendar-check me-2"></i>
+            Solicitações
+        </div>
 
     </div>
 
     <div class="row g-4">
 
-        <!-- CARD FÉRIAS -->
         <div class="col-12 col-xl-6">
 
-            <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card border-0 shadow-sm rounded-4 h-100 pedidos-card">
 
                 <div class="card-body p-4">
 
                     <div class="d-flex align-items-center gap-3 mb-4">
 
-                        <div class="icon-box bg-primary bg-opacity-10 text-primary p-3 rounded-4">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
                             <i class="fa-solid fa-umbrella-beach"></i>
                         </div>
 
@@ -274,7 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                             </h4>
 
                             <p class="text-muted mb-0">
-                                Escolha um mês para enviar ao RH
+                                Escolha um mês liberado pelo RH
                             </p>
                         </div>
 
@@ -286,10 +341,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
                             <i class="fa-solid fa-clock me-2"></i>
 
-                            Você já possui uma solicitação de férias em andamento.
-                            Você ainda pode alterar
+                            Você já possui uma solicitação em andamento.
+                            Alterações restantes:
                             <strong><?= (int)$alteracoesRestantes ?></strong>
-                            vez(es).
 
                         </div>
 
@@ -301,30 +355,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
                         <div class="row g-3">
 
-                            <?php foreach($meses as $mes => $numero){ ?>
+                            <?php foreach($meses as $mes => $numero): ?>
+
+                                <?php
+                                    $mesDisponivel = !empty($mesesDisponiveis[$numero]);
+                                    $limiteAlteracoes = ($possuiPedidoPendente && $alteracoesRestantes <= 0);
+                                    $bloqueado = !$mesDisponivel || $limiteAlteracoes;
+                                ?>
 
                                 <div class="col-6">
 
                                     <button
                                         type="button"
-                                        class="btn btn-light border w-100 py-3 fw-semibold mes-btn"
-                                        onclick="selecionarMes(this, '<?= $mes ?>')"
-                                        <?= ($possuiPedidoPendente && $alteracoesRestantes <= 0) ? 'disabled' : '' ?>
+                                        class="btn w-100 py-3 fw-semibold mes-btn <?= $mesDisponivel ? 'btn-light border' : 'btn-secondary mes-indisponivel' ?>"
+                                        onclick="selecionarMes(this, '<?= htmlspecialchars($mes) ?>')"
+                                        <?= $bloqueado ? 'disabled' : '' ?>
                                     >
-                                        <?= $mes ?>
+                                        <span><?= htmlspecialchars($mes) ?></span>
+
+                                        <?php if(!$mesDisponivel): ?>
+                                            <small>Indisponível</small>
+                                        <?php endif; ?>
                                     </button>
 
                                 </div>
 
-                            <?php } ?>
+                            <?php endforeach; ?>
 
                         </div>
 
-                        <div class="alert alert-primary mt-4">
+                        <div class="info-box mt-4">
 
                             <div id="mesSelecionadoTexto">
                                 Nenhum mês selecionado
                             </div>
+
+                            <small>
+                                Apenas meses liberados pelo RH podem ser solicitados.
+                            </small>
 
                         </div>
 
@@ -332,7 +400,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                             type="submit"
                             name="solicitar_ferias"
                             id="btnSolicitar"
-                            class="btn btn-primary w-100 py-3 fw-semibold"
+                            class="btn btn-primary w-100 py-3 fw-semibold mt-4"
                             <?= ($possuiPedidoPendente && $alteracoesRestantes <= 0) ? 'disabled' : '' ?>
                         >
 
@@ -350,16 +418,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
         </div>
 
-        <!-- CARD LICENÇA -->
         <div class="col-12 col-xl-6">
 
-            <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card border-0 shadow-sm rounded-4 h-100 pedidos-card">
 
                 <div class="card-body p-4">
 
                     <div class="d-flex align-items-center gap-3 mb-4">
 
-                        <div class="icon-box bg-danger bg-opacity-10 text-danger p-3 rounded-4">
+                        <div class="icon-box bg-danger bg-opacity-10 text-danger">
                             <i class="fa-solid fa-file-medical"></i>
                         </div>
 
@@ -498,6 +565,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
 function selecionarMes(elemento, mes){
 
+    if(elemento.disabled){
+        return;
+    }
+
     document.querySelectorAll(".mes-btn").forEach(btn => {
         btn.classList.remove("btn-primary", "text-white");
         btn.classList.add("btn-light");
@@ -522,7 +593,7 @@ document.getElementById('formFerias').addEventListener('submit', function(e){
 
         e.preventDefault();
 
-        mostrarAlerta("Selecione um mês antes de solicitar.");
+        mostrarAlerta("Selecione um mês disponível antes de solicitar.");
     }
 
 });
