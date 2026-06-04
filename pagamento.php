@@ -516,11 +516,11 @@ footer small{
     <select class="form-select" id="plano">
 
         <option value="pequeno" <?= $plano == 'pequeno' ? 'selected' : '' ?>>
-            Pequeno Porte - R$ 79,90/mês
+            Pequeno Porte - R$ 740,00/mês
         </option>
 
         <option value="medio" <?= $plano == 'medio' ? 'selected' : '' ?>>
-            Médio Porte - R$ 149,99/mês
+            Médio Porte - R$ 1500,00/mês
         </option>
 
     </select>
@@ -732,13 +732,13 @@ plano.addEventListener('change', function(){
     if(this.value == 'pequeno'){
 
         nome.innerHTML = 'Plano Pequeno Porte';
-        valor.innerHTML = 'R$ 79,90 <span>/mês</span>';
+        valor.innerHTML = 'R$ 740,00 <span>/mês</span>';
         usuarios.innerHTML = '10 a 49 usuários';
 
     }else{
 
         nome.innerHTML = 'Plano Médio Porte';
-        valor.innerHTML = 'R$ 149,99 <span>/mês</span>';
+        valor.innerHTML = 'R$ 1500,00 <span>/mês</span>';
         usuarios.innerHTML = '50 a 100 usuários';
 
     }

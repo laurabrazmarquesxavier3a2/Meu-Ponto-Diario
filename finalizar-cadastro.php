@@ -1,6 +1,7 @@
 <?php
 
 session_start();
+
 require_once 'config/database.php';
 require_once 'lang.php';
 
@@ -17,88 +18,65 @@ try {
     $logoBanco = null;
     $statusEmpresa = 'ativa';
 
-    /*
-    ==========================
-    CADASTRA EMPRESA
-    ==========================
-    */
-
     $sqlEmpresa = "
-    INSERT INTO empresas (
-        razao_social,
-        nome_fantasia,
-        cnpj,
-        segmento,
-        email,
-        telefone,
-        responsavel,
-        cargo_responsavel,
-        endereco,
-        cidade,
-        estado,
-        cep,
-        logo,
-        plano,
-        status
-    )
-    VALUES (
-        ?,?,?,?,?,?,
-        ?,?,?,?,?,?,
-        ?,?,?
-    )
+        INSERT INTO empresas (
+            razao_social,
+            nome_fantasia,
+            cnpj,
+            segmento,
+            email,
+            telefone,
+            responsavel,
+            cargo_responsavel,
+            endereco,
+            cidade,
+            estado,
+            cep,
+            logo,
+            plano,
+            status
+        )
+        VALUES (
+            ?,?,?,?,?,?,
+            ?,?,?,?,?,?,
+            ?,?,?
+        )
     ";
 
     $stmtEmpresa = $con->prepare($sqlEmpresa);
 
     if (!$stmtEmpresa) {
-        throw new Exception(
-            "Erro prepare empresa: " . $con->error
-        );
+        throw new Exception("Erro prepare empresa: " . $con->error);
     }
 
     $stmtEmpresa->bind_param(
         "sssssssssssssss",
-
         $empresa['razao_social'],
         $empresa['nome_fantasia'],
         $empresa['cnpj'],
         $empresa['segmento'],
         $empresa['email'],
         $empresa['telefone'],
-
         $empresa['responsavel'],
         $empresa['cargo'],
-
         $empresa['endereco'],
         $empresa['cidade'],
         $empresa['estado'],
         $empresa['cep'],
-
         $logoBanco,
         $empresa['plano'],
         $statusEmpresa
     );
 
     if (!$stmtEmpresa->execute()) {
-        throw new Exception(
-            "Erro empresa: " .
-            $stmtEmpresa->error
-        );
+        throw new Exception("Erro empresa: " . $stmtEmpresa->error);
     }
 
     $idEmpresa = $con->insert_id;
 
     if (!$idEmpresa) {
-        throw new Exception(
-            "ID da empresa não gerado."
-        );
+        throw new Exception("ID da empresa não gerado.");
     }
-
-    /*
-    ==========================
-    CADASTRA USUÁRIO RH
-    ==========================
-    */
 
     $senhaHash = password_hash(
         $empresa['senha'],
@@ -125,15 +103,11 @@ try {
     ");
 
     if (!$stmtUsuario) {
-        throw new Exception(
-            "Erro prepare usuário: " .
-            $con->error
-        );
+        throw new Exception("Erro prepare usuário: " . $con->error);
     }
 
     $stmtUsuario->bind_param(
         "issssss",
-
         $idEmpresa,
         $empresa['responsavel'],
         $empresa['email'],
@@ -144,17 +118,14 @@ try {
     );
 
     if (!$stmtUsuario->execute()) {
-        throw new Exception(
-            "Erro usuário: " .
-            $stmtUsuario->error
-        );
+        throw new Exception("Erro usuário: " . $stmtUsuario->error);
     }
 
     mysqli_commit($con);
 
     unset($_SESSION['cadastro_empresa']);
 
-    header("Location: login.php?cadastro=ok");
+    header("Location: pagamento-sucesso.php");
     exit;
 
 } catch (Exception $e) {
