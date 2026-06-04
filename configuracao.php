@@ -388,13 +388,65 @@ $sessaoAtual = session_id();
                             Níveis de acesso
                         </div>
 
-                        <div class="border rounded p-2 config-item">
+                        <div class="border rounded p-2 mb-2 config-item">
                             Auditoria de ações
                         </div>
 
+                        <div class="border rounded p-2 config-item"
+                         onclick="abrirJornada()"
+                         style="cursor:pointer;">
+                          Jornada de Trabalho
+                           </div>
+
                     </div>
                 </div>
+                        <!-- JORNADA DE TRABALHO -->
+<div id="jornadaContainer" class="col-12" style="display:none;">
 
+    <div class="card card-dashboard p-4">
+
+        <h4 class="fw-bold mb-4">
+            <i class="bi bi-clock-history text-primary me-2"></i>
+            Jornada de Trabalho
+        </h4>
+
+        <div class="row">
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Nome da Jornada</label>
+                <input type="text"
+                       class="form-control"
+                       placeholder="Administrativo">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Hora Entrada</label>
+                <input type="time"
+                       class="form-control">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Hora Saída</label>
+                <input type="time"
+                       class="form-control">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Carga Horária</label>
+                <input type="number"
+                       class="form-control"
+                       placeholder="9">
+            </div>
+
+        </div>
+
+        <button class="btn btn-primary">
+            Salvar Jornada
+        </button>
+
+    </div>
+
+</div>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4">
@@ -518,6 +570,27 @@ if(idiomaSistema){
 
 <script src="js/translate.js"></script>
 <script src="js/translate.js"></script>
+
+<script>
+
+function abrirJornada(){
+
+    const container =
+        document.getElementById('jornadaContainer');
+
+    if(container.style.display === 'none'){
+
+        container.style.display = 'block';
+
+    }else{
+
+        container.style.display = 'none';
+
+    }
+}
+
+</script>
+
 </body>
 </html>
 
