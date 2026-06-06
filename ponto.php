@@ -115,13 +115,16 @@ while ($ponto = $query->fetch_assoc()) {
             $saidasHoje++;
         }
 
-        if ($ponto['status'] == 'em andamento') {
-            $emAndamento++;
-        }
+         if (empty($ponto['hora_saida']) || $ponto['hora_saida'] == '00:00:00') {
+    $emAndamento++;
+}
 
-        if ($ponto['status'] == 'atraso') {
-            $atrasosHoje++;
-        }
+if (
+    !empty($ponto['total_horas']) &&
+    (float)$ponto['total_horas'] < 8
+) {
+    $atrasosHoje++;
+}
     }
 
     if (count($ultimosRegistros) < 5) {
@@ -736,21 +739,44 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                         <?php foreach ($registros as $ponto): ?>
 
                             <?php
-                            $statusLinha = $ponto['status'] ?: 'ausente';
 
-                            if ($statusLinha == 'completo') {
-                                $badge = '<span class="badge-status badge-completo">Completo</span>';
-                            } elseif ($statusLinha == 'atraso') {
-                                $badge = '<span class="badge-status badge-atraso">Atraso</span>';
-                            } elseif ($statusLinha == 'em andamento') {
-                                $badge = '<span class="badge-status badge-andamento">Em andamento</span>';
-                            } else {
-                                $badge = '<span class="badge-status badge-ausente">Ausente</span>';
-                                $statusLinha = 'ausente';
-                            }
+if (empty($ponto['hora_entrada']) || $ponto['hora_entrada'] == '00:00:00') {
 
-                            $inicial = mb_strtoupper(mb_substr($ponto['nome'], 0, 1, 'UTF-8'), 'UTF-8');
-                            ?>
+    $statusLinha = 'ausente';
+    $badge = '<span class="badge-status badge-ausente">Ausente</span>';
+
+} elseif (empty($ponto['hora_saida']) || $ponto['hora_saida'] == '00:00:00') {
+
+    $statusLinha = 'em andamento';
+    $badge = '<span class="badge-status badge-andamento">Em andamento</span>';
+
+} else {
+
+    $horasTrabalhadas = (float)$ponto['total_horas'];
+
+    if ($horasTrabalhadas > 8) {
+
+        $statusLinha = 'hora_extra';
+        $badge = '<span class="badge-status badge-completo">Hora Extra</span>';
+
+    } elseif ($horasTrabalhadas >= 8) {
+
+        $statusLinha = 'completo';
+        $badge = '<span class="badge-status badge-completo">Completo</span>';
+
+    } else {
+
+        $statusLinha = 'atraso';
+        $badge = '<span class="badge-status badge-atraso">Horas Pendentes</span>';
+
+    }
+}
+
+$inicial = mb_strtoupper(
+    mb_substr($ponto['nome'], 0, 1, 'UTF-8'),
+    'UTF-8'
+);
+?>
 
                             <tr 
                                 data-nome="<?= htmlspecialchars(mb_strtolower($ponto['nome'], 'UTF-8')) ?>"

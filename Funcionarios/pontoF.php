@@ -50,25 +50,93 @@ $stmtFunc->bind_param("ii", $idFuncionario, $idEmpresa);
 $stmtFunc->execute();
 $funcionario = $stmtFunc->get_result()->fetch_assoc();
 
-/* PONTO DE HOJE */
+ /* PONTO DE HOJE */
 $hoje = date('Y-m-d');
 
 $stmtHoje = $con->prepare("
-    SELECT *
+    SELECT
+        hora_entrada,
+        hora_saida,
+        total_horas,
+        status
     FROM pontos
     WHERE id_funcionario = ?
     AND id_empresa = ?
     AND data = ?
+    ORDER BY id_ponto DESC
     LIMIT 1
 ");
-$stmtHoje->bind_param("iis", $idFuncionario, $idEmpresa, $hoje);
-$stmtHoje->execute();
-$pontoHoje = $stmtHoje->get_result()->fetch_assoc();
 
-$entradaHoje = $pontoHoje['hora_entrada'] ?? '--:--';
-$saidaHoje = $pontoHoje['hora_saida'] ?? '--:--';
-$totalHoje = $pontoHoje['total_horas'] ?? '0.00';
-$statusHoje = $pontoHoje['status'] ?? 'sem registro';
+$stmtHoje->bind_param(
+    "iis",
+    $idFuncionario,
+    $idEmpresa,
+    $hoje
+);
+
+$stmtHoje->execute();
+
+$resultHoje = $stmtHoje->get_result();
+
+$pontoHoje = $resultHoje->fetch_assoc();
+
+/* Se não existir ponto hoje */
+
+if (!$pontoHoje) {
+
+    $stmtUltimo = $con->prepare("
+        SELECT *
+        FROM pontos
+        WHERE id_funcionario = ?
+        AND id_empresa = ?
+        ORDER BY data DESC
+        LIMIT 1
+    ");
+
+    $stmtUltimo->bind_param(
+        "ii",
+        $idFuncionario,
+        $idEmpresa
+    );
+
+    $stmtUltimo->execute();
+
+    $ultimoPonto =
+        $stmtUltimo->get_result()->fetch_assoc();
+
+    if ($ultimoPonto) {
+
+        $entradaHoje = $ultimoPonto['hora_entrada'];
+        $saidaHoje = $ultimoPonto['hora_saida'];
+        $totalHoje = $ultimoPonto['total_horas'];
+        $statusHoje = 'Último registro';
+
+    } else {
+
+        $entradaHoje = '--:--';
+        $saidaHoje = '--:--';
+        $totalHoje = '0.00';
+        $statusHoje = 'Sem registro';
+    }
+
+}
+
+else {
+
+    $entradaHoje = !empty($pontoHoje['hora_entrada'])
+        ? substr($pontoHoje['hora_entrada'], 0, 5)
+        : '--:--';
+
+    $saidaHoje = !empty($pontoHoje['hora_saida'])
+        ? substr($pontoHoje['hora_saida'], 0, 5)
+        : '--:--';
+
+    $totalHoje = $pontoHoje['total_horas'] ?? '0.00';
+
+    $statusHoje = ucfirst(
+        $pontoHoje['status'] ?? 'Sem registro'
+    );
+}
 
 /* HISTÓRICO DA SEMANA */
 $stmtSemana = $con->prepare("

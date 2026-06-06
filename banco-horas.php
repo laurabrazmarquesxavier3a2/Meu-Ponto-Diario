@@ -79,47 +79,66 @@ $totalExtras = $totalExtras ?? 0;
 /* TABELA */
 $registros = [];
 
-$sql = "
+ $sql = "
 SELECT
     f.nome,
-    bh.saldo_total,
-    bh.saldo_mes,
-    bh.data_atualizacao,
-    bh.status
-FROM banco_horas bh
+
+    ROUND(SUM(p.total_horas - 8), 2) AS saldo_total,
+
+    ROUND(
+        SUM(
+            CASE
+                WHEN MONTH(p.data) = MONTH(CURDATE())
+                AND YEAR(p.data) = YEAR(CURDATE())
+                THEN (p.total_horas - 8)
+                ELSE 0
+            END
+        ),
+        2
+    ) AS saldo_mes,
+
+    MAX(p.data) AS data_atualizacao
+
+FROM pontos p
+
 INNER JOIN funcionarios f
-    ON f.id_funcionario = bh.id_funcionario
-WHERE bh.id_empresa = ?
+    ON f.id_funcionario = p.id_funcionario
+
+WHERE p.id_empresa = ?
 AND f.id_empresa = ?
-AND bh.mes = ?
+
+GROUP BY f.id_funcionario
+
 ORDER BY f.nome ASC
 ";
 
-$stmt = $con->prepare($sql);
+ $stmt = $con->prepare($sql);
 
-if (!$stmt) {
-    die("Erro no prepare tabela: " . $con->error);
-}
-
-$stmt->bind_param("iis", $id_empresa, $id_empresa, $mesAtual);
-$stmt->execute();
-
-$stmt->bind_result(
-    $nome,
-    $saldo_total,
-    $saldo_mes,
-    $data_atualizacao,
-    $status
+$stmt->bind_param(
+    "ii",
+    $id_empresa,
+    $id_empresa
 );
 
-while ($stmt->fetch()) {
-    $registros[] = [
-        'nome' => $nome,
-        'saldo_total' => $saldo_total,
-        'saldo_mes' => $saldo_mes,
-        'data_atualizacao' => $data_atualizacao,
-        'status' => $status
-    ];
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+while ($row = $resultado->fetch_assoc()) {
+
+    $saldo_total = (float)$row['saldo_total'];
+
+    if ($saldo_total > 0) {
+        $status = 'positivo';
+    } elseif ($saldo_total < 0) {
+        $status = 'negativo';
+    } else {
+        $status = 'neutro';
+    }
+
+    $row['status'] = $status;
+
+    $registros[] = $row;
 }
 
 $stmt->close();
