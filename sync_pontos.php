@@ -34,7 +34,9 @@ foreach ($pontosApi as $registro) {
     $data = $registro['data'];
 
     $entrada = $registro['entrada'];
-    $saida = $registro['saida'];
+    $saidaAlmoco = $registro['saida_almoco'] ?? null;
+    $retornoAlmoco = $registro['retorno_almoco'] ?? null;
+     $saida = $registro['saida'];
 
     /*
     |--------------------------------------------------------------------------
@@ -129,23 +131,27 @@ foreach ($pontosApi as $registro) {
         $linha = $existe->fetch_assoc();
 
         $update = $con->prepare("
-            UPDATE pontos
-            SET
-                hora_entrada = ?,
+             UPDATE pontos
+                     SET
+                 hora_entrada = ?,
+                saida_almoco = ?,
+                retorno_almoco = ?,
                 hora_saida = ?,
-                total_horas = ?,
-                status = ?
-            WHERE id_ponto = ?
+                 total_horas = ?,
+                 status = ?
+                WHERE id_ponto = ?
         ");
 
-        $update->bind_param(
-            "ssdsi",
-            $entrada,
-            $saida,
-            $totalHoras,
-            $status,
-            $linha['id_ponto']
-        );
+         $update->bind_param(
+    "ssssdsi",
+    $entrada,
+    $saidaAlmoco,
+    $retornoAlmoco,
+    $saida,
+    $totalHoras,
+    $status,
+    $linha['id_ponto']
+);
 
          $update->execute();
 
@@ -154,29 +160,33 @@ foreach ($pontosApi as $registro) {
 
         $insert = $con->prepare("
             INSERT INTO pontos
-            (
-                id_funcionario,
-                data,
-                hora_entrada,
-                hora_saida,
-                total_horas,
-                status,
-                id_empresa
-            )
-            VALUES
-            (?, ?, ?, ?, ?, ?, ?)
+(
+    id_funcionario,
+    data,
+    hora_entrada,
+    saida_almoco,
+    retorno_almoco,
+    hora_saida,
+    total_horas,
+    status,
+    id_empresa
+)
+             VALUES
+(?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
-        $insert->bind_param(
-            "isssdsi",
-            $idFuncionario,
-            $data,
-            $entrada,
-            $saida,
-            $totalHoras,
-            $status,
-            $idEmpresa
-        );
+     $insert->bind_param(
+    "isssssdsi",
+    $idFuncionario,
+    $data,
+    $entrada,
+    $saidaAlmoco,
+    $retornoAlmoco,
+    $saida,
+    $totalHoras,
+    $status,
+    $idEmpresa
+);
          
         $insert->execute();
 

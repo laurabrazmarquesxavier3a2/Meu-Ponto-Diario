@@ -53,9 +53,11 @@ $funcionario = $stmtFunc->get_result()->fetch_assoc();
  /* PONTO DE HOJE */
 $hoje = date('Y-m-d');
 
-$stmtHoje = $con->prepare("
+ $stmtHoje = $con->prepare("
     SELECT
         hora_entrada,
+        saida_almoco,
+        retorno_almoco,
         hora_saida,
         total_horas,
         status
@@ -63,7 +65,6 @@ $stmtHoje = $con->prepare("
     WHERE id_funcionario = ?
     AND id_empresa = ?
     AND data = ?
-    ORDER BY id_ponto DESC
     LIMIT 1
 ");
 
@@ -108,8 +109,10 @@ if (!$pontoHoje) {
 
         $entradaHoje = $ultimoPonto['hora_entrada'];
         $saidaHoje = $ultimoPonto['hora_saida'];
-        $totalHoje = $ultimoPonto['total_horas'];
+        $totalHoje = $ultimoPonto['total_horas'] ?? '0.00';
         $statusHoje = 'Último registro';
+        $saidaAlmoco = '--:--';
+       $retornoAlmoco = '--:--';
 
     } else {
 
@@ -117,6 +120,8 @@ if (!$pontoHoje) {
         $saidaHoje = '--:--';
         $totalHoje = '0.00';
         $statusHoje = 'Sem registro';
+        $saidaAlmoco = '--:--';
+       $retornoAlmoco = '--:--';
     }
 
 }
@@ -125,6 +130,14 @@ else {
 
     $entradaHoje = !empty($pontoHoje['hora_entrada'])
         ? substr($pontoHoje['hora_entrada'], 0, 5)
+        : '--:--';
+    
+         $saidaAlmoco = !empty($pontoHoje['saida_almoco'])
+    ? substr($pontoHoje['saida_almoco'], 0, 5)
+    : '--:--';
+
+        $retornoAlmoco = !empty($pontoHoje['retorno_almoco'])
+        ? substr($pontoHoje['retorno_almoco'], 0, 5)
         : '--:--';
 
     $saidaHoje = !empty($pontoHoje['hora_saida'])
@@ -256,6 +269,29 @@ function diaSemana($data) {
                     </div>
 
                     <div class="card-box">
+    <div>
+        <span>Saída Almoço</span>
+        <strong><?= formatarHora($saidaAlmoco) ?></strong>
+    </div>
+    <i class="fa-solid fa-utensils"></i>
+</div>
+
+          <div class="card-box">
+    <div>
+        <span>Retorno Almoço</span>
+        <strong><?= formatarHora($retornoAlmoco) ?></strong>
+    </div>
+    <i class="fa-solid fa-arrow-rotate-left"></i>
+</div>
+              <div class="card-box">
+                        <div>
+                            <span>Saída</span>
+                            <strong><?= formatarHora($saidaHoje) ?></strong>
+                        </div>
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </div>
+
+                    <div class="card-box">
                         <div>
                             <span>Status</span>
                             <strong><?= htmlspecialchars(ucfirst($statusHoje)) ?></strong>
@@ -269,14 +305,6 @@ function diaSemana($data) {
                             <strong><?= htmlspecialchars($totalHoje) ?>h</strong>
                         </div>
                         <i class="fa-solid fa-business-time"></i>
-                    </div>
-
-                    <div class="card-box">
-                        <div>
-                            <span>Saída</span>
-                            <strong><?= formatarHora($saidaHoje) ?></strong>
-                        </div>
-                        <i class="fa-solid fa-right-from-bracket"></i>
                     </div>
 
                 </div>
@@ -311,10 +339,14 @@ function diaSemana($data) {
                                     </strong>
 
                                     <span>
-                                        <?= formatarHora($semana['hora_entrada']) ?>
-                                        às
-                                        <?= formatarHora($semana['hora_saida']) ?>
-                                        —
+                                         <?= formatarHora($semana['hora_entrada']) ?>
+                                         | Almoço:
+                                            <?= formatarHora($semana['saida_almoco']) ?>
+                                                                     -
+                                            <?= formatarHora($semana['retorno_almoco']) ?>
+                                             | Saída:
+                                              <?= formatarHora($semana['hora_saida']) ?>
+                                        
                                         <?= htmlspecialchars($semana['total_horas'] ?? '0.00') ?>h
                                     </span>
                                 </div>
@@ -351,6 +383,11 @@ function diaSemana($data) {
                                     <span>
                                         <?= formatarHora($mes['hora_entrada']) ?>
                                         às
+
+                                        <?= formatarHora($mes['saida_almoco']) ?>
+                                        às
+                                        <?= formatarHora($mes['retorno_almoco']) ?>
+
                                         <?= formatarHora($mes['hora_saida']) ?>
                                         —
                                         <?= htmlspecialchars($mes['status']) ?>
