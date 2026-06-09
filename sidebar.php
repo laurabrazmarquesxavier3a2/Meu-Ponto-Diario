@@ -79,11 +79,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
             <span><?= t('funcionarios') ?></span>
         </a>
 
-        <a href="importar-banco-horas.php" class="mpd-link <?= $pagina == 'importar-banco-horas.php' ? 'active' : '' ?>">
-            <i class="bi bi-hourglass-bottom"></i>
-            <span><?= t('importar_banco') ?></span>
-        </a>
-
         <a href="importar-pontos.php" class="mpd-link <?= $pagina == 'importar-pontos.php' ? 'active' : '' ?>">
             <i class="bi bi-clock-history"></i>
             <span><?= t('importar_pontos') ?></span>
