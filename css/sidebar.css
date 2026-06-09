@@ -32,7 +32,9 @@
     box-shadow:16px 0 45px rgba(15,23,42,.18);
     border-right:1px solid rgba(255,255,255,.08);
 
-    transition:.35s ease;
+   transition:
+    width .45s cubic-bezier(.4,0,.2,1),
+    box-shadow .35s ease;
 
     overflow:hidden;
 }
@@ -252,7 +254,9 @@
 
     white-space:nowrap;
 
-    transition:.25s;
+    transition:
+    opacity .25s ease,
+    transform .25s ease;
 }
 
 .mpd-link:hover{
@@ -349,12 +353,18 @@ body.sidebar-collapsed .mpd-section-title,
 body.sidebar-collapsed .mpd-link span{
     opacity:0;
 
+    transform:translateX(-12px);
+
     pointer-events:none;
 
     width:0;
     max-width:0;
 
     overflow:hidden;
+
+    transition:
+        opacity .25s ease,
+        transform .25s ease;
 }
 
 body.sidebar-collapsed .mpd-link{
@@ -373,6 +383,11 @@ body.sidebar-collapsed .mpd-sidebar.hover-open{
     width:var(--sidebar-w);
 }
 
+body.sidebar-collapsed .mpd-sidebar.hover-open{
+    box-shadow:
+        18px 0 50px rgba(15,23,42,.22);
+}
+
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-brand{
     justify-content:flex-start;
 }
@@ -381,6 +396,8 @@ body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-brand-text,
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-section-title,
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-link span{
     opacity:1;
+
+    transform:translateX(0);
 
     pointer-events:auto;
 
@@ -398,7 +415,8 @@ body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-link{
 
 .content,
 .main{
-    transition:.35s ease;
+    transition:
+    margin-left .45s cubic-bezier(.4,0,.2,1);
 }
 
 body.sidebar-collapsed .content,
