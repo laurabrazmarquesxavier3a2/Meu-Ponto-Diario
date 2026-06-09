@@ -24,7 +24,7 @@
 
     color:white;
 
-    padding:18px;
+    padding:12px;
 
     display:flex;
     flex-direction:column;
@@ -68,7 +68,7 @@
 
     gap:12px;
 
-    margin-bottom:22px;
+    margin-bottom:6px;
 }
 
 .mpd-brand{
@@ -81,10 +81,11 @@
 
     transition:.3s;
 }
+
 .mpd-brand-icon{
-    width:52px;
-    height:52px;
-    min-width:52px;
+    width:46px;
+    height:46px;
+    min-width:46px;
 
     border-radius:0;
 
@@ -97,8 +98,9 @@
 
     box-shadow:none;
 }
+
 .mpd-brand-icon img{
-    width:42px;
+    width:38px;
     height:auto;
     filter:drop-shadow(0 8px 18px rgba(37,99,235,.25));
 }
@@ -114,13 +116,13 @@
 }
 
 .mpd-brand-text strong{
-    font-size:18px;
+    font-size:16px;
     font-weight:800;
     letter-spacing:-.5px;
 }
 
 .mpd-brand-text span{
-    font-size:12px;
+    font-size:11px;
     color:#bfdbfe;
     font-weight:700;
     margin-top:5px;
@@ -164,7 +166,7 @@
     position:relative;
     z-index:2;
 
-    margin-bottom:16px;
+    margin-bottom:8px;
 }
 
 .mpd-section-title{
@@ -172,13 +174,13 @@
 
     color:#dbeafe;
 
-    font-size:12px;
+    font-size:11px;
     font-weight:800;
 
     text-transform:uppercase;
     letter-spacing:.9px;
 
-    margin:18px 12px 10px;
+    margin:10px 12px 6px;
 
     transition:.25s;
 }
@@ -193,18 +195,18 @@
 
     gap:13px;
 
-    min-height:48px;
+    min-height:39px;
 
     color:#eaf2ff !important;
     text-decoration:none;
 
-    padding:12px 14px;
-    margin-bottom:8px;
+    padding:8px 12px;
+    margin-bottom:4px;
 
-    border-radius:17px;
+    border-radius:14px;
 
     font-weight:700;
-    font-size:15px;
+    font-size:14px;
 
     transition:.25s ease;
 
@@ -229,15 +231,15 @@
     position:relative;
     z-index:2;
 
-    width:26px;
-    min-width:26px;
-    height:26px;
+    width:24px;
+    min-width:24px;
+    height:24px;
 
     display:flex;
     align-items:center;
     justify-content:center;
 
-    font-size:20px;
+    font-size:18px;
 
     color:#dbeafe;
 
@@ -300,16 +302,22 @@
     box-shadow:0 0 15px #bfdbfe;
 }
 
+/* SAIR BRANCO */
+
 .mpd-link.danger{
-    color:#ffe4e6 !important;
+    color:#eaf2ff !important;
 }
 
 .mpd-link.danger i{
-    color:#ffe4e6;
+    color:#dbeafe;
 }
 
 .mpd-link.danger:hover{
-    background:rgba(239,68,68,.14);
+    color:white !important;
+}
+
+.mpd-link.danger:hover i{
+    color:white;
 }
 
 /* FOOTER */
@@ -320,9 +328,10 @@
 
     margin-top:auto;
 
-    padding-top:16px;
+    padding-top:12px;
+    padding-bottom:12px;
 
-    border-top:1px solid rgba(255,255,255,.12);
+    border-top:1px solid rgba(255,255,255,.10);
 }
 
 /* DESKTOP RECOLHIDO */
@@ -351,7 +360,7 @@ body.sidebar-collapsed .mpd-link span{
 body.sidebar-collapsed .mpd-link{
     justify-content:center;
 
-    padding:12px;
+    padding:8px 12px;
 }
 
 body.sidebar-collapsed .mpd-link.active::after{
@@ -359,12 +368,15 @@ body.sidebar-collapsed .mpd-link.active::after{
 }
 
 /* ABRE NO HOVER */
+
 body.sidebar-collapsed .mpd-sidebar.hover-open{
     width:var(--sidebar-w);
 }
+
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-brand{
     justify-content:flex-start;
 }
+
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-brand-text,
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-section-title,
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-link span{
@@ -379,7 +391,7 @@ body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-link span{
 body.sidebar-collapsed .mpd-sidebar.hover-open .mpd-link{
     justify-content:flex-start;
 
-    padding:12px 14px;
+    padding:8px 12px;
 }
 
 /* CONTENT */
@@ -469,11 +481,13 @@ body.sidebar-collapsed .main{
     body.sidebar-collapsed .mpd-link{
         justify-content:flex-start;
 
-        padding:12px 14px;
+        padding:8px 12px;
     }
 
 }
+
 /* CONTEÚDO RECUA QUANDO A SIDEBAR ABRE */
+
 body.sidebar-collapsed .mpd-sidebar.hover-open ~ .content,
 body.sidebar-collapsed .mpd-sidebar.hover-open ~ .main,
 body.sidebar-collapsed .mpd-sidebar.hover-open ~ .container-fluid,
@@ -482,73 +496,8 @@ body.sidebar-collapsed .mpd-sidebar.hover-open ~ .container{
 }
 
 /* ESTADO NORMAL RECOLHIDO */
+
 body.sidebar-collapsed .content,
 body.sidebar-collapsed .main{
     margin-left:var(--sidebar-collapsed-w) !important;
-}
-
-/* REDUZ ESPAÇOS PARA CABER MAIS LINKS */
-.mpd-link{
-    min-height:44px;
-    padding:10px 14px;
-    margin-bottom:6px;
-}
-
-.mpd-section-title{
-    margin:14px 12px 8px;
-}
-
-.mpd-sidebar-footer{
-    padding-top:12px;
-}
-
-/* SIDEBAR SEM SCROLL, MAIS COMPACTA */
-.mpd-sidebar{
-    overflow:hidden;
-    padding:14px;
-}
-
-.mpd-sidebar-header{
-    margin-bottom:10px;
-}
-
-.mpd-brand-icon{
-    width:46px;
-    height:46px;
-    min-width:46px;
-}
-
-.mpd-brand-icon img{
-    width:38px;
-}
-
-.mpd-brand-text strong{
-    font-size:16px;
-}
-
-.mpd-brand-text span{
-    font-size:11px;
-}
-
-.mpd-section-title{
-    margin:10px 12px 6px;
-    font-size:11px;
-}
-
-.mpd-link{
-    min-height:39px;
-    padding:8px 12px;
-    margin-bottom:4px;
-    border-radius:14px;
-    font-size:14px;
-}
-
-.mpd-link i{
-    font-size:18px;
-    width:24px;
-    min-width:24px;
-}
-
-.mpd-sidebar-footer{
-    padding-top:8px;
 }

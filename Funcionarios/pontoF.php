@@ -23,6 +23,11 @@ if (!$idFuncionario) {
         AND id_empresa = ?
         LIMIT 1
     ");
+
+    if (!$stmtUser) {
+        die("Erro prepare usuário: " . $con->error);
+    }
+
     $stmtUser->bind_param("ii", $idUsuario, $idEmpresa);
     $stmtUser->execute();
     $resUser = $stmtUser->get_result();
@@ -46,14 +51,19 @@ $stmtFunc = $con->prepare("
     AND id_empresa = ?
     LIMIT 1
 ");
+
+if (!$stmtFunc) {
+    die("Erro prepare funcionário: " . $con->error);
+}
+
 $stmtFunc->bind_param("ii", $idFuncionario, $idEmpresa);
 $stmtFunc->execute();
 $funcionario = $stmtFunc->get_result()->fetch_assoc();
 
- /* PONTO DE HOJE */
+/* PONTO DE HOJE */
 $hoje = date('Y-m-d');
 
- $stmtHoje = $con->prepare("
+$stmtHoje = $con->prepare("
     SELECT
         hora_entrada,
         saida_almoco,
@@ -68,6 +78,10 @@ $hoje = date('Y-m-d');
     LIMIT 1
 ");
 
+if (!$stmtHoje) {
+    die("Erro prepare ponto hoje: " . $con->error);
+}
+
 $stmtHoje->bind_param(
     "iis",
     $idFuncionario,
@@ -81,18 +95,28 @@ $resultHoje = $stmtHoje->get_result();
 
 $pontoHoje = $resultHoje->fetch_assoc();
 
-/* Se não existir ponto hoje */
-
+/* SE NÃO EXISTIR PONTO HOJE, MOSTRA O ÚLTIMO REGISTRO */
 if (!$pontoHoje) {
 
     $stmtUltimo = $con->prepare("
-        SELECT *
+        SELECT
+            hora_entrada,
+            saida_almoco,
+            retorno_almoco,
+            hora_saida,
+            total_horas,
+            status,
+            data
         FROM pontos
         WHERE id_funcionario = ?
         AND id_empresa = ?
-        ORDER BY data DESC
+        ORDER BY data DESC, id_ponto DESC
         LIMIT 1
     ");
+
+    if (!$stmtUltimo) {
+        die("Erro prepare último ponto: " . $con->error);
+    }
 
     $stmtUltimo->bind_param(
         "ii",
@@ -102,48 +126,33 @@ if (!$pontoHoje) {
 
     $stmtUltimo->execute();
 
-    $ultimoPonto =
-        $stmtUltimo->get_result()->fetch_assoc();
+    $ultimoPonto = $stmtUltimo->get_result()->fetch_assoc();
 
     if ($ultimoPonto) {
 
-        $entradaHoje = $ultimoPonto['hora_entrada'];
-        $saidaHoje = $ultimoPonto['hora_saida'];
+        $entradaHoje = $ultimoPonto['hora_entrada'] ?? null;
+        $saidaAlmoco = $ultimoPonto['saida_almoco'] ?? null;
+        $retornoAlmoco = $ultimoPonto['retorno_almoco'] ?? null;
+        $saidaHoje = $ultimoPonto['hora_saida'] ?? null;
         $totalHoje = $ultimoPonto['total_horas'] ?? '0.00';
         $statusHoje = 'Último registro';
-        $saidaAlmoco = '--:--';
-       $retornoAlmoco = '--:--';
 
     } else {
 
-        $entradaHoje = '--:--';
-        $saidaHoje = '--:--';
+        $entradaHoje = null;
+        $saidaAlmoco = null;
+        $retornoAlmoco = null;
+        $saidaHoje = null;
         $totalHoje = '0.00';
         $statusHoje = 'Sem registro';
-        $saidaAlmoco = '--:--';
-       $retornoAlmoco = '--:--';
     }
 
-}
+} else {
 
-else {
-
-    $entradaHoje = !empty($pontoHoje['hora_entrada'])
-        ? substr($pontoHoje['hora_entrada'], 0, 5)
-        : '--:--';
-    
-         $saidaAlmoco = !empty($pontoHoje['saida_almoco'])
-    ? substr($pontoHoje['saida_almoco'], 0, 5)
-    : '--:--';
-
-        $retornoAlmoco = !empty($pontoHoje['retorno_almoco'])
-        ? substr($pontoHoje['retorno_almoco'], 0, 5)
-        : '--:--';
-
-    $saidaHoje = !empty($pontoHoje['hora_saida'])
-        ? substr($pontoHoje['hora_saida'], 0, 5)
-        : '--:--';
-
+    $entradaHoje = $pontoHoje['hora_entrada'] ?? null;
+    $saidaAlmoco = $pontoHoje['saida_almoco'] ?? null;
+    $retornoAlmoco = $pontoHoje['retorno_almoco'] ?? null;
+    $saidaHoje = $pontoHoje['hora_saida'] ?? null;
     $totalHoje = $pontoHoje['total_horas'] ?? '0.00';
 
     $statusHoje = ucfirst(
@@ -160,6 +169,11 @@ $stmtSemana = $con->prepare("
     AND YEARWEEK(data, 1) = YEARWEEK(CURDATE(), 1)
     ORDER BY data ASC
 ");
+
+if (!$stmtSemana) {
+    die("Erro prepare semana: " . $con->error);
+}
+
 $stmtSemana->bind_param("ii", $idFuncionario, $idEmpresa);
 $stmtSemana->execute();
 $historicoSemana = $stmtSemana->get_result();
@@ -174,12 +188,17 @@ $stmtMes = $con->prepare("
     AND YEAR(data) = YEAR(CURDATE())
     ORDER BY data DESC
 ");
+
+if (!$stmtMes) {
+    die("Erro prepare mês: " . $con->error);
+}
+
 $stmtMes->bind_param("ii", $idFuncionario, $idEmpresa);
 $stmtMes->execute();
 $historicoMes = $stmtMes->get_result();
 
 function formatarHora($hora) {
-    if (!$hora) {
+    if (empty($hora) || $hora === '--:--') {
         return '--:--';
     }
 
@@ -269,21 +288,22 @@ function diaSemana($data) {
                     </div>
 
                     <div class="card-box">
-    <div>
-        <span>Saída Almoço</span>
-        <strong><?= formatarHora($saidaAlmoco) ?></strong>
-    </div>
-    <i class="fa-solid fa-utensils"></i>
-</div>
+                        <div>
+                            <span>Saída Almoço</span>
+                            <strong><?= formatarHora($saidaAlmoco) ?></strong>
+                        </div>
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
 
-          <div class="card-box">
-    <div>
-        <span>Retorno Almoço</span>
-        <strong><?= formatarHora($retornoAlmoco) ?></strong>
-    </div>
-    <i class="fa-solid fa-arrow-rotate-left"></i>
-</div>
-              <div class="card-box">
+                    <div class="card-box">
+                        <div>
+                            <span>Retorno Almoço</span>
+                            <strong><?= formatarHora($retornoAlmoco) ?></strong>
+                        </div>
+                        <i class="fa-solid fa-arrow-rotate-left"></i>
+                    </div>
+
+                    <div class="card-box">
                         <div>
                             <span>Saída</span>
                             <strong><?= formatarHora($saidaHoje) ?></strong>
@@ -329,9 +349,9 @@ function diaSemana($data) {
                             Histórico da Semana
                         </div>
 
-                        <?php if($historicoSemana->num_rows > 0): ?>
+                        <?php if ($historicoSemana->num_rows > 0): ?>
 
-                            <?php while($semana = $historicoSemana->fetch_assoc()): ?>
+                            <?php while ($semana = $historicoSemana->fetch_assoc()): ?>
 
                                 <div class="calendar-item">
                                     <strong>
@@ -339,14 +359,18 @@ function diaSemana($data) {
                                     </strong>
 
                                     <span>
-                                         <?= formatarHora($semana['hora_entrada']) ?>
-                                         | Almoço:
-                                            <?= formatarHora($semana['saida_almoco']) ?>
-                                                                     -
-                                            <?= formatarHora($semana['retorno_almoco']) ?>
-                                             | Saída:
-                                              <?= formatarHora($semana['hora_saida']) ?>
-                                        
+                                        Entrada:
+                                        <?= formatarHora($semana['hora_entrada']) ?>
+
+                                        | Almoço:
+                                        <?= formatarHora($semana['saida_almoco']) ?>
+                                        -
+                                        <?= formatarHora($semana['retorno_almoco']) ?>
+
+                                        | Saída:
+                                        <?= formatarHora($semana['hora_saida']) ?>
+
+                                        |
                                         <?= htmlspecialchars($semana['total_horas'] ?? '0.00') ?>h
                                     </span>
                                 </div>
@@ -371,9 +395,9 @@ function diaSemana($data) {
                             Histórico do Mês
                         </div>
 
-                        <?php if($historicoMes->num_rows > 0): ?>
+                        <?php if ($historicoMes->num_rows > 0): ?>
 
-                            <?php while($mes = $historicoMes->fetch_assoc()): ?>
+                            <?php while ($mes = $historicoMes->fetch_assoc()): ?>
 
                                 <div class="calendar-item">
                                     <strong>
@@ -381,14 +405,17 @@ function diaSemana($data) {
                                     </strong>
 
                                     <span>
+                                        Entrada:
                                         <?= formatarHora($mes['hora_entrada']) ?>
-                                        às
 
+                                        | Almoço:
                                         <?= formatarHora($mes['saida_almoco']) ?>
-                                        às
+                                        -
                                         <?= formatarHora($mes['retorno_almoco']) ?>
 
+                                        | Saída:
                                         <?= formatarHora($mes['hora_saida']) ?>
+
                                         —
                                         <?= htmlspecialchars($mes['status']) ?>
                                     </span>
@@ -450,7 +477,7 @@ function updateClock(){
 
 }
 
-setInterval(updateClock,1000);
+setInterval(updateClock, 1000);
 updateClock();
 
 const messages = [

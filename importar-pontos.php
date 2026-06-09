@@ -15,8 +15,10 @@ if (!$idEmpresa) {
 $mensagem = '';
 $erros = [];
 $importados = 0;
+$atualizados = 0;
+$ignorados = 0;
 
-function calcularHoras($entrada, $saida) {
+function calcularHoras($entrada, $saida, $saidaAlmoco = null, $retornoAlmoco = null) {
     if (!$entrada || !$saida) {
         return null;
     }
@@ -28,134 +30,287 @@ function calcularHoras($entrada, $saida) {
         return null;
     }
 
-    return round(($fim - $inicio) / 3600, 2);
-}
+    $segundos = $fim - $inicio;
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
+    if (!empty($saidaAlmoco) && !empty($retornoAlmoco)) {
+        $inicioAlmoco = strtotime($saidaAlmoco);
+        $fimAlmoco = strtotime($retornoAlmoco);
 
-    $arquivo = $_FILES['arquivo']['tmp_name'];
-    $handle = fopen($arquivo, "r");
-
-    if (!$handle) {
-        die("Não foi possível abrir o arquivo.");
+        if ($fimAlmoco > $inicioAlmoco) {
+            $segundos -= ($fimAlmoco - $inicioAlmoco);
+        }
     }
 
-    $cabecalho = fgets($handle);
-    $separador = substr_count($cabecalho, ";") > substr_count($cabecalho, ",") ? ";" : ",";
-    rewind($handle);
+    return round($segundos / 3600, 2);
+}
 
-    $linha = 0;
+function importarRegistroPonto(
+    $con,
+    $idEmpresa,
+    $email,
+    $data,
+    $entrada,
+    $saidaAlmoco,
+    $retornoAlmoco,
+    $saida
+) {
+    global $importados, $atualizados, $ignorados, $erros;
 
-    while (($dados = fgetcsv($handle, 3000, $separador)) !== false) {
+    $email = trim($email);
+    $data = trim($data);
 
-        $linha++;
+    $entrada = !empty($entrada) ? trim($entrada) : null;
+    $saidaAlmoco = !empty($saidaAlmoco) ? trim($saidaAlmoco) : null;
+    $retornoAlmoco = !empty($retornoAlmoco) ? trim($retornoAlmoco) : null;
+    $saida = !empty($saida) ? trim($saida) : null;
 
-        if ($linha == 1) {
-            continue;
-        }
+    if ($email === '' || $data === '') {
+        $ignorados++;
+        $erros[] = "Registro ignorado: e-mail ou data vazios.";
+        return;
+    }
 
-        if (count($dados) < 6) {
-            $erros[] = "Linha $linha ignorada: dados incompletos.";
-            continue;
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | PROCURA O USUÁRIO PELO EMAIL
+    |--------------------------------------------------------------------------
+    | No seu banco, o e-mail fica na tabela usuarios.
+    */
 
-        $email = trim($dados[0]);
-        $data = trim($dados[1]);
-        $entrada = trim($dados[2]);
-        $saida = trim($dados[3]);
-        $totalHoras = trim($dados[4]);
-        $status = trim($dados[5]);
-        $justificativa = $dados[6] ?? null;
+    $stmtUser = $con->prepare("
+        SELECT 
+            id_funcionario,
+            id_empresa
+        FROM usuarios
+        WHERE email = ?
+        AND id_empresa = ?
+        LIMIT 1
+    ");
 
-        if ($totalHoras === '') {
-            $totalHoras = calcularHoras($entrada, $saida);
-        } else {
-            $totalHoras = floatval(str_replace(',', '.', $totalHoras));
-        }
+    if (!$stmtUser) {
+        die("Erro prepare usuário: " . $con->error);
+    }
 
-        if ($status == '') {
-            $status = 'completo';
-        }
+    $stmtUser->bind_param("si", $email, $idEmpresa);
+    $stmtUser->execute();
 
-        $statusPermitidos = ['completo', 'atraso', 'em andamento', 'ausente'];
+    $usuario = $stmtUser->get_result()->fetch_assoc();
 
-        if (!in_array($status, $statusPermitidos)) {
-            $status = 'completo';
-        }
+    if (!$usuario || empty($usuario['id_funcionario'])) {
+        $ignorados++;
+        $erros[] = "Funcionário não encontrado pelo e-mail: $email";
+        return;
+    }
 
-        $stmtUser = $con->prepare("
-            SELECT id_funcionario
-            FROM usuarios
-            WHERE email = ?
+    $idFuncionario = (int)$usuario['id_funcionario'];
+    $idEmpresaFuncionario = (int)$usuario['id_empresa'];
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONFERE SE O FUNCIONÁRIO EXISTE
+    |--------------------------------------------------------------------------
+    */
+
+    $stmtFunc = $con->prepare("
+        SELECT id_funcionario
+        FROM funcionarios
+        WHERE id_funcionario = ?
+        AND id_empresa = ?
+        LIMIT 1
+    ");
+
+    if (!$stmtFunc) {
+        die("Erro prepare funcionário: " . $con->error);
+    }
+
+    $stmtFunc->bind_param("ii", $idFuncionario, $idEmpresaFuncionario);
+    $stmtFunc->execute();
+
+    $funcionario = $stmtFunc->get_result()->fetch_assoc();
+
+    if (!$funcionario) {
+        $ignorados++;
+        $erros[] = "O usuário $email existe, mas o funcionário vinculado não foi encontrado.";
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TOTAL DE HORAS E STATUS
+    |--------------------------------------------------------------------------
+    */
+
+    $totalHoras = calcularHoras($entrada, $saida, $saidaAlmoco, $retornoAlmoco);
+
+    if (!empty($entrada) && !empty($saida)) {
+        $status = 'completo';
+    } elseif (!empty($entrada) && empty($saida)) {
+        $status = 'em andamento';
+    } else {
+        $status = 'ausente';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VERIFICA SE JÁ EXISTE PONTO NESSA DATA
+    |--------------------------------------------------------------------------
+    */
+
+    $stmtExiste = $con->prepare("
+        SELECT id_ponto
+        FROM pontos
+        WHERE id_funcionario = ?
+        AND id_empresa = ?
+        AND data = ?
+        LIMIT 1
+    ");
+
+    if (!$stmtExiste) {
+        die("Erro prepare existe: " . $con->error);
+    }
+
+    $stmtExiste->bind_param("iis", $idFuncionario, $idEmpresaFuncionario, $data);
+    $stmtExiste->execute();
+
+    $resultadoExiste = $stmtExiste->get_result();
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE SE JÁ EXISTE
+    |--------------------------------------------------------------------------
+    */
+
+    if ($resultadoExiste->num_rows > 0) {
+
+        $ponto = $resultadoExiste->fetch_assoc();
+        $idPonto = (int)$ponto['id_ponto'];
+
+        $stmtUpdate = $con->prepare("
+            UPDATE pontos
+            SET
+                hora_entrada = ?,
+                hora_saida = ?,
+                total_horas = ?,
+                status = ?,
+                saida_almoco = ?,
+                retorno_almoco = ?
+            WHERE id_ponto = ?
             AND id_empresa = ?
-            LIMIT 1
         ");
 
-        $stmtUser->bind_param("si", $email, $idEmpresa);
-        $stmtUser->execute();
-
-        $usuario = $stmtUser->get_result()->fetch_assoc();
-
-        if (!$usuario || empty($usuario['id_funcionario'])) {
-            $erros[] = "Linha $linha ignorada: funcionário não encontrado ($email).";
-            continue;
+        if (!$stmtUpdate) {
+            die("Erro prepare update: " . $con->error);
         }
 
-        $idFuncionario = $usuario['id_funcionario'];
-
-        $stmtExiste = $con->prepare("
-            SELECT id_ponto
-            FROM pontos
-            WHERE id_funcionario = ?
-            AND id_empresa = ?
-            AND data = ?
-            LIMIT 1
-        ");
-
-        $stmtExiste->bind_param("iis", $idFuncionario, $idEmpresa, $data);
-        $stmtExiste->execute();
-
-        if ($stmtExiste->get_result()->num_rows > 0) {
-            $erros[] = "Linha $linha ignorada: ponto já existe para $email em $data.";
-            continue;
-        }
-
-        $stmt = $con->prepare("
-            INSERT INTO pontos (
-                id_funcionario,
-                data,
-                hora_entrada,
-                hora_saida,
-                total_horas,
-                status,
-                justificativa,
-                id_empresa
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-
-        $stmt->bind_param(
-            "isssdssi",
-            $idFuncionario,
-            $data,
+        $stmtUpdate->bind_param(
+            "ssdsssii",
             $entrada,
             $saida,
             $totalHoras,
             $status,
-            $justificativa,
-            $idEmpresa
+            $saidaAlmoco,
+            $retornoAlmoco,
+            $idPonto,
+            $idEmpresaFuncionario
         );
 
-        if ($stmt->execute()) {
-            $importados++;
+        if ($stmtUpdate->execute()) {
+            $atualizados++;
         } else {
-            $erros[] = "Linha $linha: erro ao importar ponto.";
+            $erros[] = "Erro ao atualizar ponto de $email em $data: " . $stmtUpdate->error;
         }
+
+        return;
     }
 
-    fclose($handle);
+    /*
+    |--------------------------------------------------------------------------
+    | INSERT SE NÃO EXISTE
+    |--------------------------------------------------------------------------
+    */
 
-    $mensagem = "$importados registros de ponto importados.";
+    $stmtInsert = $con->prepare("
+        INSERT INTO pontos (
+            id_funcionario,
+            data,
+            hora_entrada,
+            hora_saida,
+            total_horas,
+            status,
+            id_empresa,
+            saida_almoco,
+            retorno_almoco
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    if (!$stmtInsert) {
+        die("Erro prepare insert: " . $con->error);
+    }
+
+    $stmtInsert->bind_param(
+        "isssdsiss",
+        $idFuncionario,
+        $data,
+        $entrada,
+        $saida,
+        $totalHoras,
+        $status,
+        $idEmpresaFuncionario,
+        $saidaAlmoco,
+        $retornoAlmoco
+    );
+
+    if ($stmtInsert->execute()) {
+        $importados++;
+    } else {
+        $erros[] = "Erro ao importar ponto de $email em $data: " . $stmtInsert->error;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| IMPORTAÇÃO PELA API
+|--------------------------------------------------------------------------
+*/
+
+if (isset($_GET['api']) && $_GET['api'] == '1') {
+
+    $apiUrl = "http://localhost/Conexao-Api-Ponto/api/pontos.php";
+
+    $json = @file_get_contents($apiUrl);
+
+    if ($json === false) {
+
+        $erros[] = "Erro ao acessar a API. Verifique se o projeto Conexao-Api-Ponto está funcionando.";
+
+    } else {
+
+        $pontosApi = json_decode($json, true);
+
+        if (!is_array($pontosApi)) {
+
+            $erros[] = "A API não retornou dados válidos.";
+
+        } else {
+
+            foreach ($pontosApi as $registro) {
+
+                importarRegistroPonto(
+                    $con,
+                    $idEmpresa,
+                    $registro['email'] ?? '',
+                    $registro['data'] ?? '',
+                    $registro['entrada'] ?? null,
+                    $registro['saida_almoco'] ?? null,
+                    $registro['retorno_almoco'] ?? null,
+                    $registro['saida'] ?? null
+                );
+            }
+
+            $mensagem = "Sincronização concluída. Importados: $importados | Atualizados: $atualizados | Ignorados: $ignorados";
+        }
+    }
 }
 ?>
 
@@ -168,6 +323,140 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
 <link rel="stylesheet" href="css/style.css">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+:root {
+    --page-bg: #f4f7fb;
+    --card-bg: #ffffff;
+    --card-soft: #eff6ff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #dbeafe;
+    --code-bg: #f8fafc;
+    --code-text: #1d4ed8;
+    --shadow: 0 10px 35px rgba(15, 23, 42, .08);
+}
+
+body.dark,
+body.dark-mode,
+.dark-mode body {
+    --page-bg: #0f172a;
+    --card-bg: #111827;
+    --card-soft: #162033;
+    --text-main: #f8fafc;
+    --text-muted: #cbd5e1;
+    --border: #334155;
+    --code-bg: #1e293b;
+    --code-text: #93c5fd;
+    --shadow: 0 10px 35px rgba(0, 0, 0, .35);
+}
+
+body {
+    background: var(--page-bg);
+    color: var(--text-main);
+}
+
+.content {
+    color: var(--text-main);
+}
+
+.page-title {
+    color: var(--text-main);
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+}
+
+.api-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: var(--shadow);
+    color: var(--text-main);
+}
+
+.api-box h4,
+.api-box strong {
+    color: var(--text-main);
+}
+
+.api-box p,
+.api-box small,
+.api-box .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.api-icon {
+    width: 54px;
+    height: 54px;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    color: var(--text-main);
+}
+
+.info-box {
+    background: var(--card-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    color: var(--text-muted);
+}
+
+code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 8px 10px;
+    border-radius: 10px;
+    display: block;
+    margin-top: 8px;
+    word-break: break-all;
+}
+
+.alert-success,
+.alert-warning {
+    border-radius: 14px;
+}
+
+body.dark .alert-success,
+body.dark-mode .alert-success,
+.dark-mode body .alert-success {
+    background: rgba(22, 163, 74, .18);
+    color: #bbf7d0;
+    border: 1px solid rgba(34, 197, 94, .35);
+}
+
+body.dark .alert-warning,
+body.dark-mode .alert-warning,
+.dark-mode body .alert-warning {
+    background: rgba(245, 158, 11, .16);
+    color: #fde68a;
+    border: 1px solid rgba(245, 158, 11, .35);
+}
+
+.btn-outline-primary {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.btn-outline-primary:hover {
+    background: #2563eb;
+    color: #fff;
+}
+</style>
 </head>
 
 <body>
@@ -177,43 +466,98 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['arquivo'])) {
 <div class="content">
 <div class="container-fluid">
 
-<h1 class="fw-bold">Importar Registros de Ponto</h1>
-<p class="text-muted">Importe o histórico real de ponto dos colaboradores.</p>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h1 class="fw-bold mb-1 page-title">Importar Registros de Ponto</h1>
+            <p class="mb-0 page-subtitle">
+                Sincronize automaticamente os registros da API externa.
+            </p>
+        </div>
 
-<?php if($mensagem): ?>
-<div class="alert alert-success"><?= $mensagem ?></div>
-<?php endif; ?>
+        <a href="ponto.php" class="btn btn-outline-primary">
+            <i class="bi bi-clock-history"></i>
+            Ver registros
+        </a>
+    </div>
 
-<?php if($erros): ?>
-<div class="alert alert-warning">
-<ul class="mb-0">
-<?php foreach($erros as $e): ?>
-<li><?= htmlspecialchars($e) ?></li>
-<?php endforeach; ?>
-</ul>
-</div>
-<?php endif; ?>
+    <?php if ($mensagem): ?>
+        <div class="alert alert-success">
+            <?= htmlspecialchars($mensagem) ?>
+        </div>
+    <?php endif; ?>
 
-<div class="card p-4 border-0 shadow-sm">
-<form method="POST" enctype="multipart/form-data">
+    <?php if ($erros): ?>
+        <div class="alert alert-warning">
+            <strong>Avisos:</strong>
+            <ul class="mb-0 mt-2">
+                <?php foreach ($erros as $e): ?>
+                    <li><?= htmlspecialchars($e) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
 
-<label class="form-label fw-bold">Arquivo CSV</label>
-<input type="file" name="arquivo" class="form-control mb-3" accept=".csv" required>
+    <div class="row g-4">
 
-<button class="btn btn-primary">
-<i class="bi bi-upload me-2"></i>
-Importar
-</button>
+        <div class="col-lg-7">
+            <div class="api-box h-100">
 
-</form>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="api-icon">
+                        <i class="bi bi-cloud-arrow-down fs-3"></i>
+                    </div>
 
-<hr>
+                    <div>
+                        <h4 class="fw-bold mb-0">Importar pela API</h4>
+                        <small>Busca os pontos do sistema externo</small>
+                    </div>
+                </div>
 
-<pre class="bg-light p-3 rounded">email,data,hora_entrada,hora_saida,total_horas,status,justificativa
-bruno@empresa.com,2026-06-01,08:00:00,18:00:00,9.00,completo,
-bruno@empresa.com,2026-06-02,08:10:00,17:00:00,7.83,completo,Atraso justificado</pre>
+                <p>
+                    Esse botão sincroniza os registros do projeto
+                    <strong>Conexao-Api-Ponto</strong> com o banco principal
+                    <strong>db_mpd</strong>.
+                </p>
 
-</div>
+                <a href="importar-pontos.php?api=1" class="btn btn-primary w-100 py-2">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Sincronizar pontos da API
+                </a>
+
+                <div class="mt-3">
+                    <small>API usada:</small>
+                    <code>http://localhost/Conexao-Api-Ponto/api/pontos.php</code>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="status-card h-100">
+
+                <h4 class="fw-bold mb-3">
+                    <i class="bi bi-info-circle"></i>
+                    Como funciona
+                </h4>
+
+                <div class="info-box mb-3">
+                    O sistema externo registra os pontos no banco
+                    <strong>db_ponto</strong>.
+                </div>
+
+                <div class="info-box mb-3">
+                    A API retorna os registros em JSON.
+                </div>
+
+                <div class="info-box">
+                    Este importador salva ou atualiza os registros na tabela
+                    <strong>pontos</strong> do banco <strong>db_mpd</strong>.
+                </div>
+
+            </div>
+        </div>
+
+    </div>
 
 </div>
 </div>
