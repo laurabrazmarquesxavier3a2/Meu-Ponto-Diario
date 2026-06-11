@@ -6,6 +6,7 @@ session_start();
 
 require_once '../config/database.php';
 require_once '../lang.php';
+require_once '../notific.php';
 
 $id_empresa = $_SESSION['id_empresa'] ?? 0;
 $id_usuario = $_SESSION['id_usuario'] ?? 0;
@@ -34,6 +35,10 @@ if ($tipo_reporte === 'Anônimo') {
 
 if ($nome === '') {
     $nome = 'Anônimo';
+}
+
+if ($categoria === '' || $andar === '' || $descricao === '') {
+    die("Preencha categoria, andar e descrição.");
 }
 
 $evidencia = null;
@@ -106,6 +111,39 @@ $stmt->bind_param(
 
 if (!$stmt->execute()) {
     die("Erro ao salvar ocorrência: " . $stmt->error);
+}
+
+/* NOTIFICAÇÃO PARA RH */
+criarNotificacaoParaRHForcada(
+    $con,
+    $id_empresa,
+    'Nova ocorrência registrada',
+    'Uma nova ocorrência de segurança foi registrada na categoria: ' . $categoria . '.',
+    'emergencias.php',
+    'emergencia'
+);
+
+/* ATIVIDADE RECENTE */
+$stmtAtv = $con->prepare("
+    INSERT INTO atividades (
+        id_usuario,
+        descricao,
+        tipo
+    )
+    VALUES (?, ?, 'danger')
+");
+
+if ($stmtAtv) {
+
+    $descricaoAtividade = "Registrou uma ocorrência de segurança";
+
+    $stmtAtv->bind_param(
+        "is",
+        $id_usuario,
+        $descricaoAtividade
+    );
+
+    $stmtAtv->execute();
 }
 
 header("Location: seguranca.php?sucesso=1");

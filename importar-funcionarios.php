@@ -6,6 +6,7 @@ require_once 'auth.php';
 require_once 'config/database.php';
 require_once 'registrar-atividade.php';
 require_once 'lang.php';
+require_once 'notific.php';
 
 $mensagem = '';
 $erros = [];

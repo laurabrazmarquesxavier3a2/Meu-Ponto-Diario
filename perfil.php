@@ -2,6 +2,7 @@
 require_once 'auth.php';
 require_once 'config/database.php';
 require_once 'lang.php';
+require_once 'notific.php';
 
 $id_usuario = $_SESSION['id_usuario'] ?? null;
 

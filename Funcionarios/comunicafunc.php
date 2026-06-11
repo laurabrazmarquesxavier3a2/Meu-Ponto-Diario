@@ -69,6 +69,7 @@ rel="stylesheet">
 rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+<link rel="stylesheet" href="../css/sidebarfunc.css">
 <link
 rel="stylesheet"
 href="../css/global.css">
@@ -267,6 +268,7 @@ buscar.addEventListener('keyup', function(){
 
 });
 </script>
-
+<script src="../js/theme.js"></script>
+<script src="../js/translate.js"></script>
 </body>
 </html>

@@ -23,6 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
 
+    $telefone = trim($_POST['telefone'] ?? '');
+    $cidade = trim($_POST['cidade'] ?? '');
+    $status = trim($_POST['status'] ?? 'ativo');
+
     $cargo = trim($_POST['cargo'] ?? '');
     $departamento = trim($_POST['departamento'] ?? '');
     $horario = trim($_POST['horario'] ?? '08:00');
@@ -35,6 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $erro = "Preencha todos os campos obrigatórios.";
 
     } else {
+
+        $statusPermitidos = ['ativo', 'inativo', 'ferias', 'licenca', 'afastado'];
+
+        if (!in_array($status, $statusPermitidos)) {
+            $status = 'ativo';
+        }
 
         $verifica = $con->prepare("
             SELECT id_usuario
@@ -57,103 +67,129 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         } else {
 
-            $stmtFunc = $con->prepare("
-                INSERT INTO funcionarios (
-                    nome,
-                    cargo,
-                    departamento,
-                    horario_padrao,
-                    escala,
-                    supervisor,
-                    id_empresa
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
+            mysqli_begin_transaction($con);
 
-            if (!$stmtFunc) {
-                die("ERRO SQL FUNCIONÁRIO: " . $con->error);
-            }
+            try {
 
-            $stmtFunc->bind_param(
-                "ssssssi",
-                $nome,
-                $cargo,
-                $departamento,
-                $horario,
-                $escala,
-                $supervisor,
-                $idEmpresa
-            );
+                $stmtFunc = $con->prepare("
+                    INSERT INTO funcionarios (
+                        nome,
+                        cargo,
+                        departamento,
+                        horario_padrao,
+                        escala,
+                        supervisor,
+                        id_empresa
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ");
 
-            if (!$stmtFunc->execute()) {
-                die("ERRO EXEC FUNCIONÁRIO: " . $stmtFunc->error);
-            }
-
-            $idFuncionario = $con->insert_id;
-
-            $fotoBanco = null;
-
-            if (!empty($_FILES['foto']['name'])) {
-
-                if (!is_dir("uploads/perfis")) {
-                    mkdir("uploads/perfis", 0777, true);
+                if (!$stmtFunc) {
+                    throw new Exception("ERRO SQL FUNCIONÁRIO: " . $con->error);
                 }
 
-                $extensao = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-                $nomeFoto = uniqid("perfil_") . "." . $extensao;
-                $destino = "uploads/perfis/" . $nomeFoto;
+                $stmtFunc->bind_param(
+                    "ssssssi",
+                    $nome,
+                    $cargo,
+                    $departamento,
+                    $horario,
+                    $escala,
+                    $supervisor,
+                    $idEmpresa
+                );
 
-                if (move_uploaded_file($_FILES['foto']['tmp_name'], $destino)) {
-                    $fotoBanco = $destino;
+                if (!$stmtFunc->execute()) {
+                    throw new Exception("ERRO EXEC FUNCIONÁRIO: " . $stmtFunc->error);
                 }
+
+                $idFuncionario = $con->insert_id;
+
+                $fotoBanco = null;
+
+                if (!empty($_FILES['foto']['name'])) {
+
+                    if (!is_dir("uploads/perfis")) {
+                        mkdir("uploads/perfis", 0777, true);
+                    }
+
+                    $extensao = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+                    $extensoesPermitidas = ['jpg', 'jpeg', 'png'];
+
+                    if (in_array($extensao, $extensoesPermitidas)) {
+
+                        $nomeFoto = uniqid("perfil_") . "." . $extensao;
+                        $destino = "uploads/perfis/" . $nomeFoto;
+
+                        if (move_uploaded_file($_FILES['foto']['tmp_name'], $destino)) {
+                            $fotoBanco = $destino;
+                        }
+
+                    } else {
+                        throw new Exception("Formato de foto inválido. Use JPG, JPEG ou PNG.");
+                    }
+                }
+
+                $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+
+                $stmtUser = $con->prepare("
+                    INSERT INTO usuarios (
+                        id_funcionario,
+                        nome,
+                        email,
+                        senha,
+                        tipo,
+                        status,
+                        foto,
+                        telefone,
+                        cidade,
+                        cargo,
+                        departamento,
+                        id_empresa
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                ");
+
+                if (!$stmtUser) {
+                    throw new Exception("ERRO SQL USUÁRIO: " . $con->error);
+                }
+
+                $stmtUser->bind_param(
+                    "issssssssssi",
+                    $idFuncionario,
+                    $nome,
+                    $email,
+                    $senhaHash,
+                    $tipo,
+                    $status,
+                    $fotoBanco,
+                    $telefone,
+                    $cidade,
+                    $cargo,
+                    $departamento,
+                    $idEmpresa
+                );
+
+                if (!$stmtUser->execute()) {
+                    throw new Exception("ERRO EXEC USUÁRIO: " . $stmtUser->error);
+                }
+
+                mysqli_commit($con);
+
+                $mensagem = "Usuário cadastrado com sucesso.";
+
+            } catch (Exception $e) {
+
+                mysqli_rollback($con);
+                $erro = $e->getMessage();
             }
-
-            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-
-            $stmtUser = $con->prepare("
-                INSERT INTO usuarios (
-                    id_funcionario,
-                    nome,
-                    email,
-                    senha,
-                    tipo,
-                    status,
-                    foto,
-                    cargo,
-                    departamento,
-                    id_empresa
-                )
-                VALUES (
-                    ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?
-                )
-            ");
-
-            if (!$stmtUser) {
-                die("ERRO SQL USUÁRIO: " . $con->error);
-            }
-
-            $stmtUser->bind_param(
-                "isssssssi",
-                $idFuncionario,
-                $nome,
-                $email,
-                $senhaHash,
-                $tipo,
-                $fotoBanco,
-                $cargo,
-                $departamento,
-                $idEmpresa
-            );
-
-            if (!$stmtUser->execute()) {
-                die("ERRO EXEC USUÁRIO: " . $stmtUser->error);
-            }
-
-            $mensagem = "Usuário cadastrado com sucesso.";
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -164,10 +200,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <title>Cadastrar Usuário</title>
 
-<link rel="stylesheet" href="css/style.css">
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+.form-card{
+    border-radius:18px;
+}
+
+.icon-circle{
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.form-section-title{
+    font-size:14px;
+    font-weight:700;
+    color:#0d6efd;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    border-bottom:1px solid #dee2e6;
+    padding-bottom:8px;
+    margin-bottom:16px;
+}
+
+.preview-wrapper{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    overflow:hidden;
+    border:1px solid #dee2e6;
+    background:#f8f9fa;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.preview-wrapper img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:none;
+}
+</style>
 
 </head>
 
@@ -177,284 +257,326 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <div class="content">
 
-    <?php if($mensagem): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Sucesso!</strong> <?= $mensagem ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if($erro): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Erro!</strong> <?= $erro ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <h1 class="fw-bold">
-        Cadastrar Usuário
-    </h1>
-
-    <h5 class="text-muted mb-4">
-        Cadastre colaboradores e membros do RH
-    </h5>
-
     <div class="container-fluid">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
+
+            <div>
+                <h1 class="fw-bold mb-1">
+                    Cadastrar Usuário
+                </h1>
+
+                <h5 class="text-muted">
+                    Cadastre colaboradores e membros do RH vinculados à empresa.
+                </h5>
+            </div>
+
+            <div class="mt-3 mt-lg-0">
+                <span class="badge bg-primary fs-6 px-3 py-2">
+                    <i class="bi bi-building me-1"></i>
+                    Empresa #<?= $idEmpresa ?>
+                </span>
+            </div>
+
+        </div>
+
+        <?php if($mensagem): ?>
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <?= htmlspecialchars($mensagem) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if($erro): ?>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?= htmlspecialchars($erro) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data">
 
-            <div class="card card-dashboard p-4">
+            <div class="card border-0 shadow-sm form-card">
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-
-                    <h4 class="fw-bold mb-0">
-                        Novo Cadastro
-                    </h4>
-
-                    <a href="funcionarios.php" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-2"></i>
-                        Voltar
-                    </a>
-
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-plus-fill me-2"></i>
+                        Novo cadastro
+                    </h5>
                 </div>
 
-                <div class="row g-4">
+                <div class="card-body p-4">
 
-                    <div class="col-md-4">
-
-                        <label class="form-label fw-semibold">
-                            Tipo de Usuário
-                        </label>
-
-                        <select 
-                            class="form-select"
-                            id="tipoUsuario"
-                            name="tipo"
-                            required
-                        >
-
-                            <option value="funcionario">
-                                Colaborador
-                            </option>
-
-                            <option value="rh">
-                                RH
-                            </option>
-
-                        </select>
-
+                    <div class="form-section-title">
+                        Dados pessoais e login
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="row g-3 mb-4">
 
-                        <label class="form-label fw-semibold">
-                            Nome Completo
-                        </label>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                Nome completo
+                            </label>
 
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="nome"
-                            required
-                        >
+                            <input
+                                type="text"
+                                name="nome"
+                                class="form-control"
+                                required
+                            >
+                        </div>
 
-                    </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                E-mail de login
+                            </label>
 
-                    <div class="col-md-6">
-
-                        <label class="form-label fw-semibold">
-                            E-mail
-                        </label>
-
-                        <input
-                            type="email"
-                            class="form-control"
-                            name="email"
-                            required
-                        >
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <label class="form-label fw-semibold">
-                            Senha
-                        </label>
-
-                        <input
-                            type="password"
-                            class="form-control"
-                            name="senha"
-                            required
-                        >
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label class="form-label fw-semibold">
-                            Cargo
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="cargo"
-                            required
-                        >
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label class="form-label fw-semibold">
-                            Setor
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="departamento"
-                            required
-                        >
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label class="form-label fw-semibold">
-                            Horário
-                        </label>
-
-                        <input
-                            type="time"
-                            class="form-control"
-                            name="horario"
-                            value="08:00"
-                            required
-                        >
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card card-dashboard p-4 mt-4" id="colaboradorCampos">
-
-                <h4 class="fw-bold mb-4">
-                    <i class="bi bi-person-badge me-2"></i>
-                    Informações do Colaborador
-                </h4>
-
-                <div class="row g-4">
-
-                    <div class="col-md-6">
-
-                        <label class="form-label fw-semibold">
-                            Escala
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="escala"
-                            placeholder="5x2, 6x1"
-                        >
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <label class="form-label fw-semibold">
-                            Supervisor
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="supervisor"
-                        >
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card card-dashboard p-4 mt-4 d-none" id="rhCampos">
-
-                <h4 class="fw-bold mb-4">
-                    <i class="bi bi-shield-check me-2"></i>
-                    Informações do RH
-                </h4>
-
-                <div class="alert alert-info mb-0">
-                    Usuários RH terão acesso às telas administrativas da empresa.
-                </div>
-
-            </div>
-
-            <div class="card card-dashboard p-4 mt-4">
-
-                <h4 class="fw-bold mb-4">
-                    <i class="bi bi-image me-2"></i>
-                    Foto de Perfil
-                </h4>
-
-                <div class="row align-items-center">
-
-                    <div class="col-md-2 text-center">
-
-                        <div
-                            class="rounded-circle bg-light border mx-auto d-flex align-items-center justify-content-center overflow-hidden"
-                            style="width:120px;height:120px;"
-                        >
-
-                            <img
-                                id="previewFoto"
-                                src=""
-                                style="width:100%;height:100%;object-fit:cover;display:none;"
+                            <input
+                                type="email"
+                                name="email"
+                                class="form-control"
+                                required
                             >
 
-                            <i id="iconeFoto" class="bi bi-person fs-1"></i>
+                            <small class="text-muted">
+                                Esse e-mail será usado para entrar no sistema.
+                            </small>
+                        </div>
 
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                Senha
+                            </label>
+
+                            <input
+                                type="password"
+                                name="senha"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                Telefone
+                            </label>
+
+                            <input
+                                type="text"
+                                name="telefone"
+                                class="form-control"
+                                placeholder="(11) 99999-9999"
+                            >
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                Cidade
+                            </label>
+
+                            <input
+                                type="text"
+                                name="cidade"
+                                class="form-control"
+                                placeholder="São Paulo"
+                            >
                         </div>
 
                     </div>
 
-                    <div class="col-md-10">
+                    <div class="form-section-title">
+                        Dados profissionais
+                    </div>
 
-                        <input
-                            type="file"
-                            class="form-control"
-                            name="foto"
-                            id="foto"
-                            accept=".jpg,.jpeg,.png"
-                        >
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                Cargo
+                            </label>
+
+                            <input
+                                type="text"
+                                name="cargo"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                Departamento
+                            </label>
+
+                            <input
+                                type="text"
+                                name="departamento"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                Supervisor
+                            </label>
+
+                            <input
+                                type="text"
+                                name="supervisor"
+                                class="form-control"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="form-section-title">
+                        Jornada e acesso
+                    </div>
+
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">
+                                Horário padrão
+                            </label>
+
+                            <input
+                                type="time"
+                                name="horario"
+                                class="form-control"
+                                value="08:00"
+                            >
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">
+                                Escala
+                            </label>
+
+                            <input
+                                type="text"
+                                name="escala"
+                                class="form-control"
+                                placeholder="5x2, 6x1"
+                            >
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">
+                                Tipo de acesso
+                            </label>
+
+                            <select
+                                name="tipo"
+                                id="tipoUsuario"
+                                class="form-select"
+                                required
+                            >
+                                <option value="funcionario">
+                                    Funcionário
+                                </option>
+
+                                <option value="rh">
+                                    RH
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">
+                                Status
+                            </label>
+
+                            <select
+                                name="status"
+                                class="form-select"
+                                required
+                            >
+                                <option value="ativo">
+                                    Ativo
+                                </option>
+
+                                <option value="inativo">
+                                    Inativo
+                                </option>
+
+                                <option value="ferias">
+                                    Férias
+                                </option>
+
+                                <option value="licenca">
+                                    Licença
+                                </option>
+
+                                <option value="afastado">
+                                    Afastado
+                                </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div id="rhCampos" class="alert alert-info d-none mb-4">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Usuários RH terão acesso às telas administrativas da empresa.
+                    </div>
+
+                    <div class="form-section-title">
+                        Foto de perfil
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+
+                        <div class="col-md-2 text-center">
+                            <div class="preview-wrapper mx-auto">
+                                <img id="previewFoto" src="">
+
+                                <i id="iconeFoto" class="bi bi-person fs-1 text-muted"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-md-10">
+                            <label class="form-label fw-bold">
+                                Selecionar imagem
+                            </label>
+
+                            <input
+                                type="file"
+                                class="form-control"
+                                name="foto"
+                                id="foto"
+                                accept=".jpg,.jpeg,.png"
+                            >
+
+                            <small class="text-muted">
+                                Formatos aceitos: JPG, JPEG ou PNG.
+                            </small>
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+                <div class="card-footer bg-white p-4">
 
-            <div class="card card-dashboard p-4 mt-4">
+                    <div class="d-flex justify-content-end gap-3">
 
-                <div class="d-flex justify-content-end gap-3">
+                        <a href="funcionarios.php" class="btn btn-secondary btn-lg">
+                            Cancelar
+                        </a>
 
-                    <a href="funcionarios.php"
-                       class="btn btn-outline-secondary btn-lg">
-                        Cancelar
-                    </a>
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-lg px-5"
+                        >
+                            <i class="bi bi-check-lg me-1"></i>
+                            Salvar usuário
+                        </button>
 
-                    <button
-                        type="submit"
-                        class="btn btn-primary btn-lg px-5"
-                    >
-                        <i class="bi bi-floppy me-2"></i>
-                        Salvar Usuário
-                    </button>
+                    </div>
 
                 </div>
 
@@ -469,23 +591,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-
 const tipoUsuario = document.getElementById('tipoUsuario');
-const colaboradorCampos = document.getElementById('colaboradorCampos');
 const rhCampos = document.getElementById('rhCampos');
 
 tipoUsuario.addEventListener('change', function(){
 
     if(this.value === 'rh'){
-
         rhCampos.classList.remove('d-none');
-        colaboradorCampos.classList.add('d-none');
-
     } else {
-
-        colaboradorCampos.classList.remove('d-none');
         rhCampos.classList.add('d-none');
-
     }
 
 });
@@ -504,12 +618,19 @@ foto.addEventListener('change', function(){
         previewFoto.style.display = 'block';
         iconeFoto.style.display = 'none';
 
+    } else {
+
+        previewFoto.src = '';
+        previewFoto.style.display = 'none';
+        iconeFoto.style.display = 'block';
+
     }
 
 });
-
 </script>
+
 <script src="js/theme.js"></script>
 <script src="js/translate.js"></script>
+
 </body>
 </html>

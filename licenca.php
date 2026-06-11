@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 require_once 'auth.php';
 require_once 'config/database.php';
 require_once 'lang.php';
+require_once 'notific.php';
 
 $idEmpresa = $_SESSION['id_empresa'] ?? null;
 

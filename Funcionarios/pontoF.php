@@ -509,6 +509,7 @@ changeMessage();
 setInterval(changeMessage, 4000);
 
 </script>
-
+<script src="../js/theme.js"></script>
+<script src="../js/translate.js"></script>
 </body>
 </html>

@@ -7,8 +7,8 @@ ini_set('display_errors', 1);
 
 require_once '../config/database.php';
 require_once '../lang.php';
+require_once '../notific.php';
 
-/* VERIFICA LOGIN */
 if (
     !isset($_SESSION['id_usuario']) ||
     !isset($_SESSION['id_empresa'])
@@ -16,7 +16,6 @@ if (
     die("Usuário não autenticado.");
 }
 
-/* VERIFICA ENVIO */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die("Método inválido.");
 }
@@ -24,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $id_usuario = $_SESSION['id_usuario'];
 $id_empresa = $_SESSION['id_empresa'];
 
-/* BUSCA FUNCIONÁRIO REAL DA EMPRESA */
 $sqlFuncionario = "
 SELECT 
     id_funcionario,
@@ -57,8 +55,8 @@ if (!$usuario || empty($usuario['id_funcionario'])) {
 }
 
 $id_funcionario = $usuario['id_funcionario'];
+$nomeFuncionario = $usuario['nome'] ?? 'Colaborador';
 
-/* DADOS */
 $motivo = $_POST['motivo'] ?? 'Licença Médica';
 $data_inicio = $_POST['data_inicio'] ?? '';
 $data_fim = $_POST['data_fim'] ?? '';
@@ -68,7 +66,6 @@ if ($data_inicio == '' || $data_fim == '') {
     die("Informe a data de início e fim.");
 }
 
-/* CALCULA DIAS */
 $inicio = new DateTime($data_inicio);
 $fim = new DateTime($data_fim);
 
@@ -78,7 +75,6 @@ if ($fim < $inicio) {
 
 $dias = $inicio->diff($fim)->days + 1;
 
-/* ARQUIVO */
 if (
     !isset($_FILES['arquivo']) ||
     $_FILES['arquivo']['error'] != 0
@@ -90,12 +86,10 @@ $arquivo = $_FILES['arquivo'];
 $nomeOriginal = $arquivo['name'];
 $tmp = $arquivo['tmp_name'];
 
-/* EXTENSÃO */
 $extensao = strtolower(
     pathinfo($nomeOriginal, PATHINFO_EXTENSION)
 );
 
-/* FORMATOS */
 $permitidos = [
     'pdf',
     'png',
@@ -107,7 +101,6 @@ if (!in_array($extensao, $permitidos)) {
     die("Formato inválido.");
 }
 
-/* PASTAS */
 $pastaFisica = "../uploads/licencas/";
 $pastaBanco = "uploads/licencas/";
 
@@ -115,19 +108,15 @@ if (!is_dir($pastaFisica)) {
     mkdir($pastaFisica, 0777, true);
 }
 
-/* NOVO NOME */
 $novoNome = uniqid("licenca_") . "." . $extensao;
 
-/* CAMINHOS */
 $caminhoFisico = $pastaFisica . $novoNome;
 $caminhoBanco = $pastaBanco . $novoNome;
 
-/* MOVE ARQUIVO */
 if (!move_uploaded_file($tmp, $caminhoFisico)) {
     die("Erro ao mover arquivo.");
 }
 
-/* INSERT COM ID_EMPRESA */
 $sql = "
 INSERT INTO licencas_medicas
 (
@@ -167,7 +156,15 @@ if (!$stmt->execute()) {
     die("Erro ao salvar no banco: " . $stmt->error);
 }
 
-/* ATIVIDADE RECENTE */
+criarNotificacaoParaRHForcada(
+    $con,
+    $id_empresa,
+    'Novo atestado enviado',
+    $nomeFuncionario . ' enviou um novo atestado médico.',
+    'licenca.php',
+    'solicitacao'
+);
+
 $stmtAtv = $con->prepare("
     INSERT INTO atividades (
         id_usuario,
@@ -190,7 +187,6 @@ if ($stmtAtv) {
     $stmtAtv->execute();
 }
 
-/* REDIRECIONA */
 header("Location: pedidosf.php?sucesso=1");
 exit;
 

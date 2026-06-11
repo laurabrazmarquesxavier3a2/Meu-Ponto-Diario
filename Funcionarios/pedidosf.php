@@ -5,13 +5,44 @@ ini_set('display_errors', 1);
 require_once '../auth.php';
 require_once '../config/database.php';
 require_once '../lang.php';
+require_once '../notific.php';
 
 $idUsuario = $_SESSION['id_usuario'] ?? null;
 $idFuncionario = $_SESSION['id_funcionario'] ?? null;
 $idEmpresa = $_SESSION['id_empresa'] ?? null;
 
-if (!$idUsuario || !$idFuncionario || !$idEmpresa) {
+if (!$idUsuario || !$idEmpresa) {
     die("Sessão inválida. Faça login novamente.");
+}
+
+/* CASO O ID_FUNCIONARIO NÃO ESTEJA NA SESSÃO, BUSCA PELO USUÁRIO */
+if (!$idFuncionario) {
+
+    $stmtBuscaFunc = $con->prepare("
+        SELECT id_funcionario
+        FROM usuarios
+        WHERE id_usuario = ?
+        AND id_empresa = ?
+        LIMIT 1
+    ");
+
+    if (!$stmtBuscaFunc) {
+        die("Erro SQL usuário: " . $con->error);
+    }
+
+    $stmtBuscaFunc->bind_param("ii", $idUsuario, $idEmpresa);
+    $stmtBuscaFunc->execute();
+
+    $dadosUsuario = $stmtBuscaFunc->get_result()->fetch_assoc();
+
+    if (!empty($dadosUsuario['id_funcionario'])) {
+        $idFuncionario = $dadosUsuario['id_funcionario'];
+        $_SESSION['id_funcionario'] = $idFuncionario;
+    }
+}
+
+if (!$idFuncionario) {
+    die("Funcionário não encontrado.");
 }
 
 $mensagem = '';
@@ -32,7 +63,12 @@ $meses = [
     "Dezembro" => 12
 ];
 
-/* CRIA TABELA CASO NÃO EXISTA */
+/*
+========================================
+CRIA TABELA CASO NÃO EXISTA
+========================================
+*/
+
 $con->query("
     CREATE TABLE IF NOT EXISTS ferias_meses_disponiveis (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,35 +80,123 @@ $con->query("
     )
 ");
 
-/* GARANTE OS 12 MESES */
+/*
+========================================
+GARANTE QUE A COLUNA limite_pedidos EXISTE
+========================================
+*/
+
+$colunaLimiteExiste = false;
+
+$resColuna = $con->query("
+    SHOW COLUMNS FROM ferias_meses_disponiveis LIKE 'limite_pedidos'
+");
+
+if ($resColuna && $resColuna->num_rows > 0) {
+    $colunaLimiteExiste = true;
+}
+
+if (!$colunaLimiteExiste) {
+    $con->query("
+        ALTER TABLE ferias_meses_disponiveis
+        ADD COLUMN limite_pedidos INT NOT NULL DEFAULT 0 AFTER disponivel
+    ");
+}
+
+/*
+========================================
+GARANTE OS 12 MESES
+========================================
+*/
+
 foreach ($meses as $nomeMes => $numeroMes) {
+
     $stmtMes = $con->prepare("
         INSERT IGNORE INTO ferias_meses_disponiveis
         (id_empresa, mes, disponivel)
         VALUES (?, ?, 1)
     ");
-    $stmtMes->bind_param("ii", $idEmpresa, $numeroMes);
-    $stmtMes->execute();
+
+    if ($stmtMes) {
+        $stmtMes->bind_param("ii", $idEmpresa, $numeroMes);
+        $stmtMes->execute();
+    }
 }
 
-/* MESES DISPONÍVEIS */
+/*
+========================================
+MESES DISPONÍVEIS + LIMITES
+========================================
+*/
+
 $mesesDisponiveis = [];
+$limitesPedidos = [];
+$pedidosPorMes = [];
 
 $stmtMeses = $con->prepare("
-    SELECT mes, disponivel
+    SELECT 
+        mes, 
+        disponivel,
+        limite_pedidos
     FROM ferias_meses_disponiveis
     WHERE id_empresa = ?
 ");
 
+if (!$stmtMeses) {
+    die("Erro SQL meses: " . $con->error);
+}
+
 $stmtMeses->bind_param("i", $idEmpresa);
 $stmtMeses->execute();
+
 $resMeses = $stmtMeses->get_result();
 
 while ($row = $resMeses->fetch_assoc()) {
     $mesesDisponiveis[(int)$row['mes']] = (int)$row['disponivel'];
+    $limitesPedidos[(int)$row['mes']] = (int)($row['limite_pedidos'] ?? 0);
 }
 
-/* BUSCAR FUNCIONÁRIO */
+/*
+========================================
+CONTA PEDIDOS POR MÊS
+========================================
+*/
+
+foreach ($meses as $nomeMes => $numeroMes) {
+
+    $anoRef = date('Y');
+
+    if ((int)$numeroMes < (int)date('n')) {
+        $anoRef++;
+    }
+
+    $stmtUso = $con->prepare("
+        SELECT COUNT(*) AS total
+        FROM ferias
+        WHERE id_empresa = ?
+        AND MONTH(data_inicio) = ?
+        AND YEAR(data_inicio) = ?
+        AND status IN ('pendente', 'visto', 'aprovado')
+    ");
+
+    if ($stmtUso) {
+        $stmtUso->bind_param("iii", $idEmpresa, $numeroMes, $anoRef);
+        $stmtUso->execute();
+
+        $uso = $stmtUso->get_result()->fetch_assoc();
+
+        $pedidosPorMes[(int)$numeroMes] = (int)($uso['total'] ?? 0);
+    } else {
+        $pedidosPorMes[(int)$numeroMes] = 0;
+    }
+}
+
+/*
+========================================
+BUSCAR FUNCIONÁRIO
+========================================
+*/
+
 $stmtFunc = $con->prepare("
     SELECT nome
     FROM funcionarios
@@ -81,13 +205,22 @@ $stmtFunc = $con->prepare("
     LIMIT 1
 ");
 
+if (!$stmtFunc) {
+    die("Erro SQL funcionário: " . $con->error);
+}
+
 $stmtFunc->bind_param("ii", $idFuncionario, $idEmpresa);
 $stmtFunc->execute();
 
 $funcionario = $stmtFunc->get_result()->fetch_assoc();
 $nomeFuncionario = $funcionario['nome'] ?? 'Colaborador';
 
-/* BUSCAR PEDIDO PENDENTE */
+/*
+========================================
+BUSCAR PEDIDO PENDENTE
+========================================
+*/
+
 $stmtPedido = $con->prepare("
     SELECT 
         id_ferias,
@@ -101,6 +234,10 @@ $stmtPedido = $con->prepare("
     LIMIT 1
 ");
 
+if (!$stmtPedido) {
+    die("Erro SQL pedido férias: " . $con->error);
+}
+
 $stmtPedido->bind_param("ii", $idFuncionario, $idEmpresa);
 $stmtPedido->execute();
 
@@ -109,7 +246,12 @@ $pedidoAtual = $stmtPedido->get_result()->fetch_assoc();
 $possuiPedidoPendente = $pedidoAtual ? true : false;
 $alteracoesRestantes = $pedidoAtual['alteracoes_restantes'] ?? 2;
 
-/* SOLICITAR OU ALTERAR FÉRIAS */
+/*
+========================================
+SOLICITAR OU ALTERAR FÉRIAS
+========================================
+*/
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) {
 
     $mesNome = $_POST['mes_ferias'] ?? '';
@@ -122,9 +264,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
         $numeroMes = $meses[$mesNome];
 
+        $limiteMes = $limitesPedidos[$numeroMes] ?? 0;
+        $usadosMes = $pedidosPorMes[$numeroMes] ?? 0;
+        $atingiuLimite = ($limiteMes > 0 && $usadosMes >= $limiteMes);
+
         if (empty($mesesDisponiveis[$numeroMes])) {
 
             $erro = "Este mês não está disponível para solicitação de férias.";
+
+        } elseif ($atingiuLimite) {
+
+            $erro = "Este mês atingiu o limite de solicitações de férias.";
 
         } else {
 
@@ -138,6 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
             $dataFim = date('Y-m-d', strtotime($dataInicio . ' +29 days'));
             $dias = 30;
 
+            /* ALTERAR PEDIDO EXISTENTE */
             if ($pedidoAtual && $alteracoesRestantes <= 0) {
 
                 $erro = "Você já usou suas 2 alterações. Aguarde o RH visualizar sua solicitação.";
@@ -175,10 +326,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                 );
 
                 if ($stmt->execute()) {
+
+                    criarNotificacaoParaRHForcada(
+                        $con,
+                        $idEmpresa,
+                        'Solicitação de férias alterada',
+                        $nomeFuncionario . ' alterou uma solicitação de férias para ' . $mesNome . '.',
+                        'ferias.php',
+                        'solicitacao'
+                    );
+
                     $mensagem = "Solicitação de férias alterada com sucesso. Alterações restantes: " . $novoRestante;
                     $alteracoesRestantes = $novoRestante;
                     $possuiPedidoPendente = true;
+
+                    $pedidosPorMes[$numeroMes] = ($pedidosPorMes[$numeroMes] ?? 0) + 1;
+
                 } else {
+
                     $erro = "Erro ao alterar solicitação: " . $stmt->error;
                 }
 
@@ -220,10 +385,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                 );
 
                 if ($stmt->execute()) {
+
+                    criarNotificacaoParaRHForcada(
+                        $con,
+                        $idEmpresa,
+                        'Nova solicitação de férias',
+                        $nomeFuncionario . ' enviou uma nova solicitação de férias para ' . $mesNome . '.',
+                        'ferias.php',
+                        'solicitacao'
+                    );
+
                     $mensagem = "Solicitação de férias enviada para o RH.";
                     $possuiPedidoPendente = true;
                     $alteracoesRestantes = 2;
+
+                    $pedidosPorMes[$numeroMes] = ($pedidosPorMes[$numeroMes] ?? 0) + 1;
+
                 } else {
+
                     $erro = "Erro ao solicitar férias: " . $stmt->error;
                 }
             }
@@ -249,6 +428,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 <link rel="stylesheet" href="../css/global.css">
 <link rel="stylesheet" href="../css/sidebarfunc.css">
 <link rel="stylesheet" href="../css/pedidosf.css">
+
+<style>
+/* ==============================
+   CORREÇÃO DARK MODE - PEDIDOSF
+   Só corrige partes brancas
+============================== */
+
+body.dark-mode .pedidos-card{
+    background:#0f172a !important;
+    border-color:#334155 !important;
+}
+
+body.dark-mode .pedidos-card .card-body{
+    background:#0f172a !important;
+}
+
+body.dark-mode .mes-btn.btn-light,
+body.dark-mode .mes-btn{
+    background:#111c36 !important;
+    color:#f8fafc !important;
+    border:1px solid #334155 !important;
+}
+
+body.dark-mode .mes-btn span{
+    color:#f8fafc !important;
+}
+
+body.dark-mode .mes-btn small{
+    color:#cbd5e1 !important;
+}
+
+body.dark-mode .mes-btn:hover:not(:disabled){
+    background:#172443 !important;
+    border-color:#3b82f6 !important;
+}
+
+body.dark-mode .mes-btn.btn-primary,
+body.dark-mode .mes-btn.text-white{
+    background:#0d6efd !important;
+    color:#ffffff !important;
+    border-color:#0d6efd !important;
+}
+
+body.dark-mode .mes-btn.btn-primary span,
+body.dark-mode .mes-btn.text-white span{
+    color:#ffffff !important;
+}
+
+body.dark-mode .mes-indisponivel,
+body.dark-mode .mes-btn:disabled{
+    background:#1e293b !important;
+    color:#64748b !important;
+    border-color:#334155 !important;
+    opacity:.75;
+}
+
+body.dark-mode .mes-indisponivel span,
+body.dark-mode .mes-btn:disabled span{
+    color:#64748b !important;
+}
+
+body.dark-mode .info-box{
+    background:#111827 !important;
+    color:#f8fafc !important;
+    border:1px solid #334155 !important;
+}
+
+body.dark-mode #mesSelecionadoTexto{
+    color:#f8fafc !important;
+}
+
+body.dark-mode .info-box small{
+    color:#cbd5e1 !important;
+}
+
+body.dark-mode .form-control,
+body.dark-mode input[type="text"],
+body.dark-mode input[type="date"],
+body.dark-mode input[type="file"],
+body.dark-mode textarea{
+    background:#111827 !important;
+    color:#f8fafc !important;
+    border-color:#334155 !important;
+}
+
+body.dark-mode .form-control::placeholder,
+body.dark-mode textarea::placeholder{
+    color:#94a3b8 !important;
+}
+
+body.dark-mode input[type="file"]::file-selector-button{
+    background:#1e293b !important;
+    color:#f8fafc !important;
+    border:0 !important;
+    border-right:1px solid #334155 !important;
+}
+
+body.dark-mode input[type="file"]::-webkit-file-upload-button{
+    background:#1e293b !important;
+    color:#f8fafc !important;
+    border:0 !important;
+    border-right:1px solid #334155 !important;
+}
+</style>
 
 </head>
 
@@ -358,7 +641,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                             <?php foreach($meses as $mes => $numero): ?>
 
                                 <?php
-                                    $mesDisponivel = !empty($mesesDisponiveis[$numero]);
+                                    $limiteMes = $limitesPedidos[$numero] ?? 0;
+                                    $usadosMes = $pedidosPorMes[$numero] ?? 0;
+                                    $atingiuLimite = ($limiteMes > 0 && $usadosMes >= $limiteMes);
+
+                                    $mesDisponivel = !empty($mesesDisponiveis[$numero]) && !$atingiuLimite;
+
                                     $limiteAlteracoes = ($possuiPedidoPendente && $alteracoesRestantes <= 0);
                                     $bloqueado = !$mesDisponivel || $limiteAlteracoes;
                                 ?>
@@ -373,7 +661,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                                     >
                                         <span><?= htmlspecialchars($mes) ?></span>
 
-                                        <?php if(!$mesDisponivel): ?>
+                                        <?php if($atingiuLimite): ?>
+                                            <small>Limite atingido</small>
+                                        <?php elseif(!$mesDisponivel): ?>
                                             <small>Indisponível</small>
                                         <?php endif; ?>
                                     </button>
@@ -391,7 +681,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                             </div>
 
                             <small>
-                                Apenas meses liberados pelo RH podem ser solicitados.
+                                Apenas meses liberados pelo RH e dentro do limite podem ser solicitados.
                             </small>
 
                         </div>
@@ -562,7 +852,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-
 function selecionarMes(elemento, mes){
 
     if(elemento.disabled){
@@ -610,8 +899,10 @@ function mostrarAlerta(texto){
         alerta.classList.add("d-none");
     }, 3000);
 }
-
 </script>
+
+<script src="../js/theme.js"></script>
+<script src="../js/translate.js"></script>
 
 </body>
 </html>
