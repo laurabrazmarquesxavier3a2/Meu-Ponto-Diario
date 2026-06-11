@@ -17,7 +17,10 @@ function validarCNPJ($cnpj) {
         for ($i = 0; $i < $t; $i++) {
             $soma += intval($cnpj[$i]) * $pos;
             $pos--;
-            if ($pos < 2) $pos = 9;
+
+            if ($pos < 2) {
+                $pos = 9;
+            }
         }
 
         $digito = ((10 * $soma) % 11) % 10;
@@ -30,9 +33,51 @@ function validarCNPJ($cnpj) {
     return true;
 }
 
+/*
+    CNPJs fictícios para demonstração do projeto.
+
+    12.345.678/0001-95
+    Empresa usada para mostrar o cadastro de uma empresa nova.
+
+    74.291.836/0001-29
+    Empresa usada para demonstrar o banco funcionando com vários funcionários.
+*/
+
+$empresasDemo = [
+    '12345678000195' => [
+        'razao_social' => 'Revotech Soluções Digitais LTDA',
+        'nome_fantasia' => 'Revotech',
+        'segmento' => 'Tecnologia',
+        'email' => 'contato@revotech.com.br',
+        'telefone' => '(13) 98888-1010',
+        'responsavel' => 'Gabriela Santos',
+        'cargo' => 'Diretora de Tecnologia',
+        'endereco' => 'Rua das Inovações, 120 - Centro',
+        'cidade' => 'São Vicente',
+        'estado' => 'SP',
+        'cep' => '11310-000'
+    ],
+
+    '74291836000129' => [
+        'razao_social' => 'TechNova Sistemas Corporativos LTDA',
+        'nome_fantasia' => 'TechNova Sistemas',
+        'segmento' => 'Tecnologia',
+        'email' => 'rh@technova.com.br',
+        'telefone' => '(11) 97777-2020',
+        'responsavel' => 'Mariana Alves',
+        'cargo' => 'Gerente de RH',
+        'endereco' => 'Avenida Paulista, 1500 - Bela Vista',
+        'cidade' => 'São Paulo',
+        'estado' => 'SP',
+        'cep' => '01310-200'
+    ]
+];
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    if (!validarCNPJ($_POST['cnpj'])) {
+    $cnpjLimpo = preg_replace('/[^0-9]/', '', $_POST['cnpj']);
+
+    if (!validarCNPJ($cnpjLimpo) && !array_key_exists($cnpjLimpo, $empresasDemo)) {
 
         $erro = "CNPJ inválido.";
 
@@ -45,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['cadastro_empresa'] = [
             'razao_social' => $_POST['razao_social'],
             'nome_fantasia' => $_POST['nome_fantasia'],
-            'cnpj' => preg_replace('/[^0-9]/', '', $_POST['cnpj']),
+            'cnpj' => $cnpjLimpo,
             'segmento' => $_POST['segmento'],
             'email' => $_POST['email'],
             'telefone' => $_POST['telefone'],
@@ -88,9 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="container position-relative">
 
-        <div class="top-cadastro">
-
-        </div>
+        <div class="top-cadastro"></div>
 
         <div class="row align-items-center g-5 mb-5">
 
@@ -184,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <input type="text" name="nome_fantasia" id="nome_fantasia" placeholder="Nome fantasia" required>
 
                             <label>Segmento</label>
-                            <select name="segmento" required>
+                            <select name="segmento" id="segmento" required>
                                 <option value="">Selecione o segmento</option>
                                 <option>Comércio</option>
                                 <option>Serviços</option>
@@ -255,10 +298,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="form-card-body">
 
                             <label>Responsável pela Empresa</label>
-                            <input type="text" name="responsavel" placeholder="Nome do responsável" required>
+                            <input type="text" name="responsavel" id="responsavel" placeholder="Nome do responsável" required>
 
                             <label>Cargo do Responsável</label>
-                            <input type="text" name="cargo" placeholder="Ex: Gerente de RH" required>
+                            <input type="text" name="cargo" id="cargo" placeholder="Ex: Gerente de RH" required>
 
                             <label>Endereço</label>
                             <input type="text" name="endereco" id="endereco" placeholder="Rua, número e bairro" required>
@@ -571,15 +614,80 @@ function toggleSenha(id, icone){
     }
 }
 
+const empresasDemo = {
+    '12345678000195': {
+        razao_social: 'Revotech Soluções Digitais LTDA',
+        nome_fantasia: 'Revotech',
+        segmento: 'Tecnologia',
+        email: 'contato@revotech.com.br',
+        telefone: '(13) 98888-1010',
+        responsavel: 'Gabriela Santos',
+        cargo: 'Diretora de Tecnologia',
+        endereco: 'Rua das Inovações, 120 - Centro',
+        cidade: 'São Vicente',
+        estado: 'SP',
+        cep: '11310-000'
+    },
+
+    '74291836000129': {
+        razao_social: 'TechNova Sistemas Corporativos LTDA',
+        nome_fantasia: 'TechNova Sistemas',
+        segmento: 'Tecnologia',
+        email: 'rh@technova.com.br',
+        telefone: '(11) 97777-2020',
+        responsavel: 'Mariana Alves',
+        cargo: 'Gerente de RH',
+        endereco: 'Avenida Paulista, 1500 - Bela Vista',
+        cidade: 'São Paulo',
+        estado: 'SP',
+        cep: '01310-200'
+    }
+};
+
 const cnpjInput = document.getElementById('cnpj');
 
 if (cnpjInput) {
+
+    cnpjInput.addEventListener('input', function () {
+        let valor = this.value.replace(/\D/g, '');
+
+        if (valor.length > 14) {
+            valor = valor.substring(0, 14);
+        }
+
+        valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+        valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+
+        this.value = valor;
+    });
 
     cnpjInput.addEventListener('blur', async function () {
 
         const cnpj = this.value.replace(/\D/g, '');
 
         if (cnpj.length !== 14) {
+            return;
+        }
+
+        if (empresasDemo[cnpj]) {
+
+            const dados = empresasDemo[cnpj];
+
+            document.getElementById('razao_social').value = dados.razao_social;
+            document.getElementById('nome_fantasia').value = dados.nome_fantasia;
+            document.getElementById('segmento').value = dados.segmento;
+            document.getElementById('email').value = dados.email;
+            document.getElementById('telefone').value = dados.telefone;
+            document.getElementById('responsavel').value = dados.responsavel;
+            document.getElementById('cargo').value = dados.cargo;
+            document.getElementById('endereco').value = dados.endereco;
+            document.getElementById('cidade').value = dados.cidade;
+            document.getElementById('estado').value = dados.estado;
+            document.getElementById('cep').value = dados.cep;
+
+            alert('CNPJ fictício de demonstração carregado com sucesso.');
             return;
         }
 

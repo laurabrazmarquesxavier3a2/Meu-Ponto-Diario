@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 09-Jun-2026 às 01:39
+-- Tempo de geração: 11-Jun-2026 às 21:06
 -- Versão do servidor: 5.7.36
--- versão do PHP: 8.0.16
+-- versão do PHP: 8.1.3
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -56,7 +56,7 @@ ALTER TABLE `registros_ponto`
 -- AUTO_INCREMENT de tabela `registros_ponto`
 --
 ALTER TABLE `registros_ponto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

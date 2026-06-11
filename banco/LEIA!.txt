@@ -29,3 +29,7 @@ o bruno só vai funcionar dps que importar os funcionarios
 
 cnpj falso para apresentação e criação de empresa
 12.345.678/0001-95
+
+cnpj falso com empresa ja criada
+Alves@technova.com.br
+1234
