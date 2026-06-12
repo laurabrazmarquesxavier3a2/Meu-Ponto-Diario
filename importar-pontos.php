@@ -19,7 +19,74 @@ $importados = 0;
 $atualizados = 0;
 $ignorados = 0;
 
-function calcularHoras($entrada, $saida, $saidaAlmoco = null, $retornoAlmoco = null) {
+/*
+|--------------------------------------------------------------------------
+| CONFIGURAÇÃO DE DOMÍNIO
+|--------------------------------------------------------------------------
+| A API pode vir com @empresa.com.
+| O banco principal pode estar com @technova.com.br.
+| Este código NÃO altera o banco, apenas usa o e-mail convertido para localizar.
+|--------------------------------------------------------------------------
+*/
+
+$dominioAntigo = 'empresa.com';
+$dominioPrincipal = 'technova.com.br';
+
+/*
+|--------------------------------------------------------------------------
+| AJUSTA EMAIL APENAS PARA BUSCA
+|--------------------------------------------------------------------------
+*/
+
+function prepararEmailParaBusca($email, $dominioAntigo, $dominioPrincipal) {
+    $email = trim(strtolower($email));
+
+    if ($email === '') {
+        return '';
+    }
+
+    if (strpos($email, '@') === false) {
+        return $email . '@' . $dominioPrincipal;
+    }
+
+    $partes = explode('@', $email);
+    $usuario = trim($partes[0]);
+    $dominio = trim($partes[1] ?? '');
+
+    if ($usuario === '') {
+        return '';
+    }
+
+    if ($dominio === $dominioAntigo) {
+        return $usuario . '@' . $dominioPrincipal;
+    }
+
+    return $email;
+}
+
+/*
+|--------------------------------------------------------------------------
+| NORMALIZA HORÁRIO
+|--------------------------------------------------------------------------
+*/
+
+function normalizarHora($hora) {
+    $hora = trim((string)$hora);
+
+    if ($hora === '') {
+        return null;
+    }
+
+    return $hora;
+}
+
+/*
+|--------------------------------------------------------------------------
+| CALCULA TOTAL DE HORAS
+|--------------------------------------------------------------------------
+*/
+
+function calcularHoras($entrada, $saida, $saidaIntervalo = null, $retornoIntervalo = null) {
     if (!$entrada || !$saida) {
         return null;
     }
@@ -33,39 +100,48 @@ function calcularHoras($entrada, $saida, $saidaAlmoco = null, $retornoAlmoco = n
 
     $segundos = $fim - $inicio;
 
-    if (!empty($saidaAlmoco) && !empty($retornoAlmoco)) {
-        $inicioAlmoco = strtotime($saidaAlmoco);
-        $fimAlmoco = strtotime($retornoAlmoco);
+    if (!empty($saidaIntervalo) && !empty($retornoIntervalo)) {
+        $inicioIntervalo = strtotime($saidaIntervalo);
+        $fimIntervalo = strtotime($retornoIntervalo);
 
-        if ($fimAlmoco > $inicioAlmoco) {
-            $segundos -= ($fimAlmoco - $inicioAlmoco);
+        if ($fimIntervalo > $inicioIntervalo) {
+            $segundos -= ($fimIntervalo - $inicioIntervalo);
         }
     }
 
     return round($segundos / 3600, 2);
 }
 
+/*
+|--------------------------------------------------------------------------
+| IMPORTA UM REGISTRO DE PONTO
+|--------------------------------------------------------------------------
+*/
+
 function importarRegistroPonto(
     $con,
     $idEmpresa,
-    $email,
+    $emailApi,
     $data,
     $entrada,
-    $saidaAlmoco,
-    $retornoAlmoco,
+    $saidaIntervalo,
+    $retornoIntervalo,
     $saida
 ) {
     global $importados, $atualizados, $ignorados, $erros;
+    global $dominioAntigo, $dominioPrincipal;
 
-    $email = trim($email);
+    $emailOriginalApi = trim(strtolower($emailApi));
+    $emailBusca = prepararEmailParaBusca($emailOriginalApi, $dominioAntigo, $dominioPrincipal);
+
     $data = trim($data);
 
-    $entrada = !empty($entrada) ? trim($entrada) : null;
-    $saidaAlmoco = !empty($saidaAlmoco) ? trim($saidaAlmoco) : null;
-    $retornoAlmoco = !empty($retornoAlmoco) ? trim($retornoAlmoco) : null;
-    $saida = !empty($saida) ? trim($saida) : null;
+    $entrada = normalizarHora($entrada);
+    $saidaIntervalo = normalizarHora($saidaIntervalo);
+    $retornoIntervalo = normalizarHora($retornoIntervalo);
+    $saida = normalizarHora($saida);
 
-    if ($email === '' || $data === '') {
+    if ($emailBusca === '' || $data === '') {
         $ignorados++;
         $erros[] = "Registro ignorado: e-mail ou data vazios.";
         return;
@@ -73,15 +149,15 @@ function importarRegistroPonto(
 
     /*
     |--------------------------------------------------------------------------
-    | PROCURA O USUÁRIO PELO EMAIL
+    | PROCURA O USUÁRIO PELO EMAIL CONVERTIDO APENAS NA BUSCA
     |--------------------------------------------------------------------------
-    | No seu banco, o e-mail fica na tabela usuarios.
     */
 
     $stmtUser = $con->prepare("
         SELECT 
             id_funcionario,
-            id_empresa
+            id_empresa,
+            email
         FROM usuarios
         WHERE email = ?
         AND id_empresa = ?
@@ -92,19 +168,55 @@ function importarRegistroPonto(
         die("Erro prepare usuário: " . $con->error);
     }
 
-    $stmtUser->bind_param("si", $email, $idEmpresa);
+    $stmtUser->bind_param("si", $emailBusca, $idEmpresa);
     $stmtUser->execute();
 
     $usuario = $stmtUser->get_result()->fetch_assoc();
 
+    /*
+    |--------------------------------------------------------------------------
+    | SEGUNDA TENTATIVA: PROCURA SÓ PELO NOME ANTES DO @
+    |--------------------------------------------------------------------------
+    | Exemplo:
+    | API: ana@empresa.com
+    | Banco: ana@technova.com.br
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$usuario || empty($usuario['id_funcionario'])) {
+
+        $usuarioEmail = explode('@', $emailBusca)[0];
+
+        $stmtUserAlt = $con->prepare("
+            SELECT 
+                id_funcionario,
+                id_empresa,
+                email
+            FROM usuarios
+            WHERE SUBSTRING_INDEX(email, '@', 1) = ?
+            AND id_empresa = ?
+            LIMIT 1
+        ");
+
+        if (!$stmtUserAlt) {
+            die("Erro prepare usuário alternativo: " . $con->error);
+        }
+
+        $stmtUserAlt->bind_param("si", $usuarioEmail, $idEmpresa);
+        $stmtUserAlt->execute();
+
+        $usuario = $stmtUserAlt->get_result()->fetch_assoc();
+    }
+
     if (!$usuario || empty($usuario['id_funcionario'])) {
         $ignorados++;
-        $erros[] = "Funcionário não encontrado pelo e-mail: $email";
+        $erros[] = "Funcionário não encontrado. API enviou: $emailOriginalApi | busca usada: $emailBusca";
         return;
     }
 
     $idFuncionario = (int)$usuario['id_funcionario'];
     $idEmpresaFuncionario = (int)$usuario['id_empresa'];
+    $emailEncontradoBanco = $usuario['email'];
 
     /*
     |--------------------------------------------------------------------------
@@ -131,7 +243,7 @@ function importarRegistroPonto(
 
     if (!$funcionario) {
         $ignorados++;
-        $erros[] = "O usuário $email existe, mas o funcionário vinculado não foi encontrado.";
+        $erros[] = "O usuário $emailEncontradoBanco existe, mas o funcionário vinculado não foi encontrado.";
         return;
     }
 
@@ -141,7 +253,12 @@ function importarRegistroPonto(
     |--------------------------------------------------------------------------
     */
 
-    $totalHoras = calcularHoras($entrada, $saida, $saidaAlmoco, $retornoAlmoco);
+    $totalHoras = calcularHoras(
+        $entrada,
+        $saida,
+        $saidaIntervalo,
+        $retornoIntervalo
+    );
 
     if (!empty($entrada) && !empty($saida)) {
         $status = 'completo';
@@ -193,8 +310,8 @@ function importarRegistroPonto(
                 hora_saida = ?,
                 total_horas = ?,
                 status = ?,
-                saida_almoco = ?,
-                retorno_almoco = ?
+                saida_intervalo = ?,
+                retorno_intervalo = ?
             WHERE id_ponto = ?
             AND id_empresa = ?
         ");
@@ -209,8 +326,8 @@ function importarRegistroPonto(
             $saida,
             $totalHoras,
             $status,
-            $saidaAlmoco,
-            $retornoAlmoco,
+            $saidaIntervalo,
+            $retornoIntervalo,
             $idPonto,
             $idEmpresaFuncionario
         );
@@ -218,7 +335,7 @@ function importarRegistroPonto(
         if ($stmtUpdate->execute()) {
             $atualizados++;
         } else {
-            $erros[] = "Erro ao atualizar ponto de $email em $data: " . $stmtUpdate->error;
+            $erros[] = "Erro ao atualizar ponto de $emailEncontradoBanco em $data: " . $stmtUpdate->error;
         }
 
         return;
@@ -239,8 +356,8 @@ function importarRegistroPonto(
             total_horas,
             status,
             id_empresa,
-            saida_almoco,
-            retorno_almoco
+            saida_intervalo,
+            retorno_intervalo
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
@@ -258,14 +375,14 @@ function importarRegistroPonto(
         $totalHoras,
         $status,
         $idEmpresaFuncionario,
-        $saidaAlmoco,
-        $retornoAlmoco
+        $saidaIntervalo,
+        $retornoIntervalo
     );
 
     if ($stmtInsert->execute()) {
         $importados++;
     } else {
-        $erros[] = "Erro ao importar ponto de $email em $data: " . $stmtInsert->error;
+        $erros[] = "Erro ao importar ponto de $emailEncontradoBanco em $data: " . $stmtInsert->error;
     }
 }
 
@@ -297,14 +414,22 @@ if (isset($_GET['api']) && $_GET['api'] == '1') {
 
             foreach ($pontosApi as $registro) {
 
+                $saidaIntervalo = $registro['saida_intervalo']
+                    ?? $registro['saida_almoco']
+                    ?? null;
+
+                $retornoIntervalo = $registro['retorno_intervalo']
+                    ?? $registro['retorno_almoco']
+                    ?? null;
+
                 importarRegistroPonto(
                     $con,
                     $idEmpresa,
                     $registro['email'] ?? '',
                     $registro['data'] ?? '',
                     $registro['entrada'] ?? null,
-                    $registro['saida_almoco'] ?? null,
-                    $registro['retorno_almoco'] ?? null,
+                    $saidaIntervalo,
+                    $retornoIntervalo,
                     $registro['saida'] ?? null
                 );
             }
@@ -471,7 +596,7 @@ body.dark-mode .alert-warning,
         <div>
             <h1 class="fw-bold mb-1 page-title">Importar Registros de Ponto</h1>
             <p class="mb-0 page-subtitle">
-                Sincronize automaticamente os registros da API externa.
+                Sincronize automaticamente os registros da API externa para o banco principal.
             </p>
         </div>
 
@@ -515,10 +640,17 @@ body.dark-mode .alert-warning,
                 </div>
 
                 <p>
-                    Esse botão sincroniza os registros do projeto
-                    <strong>Conexao-Api-Ponto</strong> com o banco principal
-                    <strong>db_mpd</strong>.
+                    Esse botão busca os registros do projeto
+                    <strong>Conexao-Api-Ponto</strong>, que usa o banco
+                    <strong>db_ponto</strong>, e salva ou atualiza os dados na tabela
+                    <strong>pontos</strong> do banco principal <strong>db_mpd</strong>.
                 </p>
+
+                <div class="info-box mb-3">
+                    Se a API enviar e-mails antigos como
+                    <strong>ana@empresa.com</strong>, o sistema procura o usuário como
+                    <strong>ana@technova.com.br</strong>, mas não altera nenhum e-mail no banco.
+                </div>
 
                 <a href="importar-pontos.php?api=1" class="btn btn-primary w-100 py-2">
                     <i class="bi bi-arrow-repeat"></i>
@@ -547,12 +679,17 @@ body.dark-mode .alert-warning,
                 </div>
 
                 <div class="info-box mb-3">
-                    A API retorna os registros em JSON.
+                    A API retorna os registros em formato JSON.
+                </div>
+
+                <div class="info-box mb-3">
+                    Este importador procura o funcionário correspondente no banco
+                    <strong>db_mpd</strong>.
                 </div>
 
                 <div class="info-box">
-                    Este importador salva ou atualiza os registros na tabela
-                    <strong>pontos</strong> do banco <strong>db_mpd</strong>.
+                    Depois salva ou atualiza o registro na tabela
+                    <strong>pontos</strong>.
                 </div>
 
             </div>

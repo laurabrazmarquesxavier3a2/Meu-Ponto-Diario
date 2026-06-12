@@ -253,7 +253,7 @@ function badgeCategoria($categoria) {
                 </h1>
 
                 <h5 class="text-muted">
-                    Avisos importantes para os funcionários da empresa
+                    Avisos importantes para os funcionários da equipe. Publique novidades, eventos e comunicados urgentes.
                 </h5>
             </div>
 

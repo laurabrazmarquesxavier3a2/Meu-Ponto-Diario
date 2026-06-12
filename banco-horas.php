@@ -46,81 +46,79 @@ function formatarHoras($valor) {
     return '0h';
 }
 
-/* CARDS */
-$positivos = 0;
-$negativos = 0;
-$totalExtras = 0;
+/*
+|--------------------------------------------------------------------------
+| TABELA / REGISTROS CALCULADOS DIRETO DA TABELA pontos
+|--------------------------------------------------------------------------
+*/
 
-$sqlCards = "
-SELECT
-    SUM(CASE WHEN status = 'positivo' THEN 1 ELSE 0 END) AS positivos,
-    SUM(CASE WHEN status = 'negativo' THEN 1 ELSE 0 END) AS negativos,
-    COALESCE(SUM(horas_extras_mes), 0) AS total_extras
-FROM banco_horas
-WHERE id_empresa = ?
-AND mes = ?
-";
-
-$stmtCards = $con->prepare($sqlCards);
-
-if (!$stmtCards) {
-    die("Erro no prepare cards: " . $con->error);
-}
-
-$stmtCards->bind_param("is", $id_empresa, $mesAtual);
-$stmtCards->execute();
-$stmtCards->bind_result($positivos, $negativos, $totalExtras);
-$stmtCards->fetch();
-$stmtCards->close();
-
-$positivos = $positivos ?? 0;
-$negativos = $negativos ?? 0;
-$totalExtras = $totalExtras ?? 0;
-
-/* TABELA */
 $registros = [];
 
- $sql = "
+$sql = "
 SELECT
+    f.id_funcionario,
     f.nome,
 
-    ROUND(SUM(p.total_horas - 8), 2) AS saldo_total,
+    ROUND(
+        COALESCE(SUM(
+            CASE 
+                WHEN p.total_horas IS NOT NULL 
+                THEN p.total_horas - 8
+                ELSE 0
+            END
+        ), 0),
+        2
+    ) AS saldo_total,
 
     ROUND(
-        SUM(
+        COALESCE(SUM(
             CASE
                 WHEN MONTH(p.data) = MONTH(CURDATE())
                 AND YEAR(p.data) = YEAR(CURDATE())
-                THEN (p.total_horas - 8)
+                AND p.total_horas IS NOT NULL
+                THEN p.total_horas - 8
                 ELSE 0
             END
-        ),
+        ), 0),
         2
     ) AS saldo_mes,
 
+    ROUND(
+        COALESCE(SUM(
+            CASE
+                WHEN MONTH(p.data) = MONTH(CURDATE())
+                AND YEAR(p.data) = YEAR(CURDATE())
+                AND p.total_horas > 8
+                THEN p.total_horas - 8
+                ELSE 0
+            END
+        ), 0),
+        2
+    ) AS extras_mes,
+
     MAX(p.data) AS data_atualizacao
 
-FROM pontos p
+FROM funcionarios f
 
-INNER JOIN funcionarios f
-    ON f.id_funcionario = p.id_funcionario
+LEFT JOIN pontos p
+    ON p.id_funcionario = f.id_funcionario
+    AND p.id_empresa = f.id_empresa
 
-WHERE p.id_empresa = ?
-AND f.id_empresa = ?
+WHERE f.id_empresa = ?
+AND f.ativo = 1
 
-GROUP BY f.id_funcionario
+GROUP BY f.id_funcionario, f.nome
 
 ORDER BY f.nome ASC
 ";
 
- $stmt = $con->prepare($sql);
+$stmt = $con->prepare($sql);
 
-$stmt->bind_param(
-    "ii",
-    $id_empresa,
-    $id_empresa
-);
+if (!$stmt) {
+    die("Erro no prepare tabela: " . $con->error);
+}
 
+$stmt->bind_param("i", $id_empresa);
 $stmt->execute();
 
 $resultado = $stmt->get_result();
@@ -144,23 +142,43 @@ while ($row = $resultado->fetch_assoc()) {
 
 $stmt->close();
 
-/* DASHBOARD */
+/*
+|--------------------------------------------------------------------------
+| CARDS CALCULADOS A PARTIR DOS REGISTROS
+|--------------------------------------------------------------------------
+*/
+
+$positivos = 0;
+$negativos = 0;
+$totalExtras = 0;
 $totalFuncionarios = count($registros);
+
 $maiorPositivo = null;
 $maiorNegativo = null;
 $alertasNegativos = [];
 
 foreach ($registros as $registro) {
-    if ($maiorPositivo === null || (float)$registro['saldo_total'] > (float)$maiorPositivo['saldo_total']) {
+
+    $saldoTotal = (float)$registro['saldo_total'];
+    $extrasMes = (float)$registro['extras_mes'];
+
+    if ($saldoTotal > 0) {
+        $positivos++;
+    }
+
+    if ($saldoTotal < 0) {
+        $negativos++;
+        $alertasNegativos[] = $registro;
+    }
+
+    $totalExtras += $extrasMes;
+
+    if ($maiorPositivo === null || $saldoTotal > (float)$maiorPositivo['saldo_total']) {
         $maiorPositivo = $registro;
     }
 
-    if ($maiorNegativo === null || (float)$registro['saldo_total'] < (float)$maiorNegativo['saldo_total']) {
+    if ($maiorNegativo === null || $saldoTotal < (float)$maiorNegativo['saldo_total']) {
         $maiorNegativo = $registro;
-    }
-
-    if ((float)$registro['saldo_total'] < 0) {
-        $alertasNegativos[] = $registro;
     }
 }
 
@@ -183,7 +201,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-<link rel="stylesheet" href="css/banco-horas.css" >
+<link rel="stylesheet" href="css/banco-horas.css">
 
 </head>
 
@@ -221,7 +239,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
                         <div>
                             <div class="kpi-label">Saldos positivos</div>
                             <h2 class="kpi-value"><?= (int)$positivos ?></h2>
-                            <div class="kpi-small">Funcionários acima do saldo</div>
+                            <div class="kpi-small">Funcionários acima de 8h</div>
                         </div>
 
                         <div class="kpi-icon">
@@ -253,7 +271,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
                         <div>
                             <div class="kpi-label">Horas extras</div>
                             <h2 class="kpi-value"><?= number_format((float)$totalExtras, 2, ',', '.') ?>h</h2>
-                            <div class="kpi-small">Total acumulado no mês</div>
+                            <div class="kpi-small">Total positivo no mês</div>
                         </div>
 
                         <div class="kpi-icon">
@@ -269,7 +287,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
                         <div>
                             <div class="kpi-label">Monitorados</div>
                             <h2 class="kpi-value"><?= (int)$totalFuncionarios ?></h2>
-                            <div class="kpi-small">Com registro neste mês</div>
+                            <div class="kpi-small">Funcionários ativos</div>
                         </div>
 
                         <div class="kpi-icon">
@@ -367,7 +385,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
                         </div>
 
                         <div class="metric-line">
-                            <span>Total de registros</span>
+                            <span>Total de funcionários</span>
                             <strong>
                                 <?= (int)$totalFuncionarios ?>
                             </strong>
@@ -440,7 +458,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
 
                             $dataAtualizacao = $row['data_atualizacao']
                                 ? date('d/m/Y', strtotime($row['data_atualizacao']))
-                                : 'Sem atualização';
+                                : 'Sem registro';
 
                             $saldoTotalClass = 'saldo-neutro';
                             if ((float)$row['saldo_total'] > 0) {
@@ -500,7 +518,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
                             <td colspan="5">
                                 <div class="empty-state">
                                     <i class="bi bi-inbox"></i>
-                                    Nenhum saldo encontrado para este mês.
+                                    Nenhum saldo encontrado.
                                 </div>
                             </td>
                         </tr>
@@ -564,6 +582,7 @@ $mediaExtras = $totalFuncionarios > 0 ? ((float)$totalExtras / $totalFuncionario
     pesquisaTabela.addEventListener('input', filtrarTabela);
     filtroStatus.addEventListener('change', filtrarTabela);
 </script>
+
 <script src="js/translate.js"></script>
 </body>
 </html>

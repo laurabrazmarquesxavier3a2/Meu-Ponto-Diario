@@ -66,8 +66,8 @@ $hoje = date('Y-m-d');
 $stmtHoje = $con->prepare("
     SELECT
         hora_entrada,
-        saida_almoco,
-        retorno_almoco,
+        saida_intervalo,
+        retorno_intervalo,
         hora_saida,
         total_horas,
         status
@@ -101,8 +101,8 @@ if (!$pontoHoje) {
     $stmtUltimo = $con->prepare("
         SELECT
             hora_entrada,
-            saida_almoco,
-            retorno_almoco,
+            saida_intervalo,
+            retorno_intervalo,
             hora_saida,
             total_horas,
             status,
@@ -131,8 +131,8 @@ if (!$pontoHoje) {
     if ($ultimoPonto) {
 
         $entradaHoje = $ultimoPonto['hora_entrada'] ?? null;
-        $saidaAlmoco = $ultimoPonto['saida_almoco'] ?? null;
-        $retornoAlmoco = $ultimoPonto['retorno_almoco'] ?? null;
+        $saidaIntervalo = $ultimoPonto['saida_intervalo'] ?? null;
+        $retornoIntervalo = $ultimoPonto['retorno_intervalo'] ?? null;
         $saidaHoje = $ultimoPonto['hora_saida'] ?? null;
         $totalHoje = $ultimoPonto['total_horas'] ?? '0.00';
         $statusHoje = 'Último registro';
@@ -140,8 +140,8 @@ if (!$pontoHoje) {
     } else {
 
         $entradaHoje = null;
-        $saidaAlmoco = null;
-        $retornoAlmoco = null;
+        $saidaIntervalo = null;
+        $retornoIntervalo = null;
         $saidaHoje = null;
         $totalHoje = '0.00';
         $statusHoje = 'Sem registro';
@@ -150,8 +150,8 @@ if (!$pontoHoje) {
 } else {
 
     $entradaHoje = $pontoHoje['hora_entrada'] ?? null;
-    $saidaAlmoco = $pontoHoje['saida_almoco'] ?? null;
-    $retornoAlmoco = $pontoHoje['retorno_almoco'] ?? null;
+    $saidaIntervalo = $pontoHoje['saida_intervalo'] ?? null;
+    $retornoIntervalo = $pontoHoje['retorno_intervalo'] ?? null;
     $saidaHoje = $pontoHoje['hora_saida'] ?? null;
     $totalHoje = $pontoHoje['total_horas'] ?? '0.00';
 
@@ -289,16 +289,16 @@ function diaSemana($data) {
 
                     <div class="card-box">
                         <div>
-                            <span>Saída Almoço</span>
-                            <strong><?= formatarHora($saidaAlmoco) ?></strong>
+                            <span>Saída Intervalo</span>
+                            <strong><?= formatarHora($saidaIntervalo) ?></strong>
                         </div>
                         <i class="fa-solid fa-utensils"></i>
                     </div>
 
                     <div class="card-box">
                         <div>
-                            <span>Retorno Almoço</span>
-                            <strong><?= formatarHora($retornoAlmoco) ?></strong>
+                            <span>Retorno Intervalo</span>
+                            <strong><?= formatarHora($retornoIntervalo) ?></strong>
                         </div>
                         <i class="fa-solid fa-arrow-rotate-left"></i>
                     </div>
@@ -362,10 +362,10 @@ function diaSemana($data) {
                                         Entrada:
                                         <?= formatarHora($semana['hora_entrada']) ?>
 
-                                        | Almoço:
-                                        <?= formatarHora($semana['saida_almoco']) ?>
+                                        | Intervalo:
+                                        <?= formatarHora($semana['saida_intervalo']) ?>
                                         -
-                                        <?= formatarHora($semana['retorno_almoco']) ?>
+                                        <?= formatarHora($semana['retorno_intervalo']) ?>
 
                                         | Saída:
                                         <?= formatarHora($semana['hora_saida']) ?>
@@ -408,10 +408,10 @@ function diaSemana($data) {
                                         Entrada:
                                         <?= formatarHora($mes['hora_entrada']) ?>
 
-                                        | Almoço:
-                                        <?= formatarHora($mes['saida_almoco']) ?>
+                                        | Intervalo:
+                                        <?= formatarHora($mes['saida_intervalo']) ?>
                                         -
-                                        <?= formatarHora($mes['retorno_almoco']) ?>
+                                        <?= formatarHora($mes['retorno_intervalo']) ?>
 
                                         | Saída:
                                         <?= formatarHora($mes['hora_saida']) ?>

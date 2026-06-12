@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once 'auth.php';
 require_once 'config/database.php';
 require_once 'lang.php';
@@ -10,39 +13,137 @@ if (!$id_empresa) {
     die("Erro: empresa não identificada. Faça login novamente.");
 }
 
-/* PRESENTES */
+$hoje = date('Y-m-d');
+
+/* =========================================================
+   CARDS DE HOJE
+========================================================= */
+
+$entradasHoje = 0;
+$saidasHoje = 0;
+$emAndamento = 0;
+$atrasosHoje = 0;
+
+$sqlHoje = "
+SELECT 
+    COUNT(CASE 
+        WHEN hora_entrada IS NOT NULL 
+        AND hora_entrada <> '00:00:00' 
+        THEN 1 
+    END) AS entradas_hoje,
+
+    COUNT(CASE 
+        WHEN hora_saida IS NOT NULL 
+        AND hora_saida <> '00:00:00' 
+        THEN 1 
+    END) AS saidas_hoje,
+
+    COUNT(CASE 
+        WHEN hora_entrada IS NOT NULL 
+        AND hora_entrada <> '00:00:00'
+        AND (hora_saida IS NULL OR hora_saida = '00:00:00')
+        THEN 1 
+    END) AS em_andamento,
+
+    COUNT(CASE 
+        WHEN total_horas IS NOT NULL
+        AND total_horas < 8
+        THEN 1 
+    END) AS atrasos_hoje
+
+FROM pontos
+WHERE id_empresa = ?
+AND data = CURDATE()
+";
+
+$stmtHoje = $con->prepare($sqlHoje);
+
+if (!$stmtHoje) {
+    die("Erro no prepare cards hoje: " . $con->error);
+}
+
+$stmtHoje->bind_param("i", $id_empresa);
+$stmtHoje->execute();
+
+$resHoje = $stmtHoje->get_result()->fetch_assoc();
+
+$entradasHoje = (int)($resHoje['entradas_hoje'] ?? 0);
+$saidasHoje = (int)($resHoje['saidas_hoje'] ?? 0);
+$emAndamento = (int)($resHoje['em_andamento'] ?? 0);
+$atrasosHoje = (int)($resHoje['atrasos_hoje'] ?? 0);
+
+$stmtHoje->close();
+
+/* =========================================================
+   PRESENTES / COMPLETOS HOJE
+========================================================= */
+
+$presentes = 0;
+
 $sqlPresentes = "
 SELECT COUNT(*) AS total
 FROM pontos p
 INNER JOIN funcionarios f
     ON f.id_funcionario = p.id_funcionario
-WHERE p.status = 'completo'
-AND p.id_empresa = ?
+WHERE p.id_empresa = ?
 AND f.id_empresa = ?
+AND p.data = CURDATE()
+AND p.hora_entrada IS NOT NULL
+AND p.hora_entrada <> '00:00:00'
+AND p.hora_saida IS NOT NULL
+AND p.hora_saida <> '00:00:00'
 ";
 
 $stmt = $con->prepare($sqlPresentes);
+
+if (!$stmt) {
+    die("Erro no prepare presentes: " . $con->error);
+}
+
 $stmt->bind_param("ii", $id_empresa, $id_empresa);
 $stmt->execute();
-$presentes = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
 
-/* ATRASOS */
+$presentes = (int)($stmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$stmt->close();
+
+/* =========================================================
+   ATRASOS GERAIS HOJE
+========================================================= */
+
+$atrasos = 0;
+
 $sqlAtrasos = "
 SELECT COUNT(*) AS total
 FROM pontos p
 INNER JOIN funcionarios f
     ON f.id_funcionario = p.id_funcionario
-WHERE p.status = 'atraso'
-AND p.id_empresa = ?
+WHERE p.id_empresa = ?
 AND f.id_empresa = ?
+AND p.data = CURDATE()
+AND p.total_horas IS NOT NULL
+AND p.total_horas < 8
 ";
 
 $stmt = $con->prepare($sqlAtrasos);
+
+if (!$stmt) {
+    die("Erro no prepare atrasos: " . $con->error);
+}
+
 $stmt->bind_param("ii", $id_empresa, $id_empresa);
 $stmt->execute();
-$atrasos = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
 
-/* FUNCIONÁRIOS ATIVOS */
+$atrasos = (int)($stmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$stmt->close();
+
+/* =========================================================
+   FUNCIONÁRIOS ATIVOS
+========================================================= */
+
+$ativos = 0;
+
 $sqlAtivos = "
 SELECT COUNT(*) AS total
 FROM funcionarios
@@ -51,11 +152,22 @@ AND id_empresa = ?
 ";
 
 $stmt = $con->prepare($sqlAtivos);
+
+if (!$stmt) {
+    die("Erro no prepare ativos: " . $con->error);
+}
+
 $stmt->bind_param("i", $id_empresa);
 $stmt->execute();
-$ativos = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
 
-/* REGISTROS DE PONTO */
+$ativos = (int)($stmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$stmt->close();
+
+/* =========================================================
+   REGISTROS DE PONTO
+========================================================= */
+
 $sqlPontos = "
 SELECT
     p.id_ponto,
@@ -75,8 +187,14 @@ ORDER BY p.data DESC, p.hora_entrada DESC
 ";
 
 $stmtPontos = $con->prepare($sqlPontos);
+
+if (!$stmtPontos) {
+    die("Erro no prepare pontos: " . $con->error);
+}
+
 $stmtPontos->bind_param("ii", $id_empresa, $id_empresa);
 $stmtPontos->execute();
+
 $query = $stmtPontos->get_result();
 
 function formatarHora($hora) {
@@ -96,42 +214,17 @@ function formatarTotalHoras($total) {
 }
 
 $registros = [];
-$hoje = date('Y-m-d');
-
-$entradasHoje = 0;
-$saidasHoje = 0;
-$emAndamento = 0;
-$atrasosHoje = 0;
 $ultimosRegistros = [];
 
 while ($ponto = $query->fetch_assoc()) {
     $registros[] = $ponto;
 
-    if ($ponto['data'] == $hoje) {
-        if (!empty($ponto['hora_entrada']) && $ponto['hora_entrada'] != '00:00:00') {
-            $entradasHoje++;
-        }
-
-        if (!empty($ponto['hora_saida']) && $ponto['hora_saida'] != '00:00:00') {
-            $saidasHoje++;
-        }
-
-         if (empty($ponto['hora_saida']) || $ponto['hora_saida'] == '00:00:00') {
-    $emAndamento++;
-}
-
-if (
-    !empty($ponto['total_horas']) &&
-    (float)$ponto['total_horas'] < 8
-) {
-    $atrasosHoje++;
-}
-    }
-
     if (count($ultimosRegistros) < 5) {
         $ultimosRegistros[] = $ponto;
     }
 }
+
+$stmtPontos->close();
 
 $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
 ?>
@@ -566,7 +659,7 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                         <div>
                             <div class="kpi-label">Atrasos hoje</div>
                             <h2 class="kpi-value"><?= (int)$atrasosHoje ?></h2>
-                            <div class="kpi-small">Registros com atraso no dia</div>
+                            <div class="kpi-small">Registros com menos de 8h</div>
                         </div>
                         <div class="kpi-icon">
                             <i class="bi bi-clock-history"></i>
@@ -598,12 +691,12 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                 <div class="panel-card">
                     <div class="panel-header">
                         <h5>Resumo operacional</h5>
-                        <p>Visão rápida da situação geral.</p>
+                        <p>Visão rápida da situação geral de hoje.</p>
                     </div>
 
                     <div class="panel-body-custom">
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Registros completos</span>
+                            <span class="text-muted">Registros completos hoje</span>
                             <strong class="employee-name"><?= (int)$presentes ?></strong>
                         </div>
 
@@ -613,7 +706,7 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                         </div>
 
                         <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Atrasos registrados</span>
+                            <span class="text-muted">Atrasos hoje</span>
                             <strong class="employee-name"><?= (int)$atrasos ?></strong>
                         </div>
 
@@ -622,7 +715,7 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                         </div>
 
                         <small class="text-muted">
-                            <?= (int)$percentualPresentes ?>% de registros completos em relação aos funcionários ativos.
+                            <?= (int)$percentualPresentes ?>% de registros completos hoje em relação aos funcionários ativos.
                         </small>
                     </div>
                 </div>
@@ -643,6 +736,23 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
 
                                 <?php
                                 $inicial = mb_strtoupper(mb_substr($item['nome'], 0, 1, 'UTF-8'), 'UTF-8');
+
+                                if (empty($item['hora_entrada']) || $item['hora_entrada'] == '00:00:00') {
+                                    $statusItem = 'Ausente';
+                                    $classeItem = 'badge-ausente';
+                                } elseif (empty($item['hora_saida']) || $item['hora_saida'] == '00:00:00') {
+                                    $statusItem = 'Em andamento';
+                                    $classeItem = 'badge-andamento';
+                                } elseif ((float)$item['total_horas'] < 8) {
+                                    $statusItem = 'Horas pendentes';
+                                    $classeItem = 'badge-atraso';
+                                } elseif ((float)$item['total_horas'] > 8) {
+                                    $statusItem = 'Hora extra';
+                                    $classeItem = 'badge-completo';
+                                } else {
+                                    $statusItem = 'Completo';
+                                    $classeItem = 'badge-completo';
+                                }
                                 ?>
 
                                 <div class="last-item">
@@ -661,14 +771,8 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                                         </div>
                                     </div>
 
-                                    <span class="badge-status 
-                                        <?php
-                                            if ($item['status'] == 'completo') echo 'badge-completo';
-                                            elseif ($item['status'] == 'atraso') echo 'badge-atraso';
-                                            elseif ($item['status'] == 'em andamento') echo 'badge-andamento';
-                                            else echo 'badge-ausente';
-                                        ?>">
-                                        <?= htmlspecialchars(ucfirst($item['status'] ?: 'Ausente')) ?>
+                                    <span class="badge-status <?= $classeItem ?>">
+                                        <?= htmlspecialchars($statusItem) ?>
                                     </span>
                                 </div>
 
@@ -710,7 +814,8 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                         <select id="filtroStatus" class="form-select status-filter">
                             <option value="todos">Todos</option>
                             <option value="completo">Completo</option>
-                            <option value="atraso">Atraso</option>
+                            <option value="hora_extra">Hora Extra</option>
+                            <option value="atraso">Horas Pendentes</option>
                             <option value="em andamento">Em andamento</option>
                             <option value="ausente">Ausente</option>
                         </select>
@@ -740,44 +845,43 @@ $percentualPresentes = $ativos > 0 ? round(($presentes / $ativos) * 100) : 0;
                         <?php foreach ($registros as $ponto): ?>
 
                             <?php
+                            if (empty($ponto['hora_entrada']) || $ponto['hora_entrada'] == '00:00:00') {
 
-if (empty($ponto['hora_entrada']) || $ponto['hora_entrada'] == '00:00:00') {
+                                $statusLinha = 'ausente';
+                                $badge = '<span class="badge-status badge-ausente">Ausente</span>';
 
-    $statusLinha = 'ausente';
-    $badge = '<span class="badge-status badge-ausente">Ausente</span>';
+                            } elseif (empty($ponto['hora_saida']) || $ponto['hora_saida'] == '00:00:00') {
 
-} elseif (empty($ponto['hora_saida']) || $ponto['hora_saida'] == '00:00:00') {
+                                $statusLinha = 'em andamento';
+                                $badge = '<span class="badge-status badge-andamento">Em andamento</span>';
 
-    $statusLinha = 'em andamento';
-    $badge = '<span class="badge-status badge-andamento">Em andamento</span>';
+                            } else {
 
-} else {
+                                $horasTrabalhadas = (float)$ponto['total_horas'];
 
-    $horasTrabalhadas = (float)$ponto['total_horas'];
+                                if ($horasTrabalhadas > 8) {
 
-    if ($horasTrabalhadas > 8) {
+                                    $statusLinha = 'hora_extra';
+                                    $badge = '<span class="badge-status badge-completo">Hora Extra</span>';
 
-        $statusLinha = 'hora_extra';
-        $badge = '<span class="badge-status badge-completo">Hora Extra</span>';
+                                } elseif ($horasTrabalhadas >= 8) {
 
-    } elseif ($horasTrabalhadas >= 8) {
+                                    $statusLinha = 'completo';
+                                    $badge = '<span class="badge-status badge-completo">Completo</span>';
 
-        $statusLinha = 'completo';
-        $badge = '<span class="badge-status badge-completo">Completo</span>';
+                                } else {
 
-    } else {
+                                    $statusLinha = 'atraso';
+                                    $badge = '<span class="badge-status badge-atraso">Horas Pendentes</span>';
 
-        $statusLinha = 'atraso';
-        $badge = '<span class="badge-status badge-atraso">Horas Pendentes</span>';
+                                }
+                            }
 
-    }
-}
-
-$inicial = mb_strtoupper(
-    mb_substr($ponto['nome'], 0, 1, 'UTF-8'),
-    'UTF-8'
-);
-?>
+                            $inicial = mb_strtoupper(
+                                mb_substr($ponto['nome'], 0, 1, 'UTF-8'),
+                                'UTF-8'
+                            );
+                            ?>
 
                             <tr 
                                 data-nome="<?= htmlspecialchars(mb_strtolower($ponto['nome'], 'UTF-8')) ?>"
@@ -891,6 +995,7 @@ $inicial = mb_strtoupper(
     pesquisaTabela.addEventListener('input', filtrarTabela);
     filtroStatus.addEventListener('change', filtrarTabela);
 </script>
+
 <script src="js/translate.js"></script>
 </body>
 </html>

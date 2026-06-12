@@ -22,6 +22,14 @@ require_once 'lang.php';
 </head>
 
 <body>
+    
+<a href="sobre.php" class="top-logo" id="topLogo" aria-label="Conhecer o projeto">
+    <img
+        src="img/logo-azul.png"
+        alt="Meu Ponto Diário"
+        class="top-logo-img"
+    >
+</a>
 
 <!-- HERO -->
 <section class="hero" id="sobre">
@@ -45,11 +53,6 @@ require_once 'lang.php';
                     <span class="gradient-text">velocidade</span>
                     e precisão.
                 </h1>
-
-                <div class="brand-subtitle mb-4">
-                    Meu Ponto Diário
-                </div>
-
                 <p class="hero-desc mb-4">
                  Aqui fornecemos uma plataforma eficiente e prática para focar no que realmente importa: o crescimento da sua empresa e a satisfação da sua equipe.
                 </p>
