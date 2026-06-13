@@ -15,7 +15,7 @@ if (!$idUsuario || !$idEmpresa) {
     die("Sessão inválida. Faça login novamente.");
 }
 
-/* CASO O ID_FUNCIONARIO NÃO ESTEJA NA SESSÃO, BUSCA PELO USUÁRIO */
+/* BUSCA O FUNCIONÁRIO CASO NÃO ESTEJA NA SESSÃO */
 if (!$idFuncionario) {
 
     $stmtBuscaFunc = $con->prepare("
@@ -30,15 +30,24 @@ if (!$idFuncionario) {
         die("Erro SQL usuário: " . $con->error);
     }
 
-    $stmtBuscaFunc->bind_param("ii", $idUsuario, $idEmpresa);
+    $stmtBuscaFunc->bind_param(
+        "ii",
+        $idUsuario,
+        $idEmpresa
+    );
+
     $stmtBuscaFunc->execute();
 
-    $dadosUsuario = $stmtBuscaFunc->get_result()->fetch_assoc();
+    $dadosUsuario = $stmtBuscaFunc
+        ->get_result()
+        ->fetch_assoc();
 
     if (!empty($dadosUsuario['id_funcionario'])) {
-        $idFuncionario = $dadosUsuario['id_funcionario'];
+        $idFuncionario = (int)$dadosUsuario['id_funcionario'];
         $_SESSION['id_funcionario'] = $idFuncionario;
     }
+
+    $stmtBuscaFunc->close();
 }
 
 if (!$idFuncionario) {
@@ -65,7 +74,7 @@ $meses = [
 
 /*
 ========================================
-CRIA TABELA CASO NÃO EXISTA
+CRIA TABELA DOS MESES
 ========================================
 */
 
@@ -75,33 +84,38 @@ $con->query("
         id_empresa INT NOT NULL,
         mes TINYINT NOT NULL,
         disponivel TINYINT NOT NULL DEFAULT 1,
-        atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        limite_pedidos INT NULL DEFAULT NULL,
+        atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+            ON UPDATE CURRENT_TIMESTAMP,
         UNIQUE KEY empresa_mes (id_empresa, mes)
     )
 ");
 
 /*
 ========================================
-GARANTE QUE A COLUNA limite_pedidos EXISTE
+GARANTE A COLUNA limite_pedidos
 ========================================
 */
 
-$colunaLimiteExiste = false;
-
 $resColuna = $con->query("
-    SHOW COLUMNS FROM ferias_meses_disponiveis LIKE 'limite_pedidos'
+    SHOW COLUMNS
+    FROM ferias_meses_disponiveis
+    LIKE 'limite_pedidos'
 ");
 
-if ($resColuna && $resColuna->num_rows > 0) {
-    $colunaLimiteExiste = true;
-}
-
-if (!$colunaLimiteExiste) {
+if (!$resColuna || $resColuna->num_rows === 0) {
     $con->query("
         ALTER TABLE ferias_meses_disponiveis
-        ADD COLUMN limite_pedidos INT NOT NULL DEFAULT 0 AFTER disponivel
+        ADD COLUMN limite_pedidos INT NULL DEFAULT NULL
+        AFTER disponivel
     ");
 }
+
+/* GARANTE QUE A COLUNA ACEITE NULL */
+$con->query("
+    ALTER TABLE ferias_meses_disponiveis
+    MODIFY limite_pedidos INT NULL DEFAULT NULL
+");
 
 /*
 ========================================
@@ -112,20 +126,30 @@ GARANTE OS 12 MESES
 foreach ($meses as $nomeMes => $numeroMes) {
 
     $stmtMes = $con->prepare("
-        INSERT IGNORE INTO ferias_meses_disponiveis
-        (id_empresa, mes, disponivel)
-        VALUES (?, ?, 1)
+        INSERT IGNORE INTO ferias_meses_disponiveis (
+            id_empresa,
+            mes,
+            disponivel,
+            limite_pedidos
+        )
+        VALUES (?, ?, 1, NULL)
     ");
 
     if ($stmtMes) {
-        $stmtMes->bind_param("ii", $idEmpresa, $numeroMes);
+        $stmtMes->bind_param(
+            "ii",
+            $idEmpresa,
+            $numeroMes
+        );
+
         $stmtMes->execute();
+        $stmtMes->close();
     }
 }
 
 /*
 ========================================
-MESES DISPONÍVEIS + LIMITES
+BUSCA MESES DISPONÍVEIS E LIMITES
 ========================================
 */
 
@@ -134,8 +158,8 @@ $limitesPedidos = [];
 $pedidosPorMes = [];
 
 $stmtMeses = $con->prepare("
-    SELECT 
-        mes, 
+    SELECT
+        mes,
         disponivel,
         limite_pedidos
     FROM ferias_meses_disponiveis
@@ -146,28 +170,42 @@ if (!$stmtMeses) {
     die("Erro SQL meses: " . $con->error);
 }
 
-$stmtMeses->bind_param("i", $idEmpresa);
+$stmtMeses->bind_param(
+    "i",
+    $idEmpresa
+);
+
 $stmtMeses->execute();
 
 $resMeses = $stmtMeses->get_result();
 
 while ($row = $resMeses->fetch_assoc()) {
-    $mesesDisponiveis[(int)$row['mes']] = (int)$row['disponivel'];
-    $limitesPedidos[(int)$row['mes']] = (int)($row['limite_pedidos'] ?? 0);
+
+    $numeroMes = (int)$row['mes'];
+
+    $mesesDisponiveis[$numeroMes] =
+        (int)$row['disponivel'];
+
+    $limitesPedidos[$numeroMes] =
+        $row['limite_pedidos'] !== null
+            ? (int)$row['limite_pedidos']
+            : 0;
 }
+
+$stmtMeses->close();
 
 /*
 ========================================
-CONTA PEDIDOS POR MÊS
+CONTA PEDIDOS DE CADA MÊS
 ========================================
 */
 
 foreach ($meses as $nomeMes => $numeroMes) {
 
-    $anoRef = date('Y');
+    $anoReferencia = (int)date('Y');
 
-    if ((int)$numeroMes < (int)date('n')) {
-        $anoRef++;
+    if ($numeroMes < (int)date('n')) {
+        $anoReferencia++;
     }
 
     $stmtUso = $con->prepare("
@@ -176,24 +214,42 @@ foreach ($meses as $nomeMes => $numeroMes) {
         WHERE id_empresa = ?
         AND MONTH(data_inicio) = ?
         AND YEAR(data_inicio) = ?
-        AND status IN ('pendente', 'visto', 'aprovado')
+        AND status IN (
+            'pendente',
+            'visto',
+            'aprovado'
+        )
     ");
 
     if ($stmtUso) {
-        $stmtUso->bind_param("iii", $idEmpresa, $numeroMes, $anoRef);
+
+        $stmtUso->bind_param(
+            "iii",
+            $idEmpresa,
+            $numeroMes,
+            $anoReferencia
+        );
+
         $stmtUso->execute();
 
-        $uso = $stmtUso->get_result()->fetch_assoc();
+        $uso = $stmtUso
+            ->get_result()
+            ->fetch_assoc();
 
-        $pedidosPorMes[(int)$numeroMes] = (int)($uso['total'] ?? 0);
+        $pedidosPorMes[$numeroMes] =
+            (int)($uso['total'] ?? 0);
+
+        $stmtUso->close();
+
     } else {
-        $pedidosPorMes[(int)$numeroMes] = 0;
+
+        $pedidosPorMes[$numeroMes] = 0;
     }
 }
 
 /*
 ========================================
-BUSCAR FUNCIONÁRIO
+BUSCA FUNCIONÁRIO
 ========================================
 */
 
@@ -209,20 +265,31 @@ if (!$stmtFunc) {
     die("Erro SQL funcionário: " . $con->error);
 }
 
-$stmtFunc->bind_param("ii", $idFuncionario, $idEmpresa);
+$stmtFunc->bind_param(
+    "ii",
+    $idFuncionario,
+    $idEmpresa
+);
+
 $stmtFunc->execute();
 
-$funcionario = $stmtFunc->get_result()->fetch_assoc();
-$nomeFuncionario = $funcionario['nome'] ?? 'Colaborador';
+$funcionario = $stmtFunc
+    ->get_result()
+    ->fetch_assoc();
+
+$nomeFuncionario =
+    $funcionario['nome'] ?? 'Colaborador';
+
+$stmtFunc->close();
 
 /*
 ========================================
-BUSCAR PEDIDO PENDENTE
+BUSCA PEDIDO PENDENTE
 ========================================
 */
 
 $stmtPedido = $con->prepare("
-    SELECT 
+    SELECT
         id_ferias,
         data_inicio,
         data_fim,
@@ -231,6 +298,7 @@ $stmtPedido = $con->prepare("
     WHERE id_funcionario = ?
     AND id_empresa = ?
     AND status = 'pendente'
+    ORDER BY data_solicitacao DESC
     LIMIT 1
 ");
 
@@ -238,13 +306,24 @@ if (!$stmtPedido) {
     die("Erro SQL pedido férias: " . $con->error);
 }
 
-$stmtPedido->bind_param("ii", $idFuncionario, $idEmpresa);
+$stmtPedido->bind_param(
+    "ii",
+    $idFuncionario,
+    $idEmpresa
+);
+
 $stmtPedido->execute();
 
-$pedidoAtual = $stmtPedido->get_result()->fetch_assoc();
+$pedidoAtual = $stmtPedido
+    ->get_result()
+    ->fetch_assoc();
 
-$possuiPedidoPendente = $pedidoAtual ? true : false;
-$alteracoesRestantes = $pedidoAtual['alteracoes_restantes'] ?? 2;
+$stmtPedido->close();
+
+$possuiPedidoPendente = !empty($pedidoAtual);
+
+$alteracoesRestantes =
+    $pedidoAtual['alteracoes_restantes'] ?? 2;
 
 /*
 ========================================
@@ -252,9 +331,14 @@ SOLICITAR OU ALTERAR FÉRIAS
 ========================================
 */
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) {
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['solicitar_ferias'])
+) {
 
-    $mesNome = $_POST['mes_ferias'] ?? '';
+    $mesNome = trim(
+        $_POST['mes_ferias'] ?? ''
+    );
 
     if (!isset($meses[$mesNome])) {
 
@@ -264,11 +348,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
         $numeroMes = $meses[$mesNome];
 
-        $limiteMes = $limitesPedidos[$numeroMes] ?? 0;
-        $usadosMes = $pedidosPorMes[$numeroMes] ?? 0;
-        $atingiuLimite = ($limiteMes > 0 && $usadosMes >= $limiteMes);
+        $limiteMes =
+            $limitesPedidos[$numeroMes] ?? 0;
 
-        if (empty($mesesDisponiveis[$numeroMes])) {
+        $usadosMes =
+            $pedidosPorMes[$numeroMes] ?? 0;
+
+        $atingiuLimite =
+            $limiteMes > 0 &&
+            $usadosMes >= $limiteMes;
+
+        $mesLiberado =
+            !empty($mesesDisponiveis[$numeroMes]);
+
+        if (!$mesLiberado) {
 
             $erro = "Este mês não está disponível para solicitação de férias.";
 
@@ -278,40 +371,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 
         } else {
 
-            $anoAtual = date('Y');
+            $anoAtual = (int)date('Y');
 
-            if ($numeroMes < date('n')) {
+            if ($numeroMes < (int)date('n')) {
                 $anoAtual++;
             }
 
-            $dataInicio = date('Y-m-d', strtotime("$anoAtual-$numeroMes-01"));
-            $dataFim = date('Y-m-d', strtotime($dataInicio . ' +29 days'));
+            $dataInicio = sprintf(
+                '%04d-%02d-01',
+                $anoAtual,
+                $numeroMes
+            );
+
+            $dataFim = date(
+                'Y-m-d',
+                strtotime($dataInicio . ' +29 days')
+            );
+
             $dias = 30;
 
-            /* ALTERAR PEDIDO EXISTENTE */
-            if ($pedidoAtual && $alteracoesRestantes <= 0) {
+            /*
+            ========================================
+            ALTERA PEDIDO EXISTENTE
+            ========================================
+            */
+
+            if (
+                $pedidoAtual &&
+                $alteracoesRestantes <= 0
+            ) {
 
                 $erro = "Você já usou suas 2 alterações. Aguarde o RH visualizar sua solicitação.";
 
             } elseif ($pedidoAtual) {
 
-                $novoRestante = $alteracoesRestantes - 1;
+                $novoRestante =
+                    (int)$alteracoesRestantes - 1;
 
                 $stmt = $con->prepare("
                     UPDATE ferias
-                    SET 
+                    SET
                         data_inicio = ?,
                         data_fim = ?,
                         dias = ?,
                         alteracoes_restantes = ?,
-                        mensagem_colaborador = 'Solicitação alterada. Aguardando visualização do RH.'
+                        mensagem_colaborador =
+                            'Solicitação alterada. Aguardando visualização do RH.'
                     WHERE id_ferias = ?
                     AND id_funcionario = ?
                     AND id_empresa = ?
                 ");
 
                 if (!$stmt) {
-                    die("Erro SQL alterar férias: " . $con->error);
+                    die(
+                        "Erro SQL alterar férias: " .
+                        $con->error
+                    );
                 }
 
                 $stmt->bind_param(
@@ -331,23 +446,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                         $con,
                         $idEmpresa,
                         'Solicitação de férias alterada',
-                        $nomeFuncionario . ' alterou uma solicitação de férias para ' . $mesNome . '.',
+                        $nomeFuncionario .
+                        ' alterou uma solicitação de férias para ' .
+                        $mesNome . '.',
                         'ferias.php',
                         'solicitacao'
                     );
 
-                    $mensagem = "Solicitação de férias alterada com sucesso. Alterações restantes: " . $novoRestante;
-                    $alteracoesRestantes = $novoRestante;
-                    $possuiPedidoPendente = true;
+                    $mensagem =
+                        "Solicitação de férias alterada com sucesso. " .
+                        "Alterações restantes: " .
+                        $novoRestante;
 
-                    $pedidosPorMes[$numeroMes] = ($pedidosPorMes[$numeroMes] ?? 0) + 1;
+                    $alteracoesRestantes =
+                        $novoRestante;
+
+                    $possuiPedidoPendente = true;
 
                 } else {
 
-                    $erro = "Erro ao alterar solicitação: " . $stmt->error;
+                    $erro =
+                        "Erro ao alterar solicitação: " .
+                        $stmt->error;
                 }
 
+                $stmt->close();
+
             } else {
+
+                /*
+                ========================================
+                CRIA NOVO PEDIDO
+                ========================================
+                */
 
                 $stmt = $con->prepare("
                     INSERT INTO ferias (
@@ -362,7 +493,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                         id_empresa
                     )
                     VALUES (
-                        ?, ?, ?, ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
                         'pendente',
                         NOW(),
                         'Solicitação enviada. Aguardando visualização do RH.',
@@ -372,7 +506,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                 ");
 
                 if (!$stmt) {
-                    die("Erro SQL férias: " . $con->error);
+                    die(
+                        "Erro SQL férias: " .
+                        $con->error
+                    );
                 }
 
                 $stmt->bind_param(
@@ -390,21 +527,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
                         $con,
                         $idEmpresa,
                         'Nova solicitação de férias',
-                        $nomeFuncionario . ' enviou uma nova solicitação de férias para ' . $mesNome . '.',
+                        $nomeFuncionario .
+                        ' enviou uma nova solicitação de férias para ' .
+                        $mesNome . '.',
                         'ferias.php',
                         'solicitacao'
                     );
 
-                    $mensagem = "Solicitação de férias enviada para o RH.";
+                    $mensagem =
+                        "Solicitação de férias enviada para o RH.";
+
                     $possuiPedidoPendente = true;
                     $alteracoesRestantes = 2;
 
-                    $pedidosPorMes[$numeroMes] = ($pedidosPorMes[$numeroMes] ?? 0) + 1;
-
                 } else {
 
-                    $erro = "Erro ao solicitar férias: " . $stmt->error;
+                    $erro =
+                        "Erro ao solicitar férias: " .
+                        $stmt->error;
                 }
+
+                $stmt->close();
             }
         }
     }
@@ -417,119 +560,280 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['solicitar_ferias'])) 
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
 <title>Pedidos</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+>
 
 <link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/sidebarfunc.css">
-<link rel="stylesheet" href="../css/pedidosf.css">
+<link rel="stylesheet" href="../css/sidebar.css?v=20">
+<link rel="stylesheet" href="../css/pedidosf.css?v=2">
 
 <style>
-/* ==============================
-   CORREÇÃO DARK MODE - PEDIDOSF
-   Só corrige partes brancas
-============================== */
+/* =========================================
+   MODO ESCURO - CARDS
+========================================= */
 
-body.dark-mode .pedidos-card{
-    background:#0f172a !important;
-    border-color:#334155 !important;
+body.dark-mode .pedidos-card {
+    background: #0f172a !important;
+    border-color: #334155 !important;
 }
 
-body.dark-mode .pedidos-card .card-body{
-    background:#0f172a !important;
+body.dark-mode .pedidos-card .card-body {
+    background: #0f172a !important;
+    color: #f8fafc !important;
 }
+
+body.dark-mode .pedidos-card h1,
+body.dark-mode .pedidos-card h2,
+body.dark-mode .pedidos-card h3,
+body.dark-mode .pedidos-card h4,
+body.dark-mode .pedidos-card h5,
+body.dark-mode .pedidos-card h6,
+body.dark-mode .pedidos-card label {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .pedidos-card .text-muted,
+body.dark-mode .pedidos-header .text-muted {
+    color: #cbd5e1 !important;
+}
+
+/* =========================================
+   BOTÕES DOS MESES
+========================================= */
 
 body.dark-mode .mes-btn.btn-light,
-body.dark-mode .mes-btn{
-    background:#111c36 !important;
-    color:#f8fafc !important;
-    border:1px solid #334155 !important;
+body.dark-mode .mes-btn {
+    background: #111c36 !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
 }
 
-body.dark-mode .mes-btn span{
-    color:#f8fafc !important;
+body.dark-mode .mes-btn span {
+    color: #f8fafc !important;
 }
 
-body.dark-mode .mes-btn small{
-    color:#cbd5e1 !important;
+body.dark-mode .mes-btn small {
+    color: #cbd5e1 !important;
 }
 
-body.dark-mode .mes-btn:hover:not(:disabled){
-    background:#172443 !important;
-    border-color:#3b82f6 !important;
+body.dark-mode .mes-btn:hover:not(:disabled) {
+    background: #172443 !important;
+    border-color: #3b82f6 !important;
 }
 
 body.dark-mode .mes-btn.btn-primary,
-body.dark-mode .mes-btn.text-white{
-    background:#0d6efd !important;
-    color:#ffffff !important;
-    border-color:#0d6efd !important;
+body.dark-mode .mes-btn.text-white {
+    background: #0d6efd !important;
+    color: #ffffff !important;
+    border-color: #0d6efd !important;
 }
 
 body.dark-mode .mes-btn.btn-primary span,
-body.dark-mode .mes-btn.text-white span{
-    color:#ffffff !important;
+body.dark-mode .mes-btn.text-white span {
+    color: #ffffff !important;
 }
 
 body.dark-mode .mes-indisponivel,
-body.dark-mode .mes-btn:disabled{
-    background:#1e293b !important;
-    color:#64748b !important;
-    border-color:#334155 !important;
-    opacity:.75;
+body.dark-mode .mes-btn:disabled {
+    background: #1e293b !important;
+    color: #64748b !important;
+    border-color: #334155 !important;
+    opacity: .75;
 }
 
 body.dark-mode .mes-indisponivel span,
-body.dark-mode .mes-btn:disabled span{
-    color:#64748b !important;
+body.dark-mode .mes-btn:disabled span {
+    color: #64748b !important;
 }
 
-body.dark-mode .info-box{
-    background:#111827 !important;
-    color:#f8fafc !important;
-    border:1px solid #334155 !important;
+/* =========================================
+   CAIXA DE INFORMAÇÃO
+========================================= */
+
+body.dark-mode .info-box {
+    background: #111827 !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
 }
 
-body.dark-mode #mesSelecionadoTexto{
-    color:#f8fafc !important;
+body.dark-mode #mesSelecionadoTexto {
+    color: #f8fafc !important;
 }
 
-body.dark-mode .info-box small{
-    color:#cbd5e1 !important;
+body.dark-mode .info-box small {
+    color: #cbd5e1 !important;
 }
+
+/* =========================================
+   CAMPOS DO FORMULÁRIO
+========================================= */
 
 body.dark-mode .form-control,
 body.dark-mode input[type="text"],
 body.dark-mode input[type="date"],
 body.dark-mode input[type="file"],
-body.dark-mode textarea{
-    background:#111827 !important;
-    color:#f8fafc !important;
-    border-color:#334155 !important;
+body.dark-mode textarea {
+    background: #111827 !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode input[type="text"]:focus,
+body.dark-mode input[type="date"]:focus,
+body.dark-mode input[type="file"]:focus,
+body.dark-mode textarea:focus {
+    background: #111827 !important;
+    color: #f8fafc !important;
+    border-color: #60a5fa !important;
+
+    box-shadow:
+        0 0 0 .25rem
+        rgba(59, 130, 246, .20) !important;
 }
 
 body.dark-mode .form-control::placeholder,
-body.dark-mode textarea::placeholder{
-    color:#94a3b8 !important;
+body.dark-mode textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
 }
 
-body.dark-mode input[type="file"]::file-selector-button{
-    background:#1e293b !important;
-    color:#f8fafc !important;
-    border:0 !important;
-    border-right:1px solid #334155 !important;
+/* =========================================
+   CAMPO DE ARQUIVO
+========================================= */
+
+body.dark-mode input[type="file"]::file-selector-button {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+
+    border: 0 !important;
+    border-right: 1px solid #334155 !important;
+
+    cursor: pointer;
 }
 
-body.dark-mode input[type="file"]::-webkit-file-upload-button{
-    background:#1e293b !important;
-    color:#f8fafc !important;
-    border:0 !important;
-    border-right:1px solid #334155 !important;
+body.dark-mode input[type="file"]::-webkit-file-upload-button {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+
+    border: 0 !important;
+    border-right: 1px solid #334155 !important;
+
+    cursor: pointer;
+}
+
+/* =========================================
+   ALERTA AMARELO
+========================================= */
+
+body.dark-mode .alert-warning {
+    background: #fef3c7 !important;
+    color: #78350f !important;
+    border: 1px solid #fcd34d !important;
+}
+
+body.dark-mode .alert-warning strong,
+body.dark-mode .alert-warning i {
+    color: #78350f !important;
+}
+
+body.dark-mode .alert-warning .btn-close {
+    filter: none !important;
+}
+
+/* =========================================
+   CALENDÁRIO NO MODO ESCURO
+========================================= */
+
+body.dark-mode input[type="date"] {
+    position: relative;
+
+    background-color: #111827 !important;
+    color: #f8fafc !important;
+
+    border: 1px solid #334155 !important;
+
+    color-scheme: dark !important;
+}
+
+/* ÍCONE DO CALENDÁRIO */
+
+body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+    display: block !important;
+
+    width: 20px;
+    height: 20px;
+
+    opacity: 1 !important;
+
+    cursor: pointer;
+
+    filter:
+        invert(1)
+        brightness(2)
+        contrast(1.1) !important;
+}
+
+/* TEXTO INTERNO DA DATA */
+
+body.dark-mode input[type="date"]::-webkit-datetime-edit {
+    color: #f8fafc !important;
+}
+
+body.dark-mode input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    color: #f8fafc !important;
+}
+
+body.dark-mode input[type="date"]::-webkit-datetime-edit-text {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode input[type="date"]::-webkit-datetime-edit-month-field,
+body.dark-mode input[type="date"]::-webkit-datetime-edit-day-field,
+body.dark-mode input[type="date"]::-webkit-datetime-edit-year-field {
+    color: #f8fafc !important;
+}
+
+/* SELEÇÃO DOS NÚMEROS DA DATA */
+
+body.dark-mode input[type="date"]::-webkit-datetime-edit-month-field:focus,
+body.dark-mode input[type="date"]::-webkit-datetime-edit-day-field:focus,
+body.dark-mode input[type="date"]::-webkit-datetime-edit-year-field:focus {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-radius: 4px;
+}
+
+/* HOVER DO ÍCONE */
+
+body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    filter:
+        invert(1)
+        brightness(2.5)
+        contrast(1.2) !important;
+}
+
+/* FIREFOX */
+
+@supports (-moz-appearance: none) {
+    body.dark-mode input[type="date"] {
+        color-scheme: dark !important;
+    }
 }
 </style>
 
@@ -543,32 +847,56 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
 
 <div class="container-fluid">
 
-    <?php if(isset($_GET['sucesso'])): ?>
+    <?php if (isset($_GET['sucesso'])): ?>
 
         <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm border-0 rounded-4">
+
             <i class="fa-solid fa-circle-check me-2"></i>
+
             Licença enviada com sucesso. Agora ela está em andamento até o RH visualizar.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+            ></button>
+
         </div>
 
     <?php endif; ?>
 
-    <?php if($mensagem): ?>
+    <?php if ($mensagem): ?>
 
         <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm border-0 rounded-4">
+
             <i class="fa-solid fa-circle-check me-2"></i>
+
             <?= htmlspecialchars($mensagem) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+            ></button>
+
         </div>
 
     <?php endif; ?>
 
-    <?php if($erro): ?>
+    <?php if ($erro): ?>
 
         <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm border-0 rounded-4">
+
             <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
             <?= htmlspecialchars($erro) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+            ></button>
+
         </div>
 
     <?php endif; ?>
@@ -576,6 +904,7 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
     <div class="pedidos-header mb-4">
 
         <div>
+
             <h2 class="fw-bold mb-1">
                 Pedidos
             </h2>
@@ -583,17 +912,22 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
             <p class="text-muted mb-0">
                 Olá, <?= htmlspecialchars($nomeFuncionario) ?>. Solicite férias ou envie licenças médicas.
             </p>
+
         </div>
 
         <div class="header-badge">
+
             <i class="fa-solid fa-calendar-check me-2"></i>
+
             Solicitações
+
         </div>
 
     </div>
 
     <div class="row g-4">
 
+        <!-- FÉRIAS -->
         <div class="col-12 col-xl-6">
 
             <div class="card border-0 shadow-sm rounded-4 h-100 pedidos-card">
@@ -603,10 +937,13 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
                     <div class="d-flex align-items-center gap-3 mb-4">
 
                         <div class="icon-box bg-primary bg-opacity-10 text-primary">
+
                             <i class="fa-solid fa-umbrella-beach"></i>
+
                         </div>
 
                         <div>
+
                             <h4 class="fw-bold mb-1">
                                 Solicitar Férias
                             </h4>
@@ -614,11 +951,12 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
                             <p class="text-muted mb-0">
                                 Escolha um mês liberado pelo RH
                             </p>
+
                         </div>
 
                     </div>
 
-                    <?php if($possuiPedidoPendente): ?>
+                    <?php if ($possuiPedidoPendente): ?>
 
                         <div class="alert alert-warning rounded-4">
 
@@ -626,7 +964,10 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
 
                             Você já possui uma solicitação em andamento.
                             Alterações restantes:
-                            <strong><?= (int)$alteracoesRestantes ?></strong>
+
+                            <strong>
+                                <?= (int)$alteracoesRestantes ?>
+                            </strong>
 
                         </div>
 
@@ -634,21 +975,43 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
 
                     <form method="POST" id="formFerias">
 
-                        <input type="hidden" name="mes_ferias" id="mesFerias">
+                        <input
+                            type="hidden"
+                            name="mes_ferias"
+                            id="mesFerias"
+                        >
 
                         <div class="row g-3">
 
-                            <?php foreach($meses as $mes => $numero): ?>
+                            <?php foreach ($meses as $mes => $numero): ?>
 
                                 <?php
-                                    $limiteMes = $limitesPedidos[$numero] ?? 0;
-                                    $usadosMes = $pedidosPorMes[$numero] ?? 0;
-                                    $atingiuLimite = ($limiteMes > 0 && $usadosMes >= $limiteMes);
+                                $limiteMes =
+                                    $limitesPedidos[$numero] ?? 0;
 
-                                    $mesDisponivel = !empty($mesesDisponiveis[$numero]) && !$atingiuLimite;
+                                $usadosMes =
+                                    $pedidosPorMes[$numero] ?? 0;
 
-                                    $limiteAlteracoes = ($possuiPedidoPendente && $alteracoesRestantes <= 0);
-                                    $bloqueado = !$mesDisponivel || $limiteAlteracoes;
+                                $atingiuLimite =
+                                    $limiteMes > 0 &&
+                                    $usadosMes >= $limiteMes;
+
+                                $mesLiberadoRH =
+                                    !empty(
+                                        $mesesDisponiveis[$numero]
+                                    );
+
+                                $mesDisponivel =
+                                    $mesLiberadoRH &&
+                                    !$atingiuLimite;
+
+                                $limiteAlteracoes =
+                                    $possuiPedidoPendente &&
+                                    $alteracoesRestantes <= 0;
+
+                                $bloqueado =
+                                    !$mesDisponivel ||
+                                    $limiteAlteracoes;
                                 ?>
 
                                 <div class="col-6">
@@ -659,13 +1022,19 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
                                         onclick="selecionarMes(this, '<?= htmlspecialchars($mes) ?>')"
                                         <?= $bloqueado ? 'disabled' : '' ?>
                                     >
-                                        <span><?= htmlspecialchars($mes) ?></span>
 
-                                        <?php if($atingiuLimite): ?>
-                                            <small>Limite atingido</small>
-                                        <?php elseif(!$mesDisponivel): ?>
-                                            <small>Indisponível</small>
+                                        <span>
+                                            <?= htmlspecialchars($mes) ?>
+                                        </span>
+
+                                        <?php if ($atingiuLimite): ?>
+
+                                            <small class="d-block">
+                                                Limite atingido
+                                            </small>
+
                                         <?php endif; ?>
+
                                     </button>
 
                                 </div>
@@ -691,12 +1060,18 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
                             name="solicitar_ferias"
                             id="btnSolicitar"
                             class="btn btn-primary w-100 py-3 fw-semibold mt-4"
-                            <?= ($possuiPedidoPendente && $alteracoesRestantes <= 0) ? 'disabled' : '' ?>
+                            <?= (
+                                $possuiPedidoPendente &&
+                                $alteracoesRestantes <= 0
+                            ) ? 'disabled' : '' ?>
                         >
 
                             <i class="fa-solid fa-paper-plane me-2"></i>
 
-                            <?= $possuiPedidoPendente ? 'Alterar Solicitação' : 'Solicitar Férias' ?>
+                            <?= $possuiPedidoPendente
+                                ? 'Alterar Solicitação'
+                                : 'Solicitar Férias'
+                            ?>
 
                         </button>
 
@@ -708,6 +1083,7 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
 
         </div>
 
+        <!-- LICENÇA MÉDICA -->
         <div class="col-12 col-xl-6">
 
             <div class="card border-0 shadow-sm rounded-4 h-100 pedidos-card">
@@ -717,10 +1093,13 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
                     <div class="d-flex align-items-center gap-3 mb-4">
 
                         <div class="icon-box bg-danger bg-opacity-10 text-danger">
+
                             <i class="fa-solid fa-file-medical"></i>
+
                         </div>
 
                         <div>
+
                             <h4 class="fw-bold mb-1">
                                 Licença Médica
                             </h4>
@@ -728,6 +1107,7 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
                             <p class="text-muted mb-0">
                                 Envie seu atestado médico para o RH
                             </p>
+
                         </div>
 
                     </div>
@@ -852,50 +1232,87 @@ body.dark-mode input[type="file"]::-webkit-file-upload-button{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-function selecionarMes(elemento, mes){
+function selecionarMes(elemento, mes) {
 
-    if(elemento.disabled){
+    if (elemento.disabled) {
         return;
     }
 
-    document.querySelectorAll(".mes-btn").forEach(btn => {
-        btn.classList.remove("btn-primary", "text-white");
-        btn.classList.add("btn-light");
-    });
+    document
+        .querySelectorAll(".mes-btn")
+        .forEach(function (btn) {
+
+            btn.classList.remove(
+                "btn-primary",
+                "text-white"
+            );
+
+            btn.classList.add("btn-light");
+        });
 
     elemento.classList.remove("btn-light");
-    elemento.classList.add("btn-primary", "text-white");
 
-    document.getElementById("mesFerias").value = mes;
+    elemento.classList.add(
+        "btn-primary",
+        "text-white"
+    );
 
-    document.getElementById("mesSelecionadoTexto").innerHTML = `
-        <strong>Mês selecionado:</strong><br>
-        ${mes}
-    `;
+    document
+        .getElementById("mesFerias")
+        .value = mes;
 
-    mostrarAlerta("✔ " + mes + " selecionado");
+    document
+        .getElementById("mesSelecionadoTexto")
+        .innerHTML = `
+            <strong>Mês selecionado:</strong><br>
+            ${mes}
+        `;
+
+    mostrarAlerta(
+        "✔ " + mes + " selecionado"
+    );
 }
 
-document.getElementById('formFerias').addEventListener('submit', function(e){
+const formFerias =
+    document.getElementById('formFerias');
 
-    if(!document.getElementById("mesFerias").value){
+if (formFerias) {
 
-        e.preventDefault();
+    formFerias.addEventListener(
+        'submit',
+        function (event) {
 
-        mostrarAlerta("Selecione um mês disponível antes de solicitar.");
+            const mesSelecionado =
+                document
+                    .getElementById("mesFerias")
+                    .value;
+
+            if (!mesSelecionado) {
+
+                event.preventDefault();
+
+                mostrarAlerta(
+                    "Selecione um mês disponível antes de solicitar."
+                );
+            }
+        }
+    );
+}
+
+function mostrarAlerta(texto) {
+
+    const alerta =
+        document.getElementById("alerta");
+
+    if (!alerta) {
+        return;
     }
 
-});
-
-function mostrarAlerta(texto){
-
-    const alerta = document.getElementById("alerta");
-
-    alerta.innerHTML = texto;
+    alerta.textContent = texto;
 
     alerta.classList.remove("d-none");
 
-    setTimeout(() => {
+    setTimeout(function () {
         alerta.classList.add("d-none");
     }, 3000);
 }

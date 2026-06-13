@@ -1,106 +1,115 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
 
     const sidebar = document.getElementById("sidebar");
-    const btnSidebar = document.getElementById("btnSidebar");
+    const logoToggle = document.getElementById("mpdLogoToggle");
     const overlay = document.getElementById("sidebarOverlay");
-
-    let timerAbrir = null;
-    let timerFechar = null;
-
-    localStorage.removeItem("mpdSidebarCollapsed");
-
-    function aplicarModoSidebar() {
-
-        if (window.innerWidth > 900) {
-
-            document.body.classList.add("sidebar-collapsed");
-
-            if (sidebar) {
-                sidebar.classList.remove("active");
-                sidebar.classList.remove("hover-open");
-            }
-
-            if (overlay) {
-                overlay.classList.remove("active");
-            }
-
-        } else {
-
-            document.body.classList.remove("sidebar-collapsed");
-
-        }
-
-    }
-
-    aplicarModoSidebar();
-
-    window.addEventListener("resize", aplicarModoSidebar);
-
-    if (sidebar) {
-
-        sidebar.addEventListener("mouseenter", () => {
-
-            if (window.innerWidth <= 900) {
-                return;
-            }
-
-            clearTimeout(timerFechar);
-
-            timerAbrir = setTimeout(() => {
-                sidebar.classList.add("hover-open");
-            }, 250);
-
-        });
-
-        sidebar.addEventListener("mouseleave", () => {
-
-            if (window.innerWidth <= 900) {
-                return;
-            }
-
-            clearTimeout(timerAbrir);
-
-            timerFechar = setTimeout(() => {
-                sidebar.classList.remove("hover-open");
-            }, 1000);
-
-        });
-
-    }
-
-    if (btnSidebar && sidebar && overlay) {
-
-        btnSidebar.addEventListener("click", () => {
-
-            sidebar.classList.add("active");
-            overlay.classList.add("active");
-
-        });
-
-        overlay.addEventListener("click", () => {
-
-            sidebar.classList.remove("active");
-            overlay.classList.remove("active");
-
-        });
-
-    }
-
     const links = document.querySelectorAll(".mpd-link");
 
-    links.forEach((link) => {
+    if (!sidebar || !logoToggle) {
+        return;
+    }
 
-        link.addEventListener("click", () => {
+    /*
+    Remove qualquer estado antigo que ainda possa ter sido
+    deixado pelo JavaScript anterior.
+    */
+    sidebar.classList.remove(
+        "active",
+        "hover-open",
+        "open"
+    );
 
-            if (window.innerWidth <= 900 && sidebar && overlay) {
+    document.body.classList.remove(
+        "sidebar-open",
+        "sidebar-collapsed"
+    );
 
-                sidebar.classList.remove("active");
-                overlay.classList.remove("active");
+    if (overlay) {
+        overlay.classList.remove("active");
+    }
 
+    function estaAberta() {
+        if (window.innerWidth <= 900) {
+            return sidebar.classList.contains("active");
+        }
+
+        return document.body.classList.contains("sidebar-open");
+    }
+
+    function abrirSidebar() {
+        if (window.innerWidth <= 900) {
+            sidebar.classList.add("active");
+
+            if (overlay) {
+                overlay.classList.add("active");
             }
+        } else {
+            document.body.classList.add("sidebar-open");
+        }
 
+        logoToggle.classList.add("aberta");
+        logoToggle.setAttribute("aria-expanded", "true");
+        logoToggle.setAttribute("aria-label", "Fechar menu");
+    }
+
+    function fecharSidebar() {
+        sidebar.classList.remove(
+            "active",
+            "hover-open",
+            "open"
+        );
+
+        document.body.classList.remove(
+            "sidebar-open",
+            "sidebar-collapsed"
+        );
+
+        if (overlay) {
+            overlay.classList.remove("active");
+        }
+
+        logoToggle.classList.remove("aberta");
+        logoToggle.setAttribute("aria-expanded", "false");
+        logoToggle.setAttribute("aria-label", "Abrir menu");
+    }
+
+    function alternarSidebar(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (estaAberta()) {
+            fecharSidebar();
+        } else {
+            abrirSidebar();
+        }
+    }
+
+    /*
+    A sidebar abre somente por este clique.
+    Não existe mouseenter nem mouseleave.
+    */
+    logoToggle.addEventListener("click", alternarSidebar);
+
+    if (overlay) {
+        overlay.addEventListener("click", fecharSidebar);
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            fecharSidebar();
+        }
+    });
+
+    links.forEach(function (link) {
+        link.addEventListener("click", function () {
+            if (window.innerWidth <= 900) {
+                fecharSidebar();
+            }
         });
+    });
 
+    window.addEventListener("resize", function () {
+        fecharSidebar();
     });
 
 });
