@@ -1,4 +1,6 @@
+```php
 <?php
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -7,453 +9,739 @@ require_once 'config/database.php';
 require_once 'lang.php';
 require_once 'notific.php';
 
-$id_empresa = $_SESSION['id_empresa'] ?? 0;
+$id_empresa = (int) ($_SESSION['id_empresa'] ?? 0);
 
-if (!$id_empresa) {
-    die("Erro: empresa não identificada. Faça login novamente.");
+if ($id_empresa <= 0) {
+    die('Erro: empresa não identificada. Faça login novamente.');
 }
 
-$mes = isset($_GET['mes']) ? (int)$_GET['mes'] : '';
-$ano = isset($_GET['ano']) ? (int)$_GET['ano'] : '';
+/* =========================================================
+   MESES
+========================================================= */
+
+$meses = [
+    1  => 'Janeiro',
+    2  => 'Fevereiro',
+    3  => 'Março',
+    4  => 'Abril',
+    5  => 'Maio',
+    6  => 'Junho',
+    7  => 'Julho',
+    8  => 'Agosto',
+    9  => 'Setembro',
+    10 => 'Outubro',
+    11 => 'Novembro',
+    12 => 'Dezembro'
+];
+
+/* =========================================================
+   FILTROS
+========================================================= */
+
+$mes = isset($_GET['mes'])
+    ? (int) $_GET['mes']
+    : 0;
+
+$ano = isset($_GET['ano'])
+    ? (int) $_GET['ano']
+    : 0;
+
+if (!array_key_exists($mes, $meses)) {
+    $mes = 0;
+}
+
+if ($ano < 2000 || $ano > 2100) {
+    $ano = 0;
+}
+
+/* =========================================================
+   CONSULTA DOS HOLERITES
+========================================================= */
+
+/*
+|--------------------------------------------------------------------------
+| A competência está armazenada no campo periodo.
+|--------------------------------------------------------------------------
+|
+| Exemplos:
+|
+| Janeiro/2026
+| Fevereiro/2026
+| Abril/2026
+|
+| data_envio é apenas a data em que o arquivo foi enviado.
+|
+*/
 
 $sql = "
-SELECT
-    h.*,
-    f.nome
-FROM holerites h
-INNER JOIN funcionarios f
-    ON h.funcionario_id = f.id_funcionario
-WHERE h.id_empresa = ?
-AND f.id_empresa = ?
+    SELECT
+        h.id,
+        h.funcionario_id,
+        h.arquivo,
+        h.periodo,
+        h.data_envio,
+        h.status,
+        h.id_empresa,
+        f.nome
+
+    FROM holerites h
+
+    INNER JOIN funcionarios f
+        ON f.id_funcionario = h.funcionario_id
+
+    WHERE h.id_empresa = ?
+      AND f.id_empresa = ?
 ";
 
-$params = [$id_empresa, $id_empresa];
-$types = "ii";
+$params = [
+    $id_empresa,
+    $id_empresa
+];
 
-if (!empty($mes)) {
-    $sql .= " AND MONTH(h.data_envio) = ? ";
-    $params[] = $mes;
-    $types .= "i";
+$types = 'ii';
+
+/*
+|--------------------------------------------------------------------------
+| FILTRO POR MÊS DA COMPETÊNCIA
+|--------------------------------------------------------------------------
+*/
+
+if ($mes > 0) {
+    $nomeMesSelecionado = $meses[$mes];
+
+    $sql .= "
+        AND LOWER(
+            TRIM(
+                SUBSTRING_INDEX(h.periodo, '/', 1)
+            )
+        ) = LOWER(?)
+    ";
+
+    $params[] = $nomeMesSelecionado;
+    $types .= 's';
 }
 
-if (!empty($ano)) {
-    $sql .= " AND YEAR(h.data_envio) = ? ";
+/*
+|--------------------------------------------------------------------------
+| FILTRO POR ANO DA COMPETÊNCIA
+|--------------------------------------------------------------------------
+*/
+
+if ($ano > 0) {
+    $sql .= "
+        AND CAST(
+            TRIM(
+                SUBSTRING_INDEX(h.periodo, '/', -1)
+            ) AS UNSIGNED
+        ) = ?
+    ";
+
     $params[] = $ano;
-    $types .= "i";
+    $types .= 'i';
 }
 
-$sql .= " ORDER BY h.data_envio DESC";
+/*
+|--------------------------------------------------------------------------
+| ORDENA PELA COMPETÊNCIA
+|--------------------------------------------------------------------------
+*/
+
+$sql .= "
+    ORDER BY
+        CAST(
+            TRIM(
+                SUBSTRING_INDEX(h.periodo, '/', -1)
+            ) AS UNSIGNED
+        ) DESC,
+
+        FIELD(
+            LOWER(
+                TRIM(
+                    SUBSTRING_INDEX(h.periodo, '/', 1)
+                )
+            ),
+            'dezembro',
+            'novembro',
+            'outubro',
+            'setembro',
+            'agosto',
+            'julho',
+            'junho',
+            'maio',
+            'abril',
+            'março',
+            'fevereiro',
+            'janeiro'
+        ) ASC,
+
+        h.data_envio DESC
+";
 
 $stmt = $con->prepare($sql);
-$stmt->bind_param($types, ...$params);
-$stmt->execute();
+
+if (!$stmt) {
+    die(
+        'Erro SQL holerites: ' .
+        htmlspecialchars($con->error)
+    );
+}
+
+$stmt->bind_param(
+    $types,
+    ...$params
+);
+
+if (!$stmt->execute()) {
+    die(
+        'Erro ao executar consulta de holerites: ' .
+        htmlspecialchars($stmt->error)
+    );
+}
+
 $resultado = $stmt->get_result();
 
-$stmtPendentes = $con->prepare("
-SELECT
-(
-    (SELECT COUNT(*) FROM funcionarios WHERE id_empresa = ? AND ativo = 1)
-    -
-    (SELECT COUNT(DISTINCT funcionario_id) FROM holerites WHERE status = 'enviado' AND id_empresa = ?)
-) AS total
-");
-$stmtPendentes->bind_param("ii", $id_empresa, $id_empresa);
-$stmtPendentes->execute();
-$pendentes = $stmtPendentes->get_result()->fetch_assoc()['total'] ?? 0;
+$totalRegistros = $resultado->num_rows;
 
-$stmtEnviados = $con->prepare("
-SELECT COUNT(DISTINCT funcionario_id) AS total
-FROM holerites
-WHERE status = 'enviado'
-AND id_empresa = ?
-");
-$stmtEnviados->bind_param("i", $id_empresa);
-$stmtEnviados->execute();
-$enviados = $stmtEnviados->get_result()->fetch_assoc()['total'] ?? 0;
+/* =========================================================
+   INDICADOR: FUNCIONÁRIOS ATIVOS
+========================================================= */
 
 $stmtTotal = $con->prepare("
-SELECT COUNT(*) AS total
-FROM funcionarios
-WHERE id_empresa = ?
-AND ativo = 1
+    SELECT COUNT(*) AS total
+    FROM funcionarios
+    WHERE id_empresa = ?
+      AND ativo = 1
 ");
-$stmtTotal->bind_param("i", $id_empresa);
+
+if (!$stmtTotal) {
+    die(
+        'Erro ao consultar funcionários ativos: ' .
+        htmlspecialchars($con->error)
+    );
+}
+
+$stmtTotal->bind_param(
+    'i',
+    $id_empresa
+);
+
 $stmtTotal->execute();
-$totalFuncionarios = $stmtTotal->get_result()->fetch_assoc()['total'] ?? 0;
+
+$resultadoTotal = $stmtTotal
+    ->get_result()
+    ->fetch_assoc();
+
+$totalFuncionarios = (int) (
+    $resultadoTotal['total'] ?? 0
+);
+
+$stmtTotal->close();
+
+/* =========================================================
+   INDICADOR: FUNCIONÁRIOS COM HOLERITE ENVIADO
+========================================================= */
+
+$stmtEnviados = $con->prepare("
+    SELECT COUNT(DISTINCT funcionario_id) AS total
+
+    FROM holerites
+
+    WHERE id_empresa = ?
+      AND status = 'enviado'
+");
+
+if (!$stmtEnviados) {
+    die(
+        'Erro ao consultar holerites enviados: ' .
+        htmlspecialchars($con->error)
+    );
+}
+
+$stmtEnviados->bind_param(
+    'i',
+    $id_empresa
+);
+
+$stmtEnviados->execute();
+
+$resultadoEnviados = $stmtEnviados
+    ->get_result()
+    ->fetch_assoc();
+
+$enviados = (int) (
+    $resultadoEnviados['total'] ?? 0
+);
+
+$stmtEnviados->close();
+
+/* =========================================================
+   INDICADOR: PENDENTES
+========================================================= */
+
+$pendentes = max(
+    0,
+    $totalFuncionarios - $enviados
+);
+
+/* =========================================================
+   PERCENTUAL
+========================================================= */
+
+$percentualEnvio = $totalFuncionarios > 0
+    ? (int) round(
+        ($enviados / $totalFuncionarios) * 100
+    )
+    : 0;
+
+$percentualEnvio = min(
+    100,
+    max(0, $percentualEnvio)
+);
+
+/* =========================================================
+   FUNCIONÁRIOS PARA O MODAL
+========================================================= */
 
 $stmtFuncs = $con->prepare("
-SELECT id_funcionario, nome
-FROM funcionarios
-WHERE id_empresa = ?
-AND ativo = 1
-ORDER BY nome
+    SELECT
+        id_funcionario,
+        nome
+
+    FROM funcionarios
+
+    WHERE id_empresa = ?
+      AND ativo = 1
+
+    ORDER BY nome ASC
 ");
-$stmtFuncs->bind_param("i", $id_empresa);
+
+if (!$stmtFuncs) {
+    die(
+        'Erro ao consultar lista de funcionários: ' .
+        htmlspecialchars($con->error)
+    );
+}
+
+$stmtFuncs->bind_param(
+    'i',
+    $id_empresa
+);
+
 $stmtFuncs->execute();
-$funcionarios = $stmtFuncs->get_result();
 
-$percentualEnvio = $totalFuncionarios > 0 ? round(($enviados / $totalFuncionarios) * 100) : 0;
+$resultadoFuncionarios = $stmtFuncs->get_result();
+
+$funcionarios = [];
+
+while (
+    $funcionario = $resultadoFuncionarios->fetch_assoc()
+) {
+    $funcionarios[] = $funcionario;
+}
+
+$stmtFuncs->close();
+
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Holerite</title>
+    <meta charset="UTF-8">
 
-<link rel="stylesheet" href="css/style.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
 
-<style>
-:root {
-    --bg: #f5f7fb;
-    --card: #ffffff;
-    --card-soft: #f8fafc;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --blue: #2563eb;
-    --green: #16a34a;
-    --yellow: #d97706;
-    --red: #dc2626;
-    --shadow: 0 12px 30px rgba(15, 23, 42, .07);
-}
+    <title>Holerite</title>
 
-body {
-    background: var(--bg) !important;
-    color: var(--text);
-}
+    <link rel="stylesheet" href="css/style.css">
 
-.content {
-    min-height: 100vh;
-    padding: 32px;
-}
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
-.page-header,
-.kpi-card,
-.filter-card,
-.table-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-}
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
 
-.page-header {
-    border-radius: 24px;
-    padding: 28px;
-    margin-bottom: 24px;
-}
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --card-soft: #f8fafc;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --blue: #2563eb;
+            --green: #16a34a;
+            --yellow: #d97706;
+            --red: #dc2626;
+            --shadow:
+                0 12px 30px rgba(15, 23, 42, .07);
+        }
 
-.page-title {
-    font-size: 32px;
-    font-weight: 850;
-    margin-bottom: 6px;
-    color: var(--text);
-}
+        body {
+            background: var(--bg) !important;
+            color: var(--text);
+        }
 
-.page-subtitle {
-    color: var(--muted);
-    margin: 0;
-}
+        .content {
+            min-height: 100vh;
+            padding: 32px;
+        }
 
-.date-pill {
-    background: #eff6ff;
-    color: var(--blue);
-    border: 1px solid #bfdbfe;
-    border-radius: 999px;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 800;
-}
+        .page-header,
+        .kpi-card,
+        .filter-card,
+        .table-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
 
-.kpi-card {
-    border-radius: 22px;
-    padding: 22px;
-    height: 100%;
-}
+        .page-header {
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
 
-.kpi-label {
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 8px;
-}
+        .page-title {
+            margin-bottom: 6px;
+            color: var(--text);
+            font-size: 32px;
+            font-weight: 850;
+        }
 
-.kpi-value {
-    color: var(--text);
-    font-size: 32px;
-    font-weight: 850;
-    margin-bottom: 2px;
-}
+        .page-subtitle {
+            margin: 0;
+            color: var(--muted);
+        }
 
-.kpi-small {
-    color: var(--muted);
-    font-size: 13px;
-}
+        .date-pill {
+            padding: 10px 16px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            color: var(--blue);
+            font-size: 14px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
 
-.kpi-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 16px;
-    background: #eff6ff;
-    color: var(--blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 23px;
-}
+        .kpi-card {
+            height: 100%;
+            padding: 22px;
+            border-radius: 22px;
+        }
 
-.filter-card,
-.table-card {
-    border-radius: 22px;
-    overflow: hidden;
-}
+        .kpi-label {
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 700;
+        }
 
-.card-section-header {
-    padding: 20px 22px;
-    background: var(--card-soft);
-    border-bottom: 1px solid var(--border);
-}
+        .kpi-value {
+            margin-bottom: 2px;
+            color: var(--text);
+            font-size: 32px;
+            font-weight: 850;
+        }
 
-.card-section-header h5 {
-    color: var(--text);
-    font-weight: 850;
-    margin-bottom: 4px;
-}
+        .kpi-small {
+            color: var(--muted);
+            font-size: 13px;
+        }
 
-.card-section-header p {
-    color: var(--muted);
-    margin-bottom: 0;
-    font-size: 14px;
-}
+        .kpi-icon {
+            width: 46px;
+            height: 46px;
 
-.card-section-body {
-    padding: 22px;
-}
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-.form-control,
-.form-select {
-    border-radius: 14px;
-    min-height: 44px;
-    border-color: var(--border);
-    background: var(--card);
-    color: var(--text);
-}
+            background: #eff6ff;
+            border-radius: 16px;
 
-.form-control:focus,
-.form-select:focus {
-    border-color: #93c5fd;
-    box-shadow: 0 0 0 .22rem rgba(37, 99, 235, .12);
-}
+            color: var(--blue);
+            font-size: 23px;
+        }
 
-.btn {
-    border-radius: 14px;
-    font-weight: 700;
-}
+        .filter-card,
+        .table-card {
+            overflow: hidden;
+            border-radius: 22px;
+        }
 
-.table {
-    margin-bottom: 0;
-    color: var(--text);
-}
+        .card-section-header {
+            padding: 20px 22px;
+            background: var(--card-soft);
+            border-bottom: 1px solid var(--border);
+        }
 
-.table thead th {
-    background: var(--card-soft);
-    color: var(--muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-}
+        .card-section-header h5 {
+            margin-bottom: 4px;
+            color: var(--text);
+            font-weight: 850;
+        }
 
-.table tbody td {
-    background: var(--card);
-    color: var(--text);
-    padding: 17px 20px;
-    vertical-align: middle;
-    border-bottom: 1px solid var(--border);
-}
+        .card-section-header p {
+            margin-bottom: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
 
-.table tbody tr:hover td {
-    background: var(--card-soft);
-}
+        .card-section-body {
+            padding: 22px;
+        }
 
-.employee-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #eff6ff;
-    color: var(--blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 850;
-    flex-shrink: 0;
-}
+        .form-control,
+        .form-select {
+            min-height: 44px;
+            background: var(--card);
+            border-color: var(--border);
+            border-radius: 14px;
+            color: var(--text);
+        }
 
-.employee-name {
-    color: var(--text);
-    font-weight: 800;
-}
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #93c5fd;
 
-.badge-status {
-    border-radius: 999px;
-    padding: 7px 12px;
-    font-size: 12px;
-    font-weight: 800;
-    display: inline-block;
-}
+            box-shadow:
+                0 0 0 .22rem rgba(37, 99, 235, .12);
+        }
 
-.badge-enviado {
-    background: #dcfce7;
-    color: #166534;
-}
+        .btn {
+            border-radius: 14px;
+            font-weight: 700;
+        }
 
-.badge-pendente {
-    background: #fef3c7;
-    color: #92400e;
-}
+        .table {
+            margin-bottom: 0;
+            color: var(--text);
+        }
 
-.empty-state {
-    text-align: center;
-    padding: 42px 20px;
-    color: var(--muted);
-}
+        .table thead th {
+            padding: 15px 20px;
 
-.empty-state i {
-    display: block;
-    font-size: 36px;
-    margin-bottom: 10px;
-    color: var(--muted);
-}
+            background: var(--card-soft);
+            border-bottom: 1px solid var(--border);
 
-.progress-clean {
-    height: 9px;
-    border-radius: 999px;
-    background: var(--border);
-    overflow: hidden;
-    margin-top: 12px;
-}
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
 
-.progress-clean span {
-    display: block;
-    height: 100%;
-    width: <?= (int)$percentualEnvio ?>%;
-    background: var(--blue);
-    border-radius: 999px;
-}
+        .table tbody td {
+            padding: 17px 20px;
 
-.floating-action {
-    position: fixed;
-    right: 32px;
-    bottom: 28px;
-    z-index: 1000;
-    box-shadow: 0 16px 32px rgba(37, 99, 235, .28);
-}
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
 
-.modal {
-    z-index: 99999 !important;
-}
+            color: var(--text);
+            vertical-align: middle;
+        }
 
-.modal-backdrop {
-    z-index: 99998 !important;
-}
+        .table tbody tr:hover td {
+            background: var(--card-soft);
+        }
 
-.modal-content {
-    background: var(--card);
-    color: var(--text);
-    border-radius: 22px;
-    border: 1px solid var(--border);
-}
+        .employee-avatar {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
 
-.modal-header,
-.modal-footer {
-    border-color: var(--border);
-}
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-body.dark,
-body.dark-mode {
-    --bg: #0f172a;
-    --card: #111c2f;
-    --card-soft: #17233a;
-    --text: #f8fafc;
-    --muted: #cbd5e1;
-    --border: #2b3a55;
-    --shadow: 0 12px 30px rgba(0, 0, 0, .25);
-}
+            background: #eff6ff;
+            border-radius: 50%;
 
-body.dark .date-pill,
-body.dark-mode .date-pill,
-body.dark .kpi-icon,
-body.dark-mode .kpi-icon,
-body.dark .employee-avatar,
-body.dark-mode .employee-avatar {
-    background: rgba(37, 99, 235, .16);
-    color: #93c5fd;
-    border-color: rgba(147, 197, 253, .35);
-}
+            color: var(--blue);
+            font-weight: 850;
+        }
 
-body.dark .form-control,
-body.dark-mode .form-control,
-body.dark .form-select,
-body.dark-mode .form-select {
-    background: #0b1220;
-    color: #f8fafc;
-    border-color: #334155;
-}
+        .employee-name {
+            color: var(--text);
+            font-weight: 800;
+        }
 
-body.dark .form-control::placeholder,
-body.dark-mode .form-control::placeholder {
-    color: #94a3b8;
-}
+        .badge-status {
+            display: inline-block;
 
-body.dark .form-select option,
-body.dark-mode .form-select option {
-    background: #0b1220;
-    color: #f8fafc;
-}
+            padding: 7px 12px;
 
-body.dark .badge-enviado,
-body.dark-mode .badge-enviado {
-    background: rgba(22, 163, 74, .20);
-    color: #86efac;
-}
+            border-radius: 999px;
 
-body.dark .badge-pendente,
-body.dark-mode .badge-pendente {
-    background: rgba(217, 119, 6, .22);
-    color: #fcd34d;
-}
+            font-size: 12px;
+            font-weight: 800;
+        }
 
-body.dark .text-muted,
-body.dark-mode .text-muted {
-    color: #cbd5e1 !important;
-}
+        .badge-enviado {
+            background: #dcfce7;
+            color: #166534;
+        }
 
-@media(max-width: 768px) {
-    .content {
-        padding: 20px;
-    }
+        .badge-pendente {
+            background: #fef3c7;
+            color: #92400e;
+        }
 
-    .page-header {
-        padding: 22px;
-    }
+        .empty-state {
+            padding: 42px 20px;
+            color: var(--muted);
+            text-align: center;
+        }
 
-    .page-title {
-        font-size: 27px;
-    }
+        .empty-state i {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 36px;
+        }
 
-    .floating-action {
-        position: static;
-        width: 100%;
-        margin-top: 20px;
-    }
-}
-</style>
+        .progress-clean {
+            height: 9px;
+            overflow: hidden;
+
+            margin-top: 12px;
+
+            background: var(--border);
+            border-radius: 999px;
+        }
+
+        .progress-clean span {
+            display: block;
+
+            width: <?= $percentualEnvio ?>%;
+            height: 100%;
+
+            background: var(--blue);
+            border-radius: 999px;
+        }
+
+        .floating-action {
+            position: fixed;
+            right: 32px;
+            bottom: 28px;
+            z-index: 1000;
+
+            box-shadow:
+                0 16px 32px rgba(37, 99, 235, .28);
+        }
+
+        .modal {
+            z-index: 99999 !important;
+        }
+
+        .modal-backdrop {
+            z-index: 99998 !important;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            color: var(--text);
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: var(--border);
+        }
+
+        body.dark,
+        body.dark-mode {
+            --bg: #0f172a;
+            --card: #111c2f;
+            --card-soft: #17233a;
+            --text: #f8fafc;
+            --muted: #cbd5e1;
+            --border: #2b3a55;
+            --shadow:
+                0 12px 30px rgba(0, 0, 0, .25);
+        }
+
+        body.dark .date-pill,
+        body.dark-mode .date-pill,
+        body.dark .kpi-icon,
+        body.dark-mode .kpi-icon,
+        body.dark .employee-avatar,
+        body.dark-mode .employee-avatar {
+            background: rgba(37, 99, 235, .16);
+            border-color: rgba(147, 197, 253, .35);
+            color: #93c5fd;
+        }
+
+        body.dark .form-control,
+        body.dark-mode .form-control,
+        body.dark .form-select,
+        body.dark-mode .form-select {
+            background: #0b1220;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        body.dark .form-control::placeholder,
+        body.dark-mode .form-control::placeholder {
+            color: #94a3b8;
+        }
+
+        body.dark .form-select option,
+        body.dark-mode .form-select option {
+            background: #0b1220;
+            color: #f8fafc;
+        }
+
+        body.dark .badge-enviado,
+        body.dark-mode .badge-enviado {
+            background: rgba(22, 163, 74, .20);
+            color: #86efac;
+        }
+
+        body.dark .badge-pendente,
+        body.dark-mode .badge-pendente {
+            background: rgba(217, 119, 6, .22);
+            color: #fcd34d;
+        }
+
+        body.dark .text-muted,
+        body.dark-mode .text-muted {
+            color: #cbd5e1 !important;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .page-header {
+                padding: 22px;
+            }
+
+            .page-title {
+                font-size: 27px;
+            }
+
+            .floating-action {
+                position: static;
+
+                width: 100%;
+
+                margin-top: 20px;
+            }
+        }
+    </style>
+
 </head>
 
 <body>
@@ -462,353 +750,766 @@ body.dark-mode .text-muted {
 
 <div class="content">
 
-<div class="container-fluid">
+    <div class="container-fluid">
 
-    <?php if (isset($_GET['sucesso'])): ?>
-        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            Holerite enviado com sucesso.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
+        <?php if (isset($_GET['sucesso'])): ?>
 
-    <?php if (isset($_GET['erro'])): ?>
-        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <?= htmlspecialchars($_GET['erro']) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
+            <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm">
 
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-            <div>
-                <h1 class="page-title">Envio de Holerite</h1>
-                <p class="page-subtitle">
-                    Gerencie holerites enviados, pendências e arquivos dos funcionários.
-                </p>
+                <i class="bi bi-check-circle-fill me-2"></i>
+
+                Holerite enviado com sucesso.
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
+
             </div>
 
-            <span class="date-pill">
-                <i class="bi bi-calendar3 me-1"></i>
-                <?= date('d/m/Y') ?>
-            </span>
-        </div>
-    </div>
+        <?php endif; ?>
 
-    <div class="row g-3 mb-4">
+        <?php if (isset($_GET['erro'])): ?>
 
-        <div class="col-12 col-md-4">
-            <div class="kpi-card">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="kpi-label">Envio pendente</div>
-                        <h2 class="kpi-value"><?= max(0, $pendentes) ?></h2>
-                        <div class="kpi-small">Funcionários sem holerite enviado</div>
-                    </div>
-                    <div class="kpi-icon">
-                        <i class="bi bi-hourglass-split"></i>
-                    </div>
-                </div>
+            <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm">
+
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                <?= htmlspecialchars(
+                    $_GET['erro'],
+                    ENT_QUOTES,
+                    'UTF-8'
+                ) ?>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
+
             </div>
-        </div>
 
-        <div class="col-12 col-md-4">
-            <div class="kpi-card">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="kpi-label">Enviados</div>
-                        <h2 class="kpi-value"><?= (int)$enviados ?></h2>
-                        <div class="kpi-small">Funcionários com envio registrado</div>
-                    </div>
-                    <div class="kpi-icon">
-                        <i class="bi bi-send-check"></i>
-                    </div>
-                </div>
-                <div class="progress-clean">
-                    <span></span>
-                </div>
-            </div>
-        </div>
+        <?php endif; ?>
 
-        <div class="col-12 col-md-4">
-            <div class="kpi-card">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="kpi-label">Funcionários ativos</div>
-                        <h2 class="kpi-value"><?= (int)$totalFuncionarios ?></h2>
-                        <div class="kpi-small"><?= (int)$percentualEnvio ?>% com envio concluído</div>
-                    </div>
-                    <div class="kpi-icon">
-                        <i class="bi bi-people"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="page-header">
 
-    </div>
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
 
-    <div class="filter-card mb-4">
-        <div class="card-section-header">
-            <h5>Filtros</h5>
-            <p>Busque holerites por mês e ano de envio.</p>
-        </div>
-
-        <div class="card-section-body">
-            <form method="GET" class="row g-3">
-
-                <div class="col-md-3">
-                    <select name="mes" class="form-select">
-                        <option value="">Todos os meses</option>
-                        <option value="1" <?= $mes==1?'selected':'' ?>>Janeiro</option>
-                        <option value="2" <?= $mes==2?'selected':'' ?>>Fevereiro</option>
-                        <option value="3" <?= $mes==3?'selected':'' ?>>Março</option>
-                        <option value="4" <?= $mes==4?'selected':'' ?>>Abril</option>
-                        <option value="5" <?= $mes==5?'selected':'' ?>>Maio</option>
-                        <option value="6" <?= $mes==6?'selected':'' ?>>Junho</option>
-                        <option value="7" <?= $mes==7?'selected':'' ?>>Julho</option>
-                        <option value="8" <?= $mes==8?'selected':'' ?>>Agosto</option>
-                        <option value="9" <?= $mes==9?'selected':'' ?>>Setembro</option>
-                        <option value="10" <?= $mes==10?'selected':'' ?>>Outubro</option>
-                        <option value="11" <?= $mes==11?'selected':'' ?>>Novembro</option>
-                        <option value="12" <?= $mes==12?'selected':'' ?>>Dezembro</option>
-                    </select>
-                </div>
-
-                <div class="col-md-3">
-                    <input type="number" name="ano" class="form-control" placeholder="Ano" value="<?= htmlspecialchars($ano) ?>">
-                </div>
-
-                <div class="col-md-3">
-                    <button class="btn btn-primary w-100">
-                        <i class="bi bi-search me-2"></i>
-                        Filtrar
-                    </button>
-                </div>
-
-                <div class="col-md-3">
-                    <a href="holerite.php" class="btn btn-outline-secondary w-100">
-                        Limpar
-                    </a>
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-    <div class="table-card">
-        <div class="card-section-header">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
-                    <h5>Holerites enviados</h5>
-                    <p>Arquivos disponíveis para download e conferência.</p>
+
+                    <h1 class="page-title">
+                        Envio de Holerite
+                    </h1>
+
+                    <p class="page-subtitle">
+                        Gerencie holerites enviados, pendências e arquivos dos funcionários.
+                    </p>
+
                 </div>
 
-                <span class="badge bg-primary rounded-pill px-3 py-2">
-                    <?= $resultado->num_rows ?> registros
+                <span class="date-pill">
+
+                    <i class="bi bi-calendar3 me-1"></i>
+
+                    <?= date('d/m/Y') ?>
+
                 </span>
+
             </div>
+
         </div>
 
-        <div class="table-responsive">
+        <div class="row g-3 mb-4">
 
-            <table class="table table-hover align-middle">
+            <div class="col-12 col-md-4">
 
-                <thead>
-                    <tr>
-                        <th>Funcionário</th>
-                        <th>Período</th>
-                        <th>Data</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
+                <div class="kpi-card">
 
-                <tbody>
+                    <div class="d-flex justify-content-between align-items-start">
 
-                <?php if ($resultado->num_rows > 0): ?>
+                        <div>
 
-                    <?php while($row = $resultado->fetch_assoc()): ?>
+                            <div class="kpi-label">
+                                Envio pendente
+                            </div>
 
-                        <?php
-                        $inicial = mb_strtoupper(mb_substr($row['nome'], 0, 1, 'UTF-8'), 'UTF-8');
-                        ?>
+                            <h2 class="kpi-value">
+                                <?= $pendentes ?>
+                            </h2>
+
+                            <div class="kpi-small">
+                                Funcionários sem holerite enviado
+                            </div>
+
+                        </div>
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-12 col-md-4">
+
+                <div class="kpi-card">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <div class="kpi-label">
+                                Enviados
+                            </div>
+
+                            <h2 class="kpi-value">
+                                <?= $enviados ?>
+                            </h2>
+
+                            <div class="kpi-small">
+                                Funcionários com envio registrado
+                            </div>
+
+                        </div>
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-send-check"></i>
+                        </div>
+
+                    </div>
+
+                    <div class="progress-clean">
+                        <span></span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-12 col-md-4">
+
+                <div class="kpi-card">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+
+                            <div class="kpi-label">
+                                Funcionários ativos
+                            </div>
+
+                            <h2 class="kpi-value">
+                                <?= $totalFuncionarios ?>
+                            </h2>
+
+                            <div class="kpi-small">
+
+                                <?= $percentualEnvio ?>%
+                                com envio concluído
+
+                            </div>
+
+                        </div>
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="filter-card mb-4">
+
+            <div class="card-section-header">
+
+                <h5>Filtros</h5>
+
+                <p>
+                    Busque holerites pelo mês e ano da competência.
+                </p>
+
+            </div>
+
+            <div class="card-section-body">
+
+                <form
+                    method="GET"
+                    action="holerite.php"
+                    class="row g-3"
+                    id="formFiltro"
+                >
+
+                    <div class="col-md-3">
+
+                        <select
+                            name="mes"
+                            class="form-select"
+                            aria-label="Filtrar por mês"
+                        >
+
+                            <option value="0">
+                                Todos os meses
+                            </option>
+
+                            <?php foreach (
+                                $meses as $numeroMes => $nomeMes
+                            ): ?>
+
+                                <option
+                                    value="<?= $numeroMes ?>"
+                                    <?= $mes === $numeroMes
+                                        ? 'selected'
+                                        : ''
+                                    ?>
+                                >
+
+                                    <?= htmlspecialchars(
+                                        $nomeMes,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+
+                                </option>
+
+                            <?php endforeach; ?>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <input
+                            type="number"
+                            name="ano"
+                            class="form-control"
+                            placeholder="Ano"
+                            min="2000"
+                            max="2100"
+                            value="<?= $ano > 0 ? $ano : '' ?>"
+                        >
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100"
+                        >
+
+                            <i class="bi bi-search me-2"></i>
+
+                            Filtrar
+
+                        </button>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <a
+                            href="holerite.php"
+                            class="btn btn-outline-secondary w-100"
+                        >
+                            Limpar
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <div class="table-card">
+
+            <div class="card-section-header">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                    <div>
+
+                        <h5>Holerites enviados</h5>
+
+                        <p>
+                            Arquivos disponíveis para download e conferência.
+                        </p>
+
+                    </div>
+
+                    <span class="badge bg-primary rounded-pill px-3 py-2">
+
+                        <?= $totalRegistros ?> registros
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
 
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="employee-avatar">
-                                        <?= htmlspecialchars($inicial) ?>
-                                    </div>
-                                    <span class="employee-name">
-                                        <?= htmlspecialchars($row['nome']) ?>
-                                    </span>
-                                </div>
-                            </td>
-
-                            <td><?= htmlspecialchars($row['periodo']) ?></td>
-
-                            <td><?= date('d/m/Y', strtotime($row['data_envio'])) ?></td>
-
-                            <td>
-                                <?php if($row['status'] == 'pendente'): ?>
-                                    <span class="badge-status badge-pendente">
-                                        Pendente
-                                    </span>
-                                <?php else: ?>
-                                    <span class="badge-status badge-enviado">
-                                        Enviado
-                                    </span>
-                                <?php endif; ?>
-                            </td>
-
-                            <td>
-                                <?php if (!empty($row['arquivo'])): ?>
-                                    <a href="<?= htmlspecialchars($row['arquivo']) ?>" target="_blank" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-download me-1"></i>
-                                        Download
-                                    </a>
-                                <?php else: ?>
-                                    <span class="text-muted">Sem arquivo</span>
-                                <?php endif; ?>
-                            </td>
+                            <th>Funcionário</th>
+                            <th>Período</th>
+                            <th>Data de envio</th>
+                            <th>Status</th>
+                            <th>Ações</th>
                         </tr>
 
-                    <?php endwhile; ?>
+                    </thead>
 
-                <?php else: ?>
+                    <tbody>
 
-                    <tr>
-                        <td colspan="5">
-                            <div class="empty-state">
-                                <i class="bi bi-inbox"></i>
-                                Nenhum holerite encontrado.
-                            </div>
-                        </td>
-                    </tr>
+                    <?php if ($totalRegistros > 0): ?>
 
-                <?php endif; ?>
+                        <?php while (
+                            $row = $resultado->fetch_assoc()
+                        ): ?>
 
-                </tbody>
+                            <?php
 
-            </table>
+                            $inicial = mb_strtoupper(
+                                mb_substr(
+                                    $row['nome'],
+                                    0,
+                                    1,
+                                    'UTF-8'
+                                ),
+                                'UTF-8'
+                            );
+
+                            $dataEnvio = '-';
+
+                            if (!empty($row['data_envio'])) {
+                                $timestampEnvio = strtotime(
+                                    $row['data_envio']
+                                );
+
+                                if ($timestampEnvio !== false) {
+                                    $dataEnvio = date(
+                                        'd/m/Y',
+                                        $timestampEnvio
+                                    );
+                                }
+                            }
+
+                            ?>
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="d-flex align-items-center gap-2">
+
+                                        <div class="employee-avatar">
+
+                                            <?= htmlspecialchars(
+                                                $inicial,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>
+
+                                        </div>
+
+                                        <span class="employee-name">
+
+                                            <?= htmlspecialchars(
+                                                $row['nome'],
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>
+
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        $row['periodo'] ?? '-',
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+
+                                </td>
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        $dataEnvio,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+
+                                </td>
+
+                                <td>
+
+                                    <?php if (
+                                        ($row['status'] ?? '') === 'pendente'
+                                    ): ?>
+
+                                        <span class="badge-status badge-pendente">
+                                            Pendente
+                                        </span>
+
+                                    <?php else: ?>
+
+                                        <span class="badge-status badge-enviado">
+                                            Enviado
+                                        </span>
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                                <td>
+
+                                    <?php if (
+                                        !empty($row['arquivo'])
+                                    ): ?>
+
+                                        <a
+                                            href="<?= htmlspecialchars(
+                                                $row['arquivo'],
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-outline-primary btn-sm"
+                                        >
+
+                                            <i class="bi bi-download me-1"></i>
+
+                                            Download
+
+                                        </a>
+
+                                    <?php else: ?>
+
+                                        <span class="text-muted">
+                                            Sem arquivo
+                                        </span>
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                            </tr>
+
+                        <?php endwhile; ?>
+
+                    <?php else: ?>
+
+                        <tr>
+
+                            <td colspan="5">
+
+                                <div class="empty-state">
+
+                                    <i class="bi bi-inbox"></i>
+
+                                    Nenhum holerite encontrado para essa competência.
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    <?php endif; ?>
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
+
+        <button
+            type="button"
+            class="btn btn-primary btn-lg floating-action px-4"
+            data-bs-toggle="modal"
+            data-bs-target="#modalHolerite"
+        >
+
+            <i class="bi bi-send-fill me-2"></i>
+
+            Enviar Holerite
+
+        </button>
+
     </div>
 
-    <button class="btn btn-primary btn-lg floating-action px-4" data-bs-toggle="modal" data-bs-target="#modalHolerite">
-        <i class="bi bi-send-fill me-2"></i>
-        Enviar Holerite
-    </button>
-
-</div>
 </div>
 
-<div class="modal fade" id="modalHolerite" tabindex="-1">
+<div
+    class="modal fade"
+    id="modalHolerite"
+    tabindex="-1"
+    aria-labelledby="tituloModalHolerite"
+    aria-hidden="true"
+>
+
     <div class="modal-dialog modal-dialog-centered">
+
         <div class="modal-content shadow">
 
-            <form action="enviar_holerite.php" method="POST" enctype="multipart/form-data">
+            <form
+                action="enviar_holerite.php"
+                method="POST"
+                enctype="multipart/form-data"
+                id="formEnviarHolerite"
+            >
 
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">
+
+                    <h5
+                        class="modal-title fw-bold"
+                        id="tituloModalHolerite"
+                    >
+
                         <i class="bi bi-send-fill me-2 text-primary"></i>
+
                         Enviar Holerite
+
                     </h5>
 
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar"
+                    ></button>
+
                 </div>
 
                 <div class="modal-body">
 
-                    <label class="form-label fw-semibold">Funcionário</label>
+                    <label class="form-label fw-semibold">
+                        Funcionário
+                    </label>
 
-                    <select name="funcionario_id" class="form-select" required>
-                        <option value="">Selecione</option>
+                    <select
+                        name="funcionario_id"
+                        class="form-select"
+                        required
+                    >
 
-                        <?php while($func = $funcionarios->fetch_assoc()): ?>
-                            <option value="<?= $func['id_funcionario'] ?>">
-                                <?= htmlspecialchars($func['nome']) ?>
+                        <option value="">
+                            Selecione
+                        </option>
+
+                        <?php foreach (
+                            $funcionarios as $func
+                        ): ?>
+
+                            <option
+                                value="<?= (int) $func['id_funcionario'] ?>"
+                            >
+
+                                <?= htmlspecialchars(
+                                    $func['nome'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>
+
                             </option>
-                        <?php endwhile; ?>
+
+                        <?php endforeach; ?>
+
                     </select>
 
-                    <label class="form-label fw-semibold mt-3">Competência</label>
+                    <label class="form-label fw-semibold mt-3">
+                        Competência
+                    </label>
 
                     <div class="row g-2">
 
                         <div class="col-md-6">
-                            <select name="mes" class="form-select" required>
-                                <option value="">Mês</option>
-                                <option value="Janeiro">Janeiro</option>
-                                <option value="Fevereiro">Fevereiro</option>
-                                <option value="Março">Março</option>
-                                <option value="Abril">Abril</option>
-                                <option value="Maio">Maio</option>
-                                <option value="Junho">Junho</option>
-                                <option value="Julho">Julho</option>
-                                <option value="Agosto">Agosto</option>
-                                <option value="Setembro">Setembro</option>
-                                <option value="Outubro">Outubro</option>
-                                <option value="Novembro">Novembro</option>
-                                <option value="Dezembro">Dezembro</option>
+
+                            <select
+                                name="mes"
+                                class="form-select"
+                                required
+                            >
+
+                                <option value="">
+                                    Mês
+                                </option>
+
+                                <?php foreach (
+                                    $meses as $nomeMes
+                                ): ?>
+
+                                    <option
+                                        value="<?= htmlspecialchars(
+                                            $nomeMes,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                    >
+
+                                        <?= htmlspecialchars(
+                                            $nomeMes,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+
+                                    </option>
+
+                                <?php endforeach; ?>
+
                             </select>
+
                         </div>
 
                         <div class="col-md-6">
-                            <select name="ano" class="form-select" required>
+
+                            <select
+                                name="ano"
+                                class="form-select"
+                                required
+                            >
+
                                 <?php
-                                $anoAtual = date('Y');
-                                for ($i = $anoAtual + 1; $i >= $anoAtual - 5; $i--):
+
+                                $anoAtual = (int) date('Y');
+
+                                for (
+                                    $i = $anoAtual + 1;
+                                    $i >= $anoAtual - 5;
+                                    $i--
+                                ):
+
                                 ?>
-                                    <option value="<?= $i ?>"><?= $i ?></option>
+
+                                    <option
+                                        value="<?= $i ?>"
+                                        <?= $i === $anoAtual
+                                            ? 'selected'
+                                            : ''
+                                        ?>
+                                    >
+                                        <?= $i ?>
+                                    </option>
+
                                 <?php endfor; ?>
+
                             </select>
+
                         </div>
 
                     </div>
 
-                    <label class="form-label fw-semibold mt-3">PDF do Holerite</label>
+                    <label class="form-label fw-semibold mt-3">
+                        PDF do Holerite
+                    </label>
 
-                    <input type="file" name="arquivo" class="form-control" accept="application/pdf,.pdf" required>
+                    <input
+                        type="file"
+                        name="arquivo"
+                        class="form-control"
+                        accept="application/pdf,.pdf"
+                        required
+                    >
 
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal"
+                    >
                         Cancelar
                     </button>
 
-                    <button type="submit" class="btn btn-primary">
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="btnEnviarHolerite"
+                    >
+
                         <i class="bi bi-send-fill me-2"></i>
+
                         Enviar
+
                     </button>
+
                 </div>
 
             </form>
 
         </div>
+
     </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-const forms = document.querySelectorAll('form');
+document.addEventListener('DOMContentLoaded', function () {
 
-forms.forEach(form => {
-    form.addEventListener('submit', () => {
-        const botao = form.querySelector('button[type="submit"]');
+    const formularioEnvio = document.getElementById(
+        'formEnviarHolerite'
+    );
 
-        if (botao) {
-            botao.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
-            botao.disabled = true;
-        }
-    });
+    const botaoEnvio = document.getElementById(
+        'btnEnviarHolerite'
+    );
+
+    if (formularioEnvio && botaoEnvio) {
+
+        formularioEnvio.addEventListener(
+            'submit',
+            function () {
+
+                botaoEnvio.disabled = true;
+
+                botaoEnvio.innerHTML = `
+                    <span
+                        class="spinner-border spinner-border-sm me-2"
+                        aria-hidden="true"
+                    ></span>
+                    Enviando...
+                `;
+
+            }
+        );
+
+    }
+
 });
 </script>
 
 <script src="js/theme.js"></script>
 <script src="js/translate.js"></script>
+
 </body>
 </html>
+```

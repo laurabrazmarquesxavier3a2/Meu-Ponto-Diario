@@ -1,69 +1,96 @@
+```php
 <?php
+
 session_start();
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once '../config/database.php';
 require_once '../lang.php';
 
-/*
-========================================
-VALIDAÇÃO LOGIN
-========================================
-*/
+/* =========================================================
+   VALIDAÇÃO DO LOGIN
+========================================================= */
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../login.php");
+    header('Location: ../login.php');
     exit;
 }
 
 $id_usuario = (int) $_SESSION['id_usuario'];
 
-/*
-========================================
-BUSCAR ID DO FUNCIONÁRIO
-========================================
-*/
+if ($id_usuario <= 0) {
+    session_destroy();
+
+    header('Location: ../login.php');
+    exit;
+}
+
+/* =========================================================
+   BUSCAR FUNCIONÁRIO E EMPRESA
+========================================================= */
 
 $sqlUsuario = "
-    SELECT id_funcionario
+    SELECT
+        id_funcionario,
+        id_empresa
+
     FROM usuarios
+
     WHERE id_usuario = ?
+
+    LIMIT 1
 ";
 
 $stmtUsuario = $con->prepare($sqlUsuario);
 
 if (!$stmtUsuario) {
-    die("Erro SQL: " . $con->error);
+    die(
+        'Erro ao preparar busca do usuário: ' .
+        htmlspecialchars($con->error)
+    );
 }
 
-$stmtUsuario->bind_param("i", $id_usuario);
-$stmtUsuario->execute();
+$stmtUsuario->bind_param(
+    'i',
+    $id_usuario
+);
 
-$resultUsuario = $stmtUsuario->get_result();
-
-if ($resultUsuario->num_rows == 0) {
-    die("Funcionário não encontrado.");
+if (!$stmtUsuario->execute()) {
+    die(
+        'Erro ao buscar usuário: ' .
+        htmlspecialchars($stmtUsuario->error)
+    );
 }
 
-$usuario = $resultUsuario->fetch_assoc();
-$id_funcionario = (int)$usuario['id_funcionario'];
+$usuario = $stmtUsuario
+    ->get_result()
+    ->fetch_assoc();
 
-if (!$id_funcionario) {
-    die("Funcionário não encontrado.");
+$stmtUsuario->close();
+
+if (
+    !$usuario ||
+    empty($usuario['id_funcionario'])
+) {
+    die('Funcionário não encontrado.');
 }
 
-/*
-========================================
-FILTROS
-========================================
-*/
+$id_funcionario = (int) $usuario['id_funcionario'];
+$id_empresa = (int) ($usuario['id_empresa'] ?? 0);
 
-$ano = $_GET['ano'] ?? date('Y');
-$mes = $_GET['mes'] ?? '';
+if ($id_funcionario <= 0) {
+    die('Funcionário não identificado.');
+}
 
-/*
-========================================
-MESES
-========================================
-*/
+if ($id_empresa <= 0) {
+    die('Empresa não identificada.');
+}
+
+/* =========================================================
+   MESES
+========================================================= */
 
 $meses = [
     '01' => 'Janeiro',
@@ -80,150 +107,591 @@ $meses = [
     '12' => 'Dezembro'
 ];
 
+/* =========================================================
+   ANOS DISPONÍVEIS PELA COMPETÊNCIA
+========================================================= */
+
 /*
-========================================
-BUSCAR ANOS
-========================================
+|--------------------------------------------------------------------------
+| O ano é obtido pelo campo periodo.
+|--------------------------------------------------------------------------
+|
+| Exemplos armazenados:
+|
+| Janeiro/2026
+| Abril/2026
+| Dezembro/2025
+|
+| Não usamos YEAR(data_envio), porque data_envio representa somente
+| o dia em que o RH realizou o envio.
+|
 */
 
 $sqlAnos = "
-    SELECT DISTINCT YEAR(data_envio) AS ano
+    SELECT DISTINCT
+
+        CAST(
+            TRIM(
+                SUBSTRING_INDEX(periodo, '/', -1)
+            )
+            AS UNSIGNED
+        ) AS ano
+
     FROM holerites
+
     WHERE funcionario_id = ?
+      AND id_empresa = ?
+      AND status = 'enviado'
+      AND periodo IS NOT NULL
+      AND TRIM(periodo) <> ''
+      AND periodo LIKE '%/%'
+
     ORDER BY ano DESC
 ";
 
 $stmtAnos = $con->prepare($sqlAnos);
 
 if (!$stmtAnos) {
-    die("Erro SQL (anos): " . $con->error);
+    die(
+        'Erro ao preparar consulta dos anos: ' .
+        htmlspecialchars($con->error)
+    );
 }
 
-$stmtAnos->bind_param("i", $id_funcionario);
-$stmtAnos->execute();
+$stmtAnos->bind_param(
+    'ii',
+    $id_funcionario,
+    $id_empresa
+);
 
-$anos = $stmtAnos->get_result();
+if (!$stmtAnos->execute()) {
+    die(
+        'Erro ao consultar anos disponíveis: ' .
+        htmlspecialchars($stmtAnos->error)
+    );
+}
+
+$resultadoAnos = $stmtAnos->get_result();
+
+$anosDisponiveis = [];
+
+while ($linhaAno = $resultadoAnos->fetch_assoc()) {
+    $anoDisponivel = (int) ($linhaAno['ano'] ?? 0);
+
+    if (
+        $anoDisponivel >= 2000 &&
+        $anoDisponivel <= 2100
+    ) {
+        $anosDisponiveis[] = $anoDisponivel;
+    }
+}
+
+$stmtAnos->close();
 
 /*
-========================================
-QUERY PRINCIPAL
-========================================
+|--------------------------------------------------------------------------
+| Se não existir holerite, mostra o ano atual no filtro.
+|--------------------------------------------------------------------------
+*/
+
+if (count($anosDisponiveis) === 0) {
+    $anosDisponiveis[] = (int) date('Y');
+}
+
+/* =========================================================
+   FILTROS RECEBIDOS
+========================================================= */
+
+$ano = isset($_GET['ano'])
+    ? (int) $_GET['ano']
+    : $anosDisponiveis[0];
+
+$mesRecebido = trim(
+    (string) ($_GET['mes'] ?? '')
+);
+
+if ($mesRecebido === '') {
+    $mes = '';
+} else {
+    $numeroMes = (int) $mesRecebido;
+
+    $mes = str_pad(
+        (string) $numeroMes,
+        2,
+        '0',
+        STR_PAD_LEFT
+    );
+}
+
+if (!array_key_exists($mes, $meses)) {
+    $mes = '';
+}
+
+if ($ano < 2000 || $ano > 2100) {
+    $ano = $anosDisponiveis[0];
+}
+
+/*
+|--------------------------------------------------------------------------
+| Caso o ano enviado não esteja mais disponível, mantém o valor.
+|--------------------------------------------------------------------------
+|
+| Isso evita que um filtro válido deixe de funcionar por causa de um
+| registro recém-inserido. A validação de 2000 até 2100 já foi aplicada.
+|
+*/
+
+/* =========================================================
+   CONSULTA PRINCIPAL DOS HOLERITES
+========================================================= */
+
+/*
+|--------------------------------------------------------------------------
+| COLUNAS REAIS DA TABELA:
+|--------------------------------------------------------------------------
+|
+| id
+| funcionario_id
+| arquivo
+| periodo
+| data_envio
+| status
+| id_empresa
+|
 */
 
 $sql = "
-    SELECT *
-    FROM holerites
-    WHERE funcionario_id = ?
-    AND YEAR(data_envio) = ?
+    SELECT
+        h.id,
+        h.funcionario_id,
+        h.arquivo,
+        h.periodo,
+        h.data_envio,
+        h.status,
+        h.id_empresa
+
+    FROM holerites h
+
+    WHERE h.funcionario_id = ?
+      AND h.id_empresa = ?
+      AND h.status = 'enviado'
+
+      AND CAST(
+            TRIM(
+                SUBSTRING_INDEX(h.periodo, '/', -1)
+            )
+            AS UNSIGNED
+          ) = ?
 ";
 
-if ($mes != '') {
-    $sql .= " AND MONTH(data_envio) = ?";
+$tipos = 'iii';
+
+$parametros = [
+    $id_funcionario,
+    $id_empresa,
+    $ano
+];
+
+/* =========================================================
+   FILTRO POR MÊS DA COMPETÊNCIA
+========================================================= */
+
+if ($mes !== '') {
+    $nomeMesSelecionado = $meses[$mes];
+
+    $sql .= "
+        AND LOWER(
+            TRIM(
+                SUBSTRING_INDEX(h.periodo, '/', 1)
+            )
+        ) = LOWER(?)
+    ";
+
+    $tipos .= 's';
+    $parametros[] = $nomeMesSelecionado;
 }
 
-$sql .= " ORDER BY data_envio DESC";
+/* =========================================================
+   ORDENAÇÃO
+========================================================= */
+
+/*
+|--------------------------------------------------------------------------
+| A ordenação usa o número equivalente de cada mês.
+|--------------------------------------------------------------------------
+|
+| Dezembro = 12
+| Novembro = 11
+| ...
+| Janeiro = 1
+|
+*/
+
+$sql .= "
+    ORDER BY
+
+        CAST(
+            TRIM(
+                SUBSTRING_INDEX(h.periodo, '/', -1)
+            )
+            AS UNSIGNED
+        ) DESC,
+
+        CASE LOWER(
+            TRIM(
+                SUBSTRING_INDEX(h.periodo, '/', 1)
+            )
+        )
+            WHEN 'janeiro' THEN 1
+            WHEN 'fevereiro' THEN 2
+            WHEN 'março' THEN 3
+            WHEN 'marco' THEN 3
+            WHEN 'abril' THEN 4
+            WHEN 'maio' THEN 5
+            WHEN 'junho' THEN 6
+            WHEN 'julho' THEN 7
+            WHEN 'agosto' THEN 8
+            WHEN 'setembro' THEN 9
+            WHEN 'outubro' THEN 10
+            WHEN 'novembro' THEN 11
+            WHEN 'dezembro' THEN 12
+            ELSE 0
+        END DESC,
+
+        h.data_envio DESC,
+        h.id DESC
+";
 
 $stmt = $con->prepare($sql);
 
 if (!$stmt) {
-    die("Erro SQL (holerites): " . $con->error);
-}
-
-if ($mes != '') {
-
-    $mesInt = (int)$mes;
-
-    $stmt->bind_param(
-        "iii",
-        $id_funcionario,
-        $ano,
-        $mesInt
-    );
-
-} else {
-
-    $stmt->bind_param(
-        "ii",
-        $id_funcionario,
-        $ano
+    die(
+        'Erro SQL holerites: ' .
+        htmlspecialchars($con->error)
     );
 }
 
-$stmt->execute();
+$stmt->bind_param(
+    $tipos,
+    ...$parametros
+);
 
-$result = $stmt->get_result();
+if (!$stmt->execute()) {
+    die(
+        'Erro ao consultar holerites: ' .
+        htmlspecialchars($stmt->error)
+    );
+}
 
-$total = $result->num_rows;
+$resultado = $stmt->get_result();
+
+$holerites = [];
+
+while ($row = $resultado->fetch_assoc()) {
+    $holerites[] = $row;
+}
+
+$stmt->close();
+
+$total = count($holerites);
+
+/* =========================================================
+   FUNÇÃO PARA SEPARAR O PERÍODO
+========================================================= */
+
+function separarPeriodo(?string $periodo): array
+{
+    $periodo = trim((string) $periodo);
+
+    if ($periodo === '') {
+        return [
+            'mes' => 'Mês',
+            'ano' => date('Y')
+        ];
+    }
+
+    $partes = array_map(
+        'trim',
+        explode('/', $periodo, 2)
+    );
+
+    $nomeMes = !empty($partes[0])
+        ? $partes[0]
+        : 'Mês';
+
+    $anoPeriodo = !empty($partes[1])
+        ? $partes[1]
+        : date('Y');
+
+    return [
+        'mes' => $nomeMes,
+        'ano' => $anoPeriodo
+    ];
+}
+
+/* =========================================================
+   FUNÇÃO PARA CAMINHO DO ARQUIVO
+========================================================= */
+
+function montarCaminhoArquivo(?string $arquivo): string
+{
+    $arquivo = trim((string) $arquivo);
+
+    if ($arquivo === '') {
+        return '';
+    }
+
+    /*
+     * Se já for uma URL completa, mantém como está.
+     */
+    if (
+        str_starts_with($arquivo, 'http://') ||
+        str_starts_with($arquivo, 'https://')
+    ) {
+        return $arquivo;
+    }
+
+    /*
+     * Remove barras e caminhos relativos repetidos do começo.
+     */
+    $arquivo = preg_replace(
+        '#^(\.\./)+#',
+        '',
+        $arquivo
+    );
+
+    $arquivo = ltrim(
+        (string) $arquivo,
+        '/\\'
+    );
+
+    return '../' . $arquivo;
+}
+
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-<title>Seus Holerites</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Seus Holerites</title>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
-<link rel="stylesheet" href="../css/sidebarfunc.css">
-<link rel="stylesheet" href="../css/global.css">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
 
-<style>
+    <link rel="stylesheet" href="../css/sidebarfunc.css">
+    <link rel="stylesheet" href="../css/global.css">
 
-body{
-    background: #f4f6f9;
-}
+    <style>
+        :root {
+            --page-bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --primary: #0d6efd;
+            --primary-soft: #eff6ff;
+            --shadow:
+                0 10px 25px rgba(15, 23, 42, .08);
+        }
 
-.content{
-    margin-left: 270px;
-    padding: 30px;
-}
+        body {
+            background: var(--page-bg);
+            color: var(--text-main);
+        }
 
-.page-title{
-    font-weight: 700;
-    color: #1f2937;
-}
+        .content {
+            min-height: 100vh;
 
-.card-holerite{
-    border: none;
-    border-radius: 20px;
-    transition: .3s;
-}
+            margin-left: 270px;
+            padding: 30px;
+        }
 
-.card-holerite:hover{
-    transform: translateY(-5px);
-}
+        .page-title {
+            margin-bottom: 6px;
 
-.badge-mes{
-    background: #0d6efd;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-}
+            color: var(--text-main);
 
-.empty-box{
-    background: white;
-    padding: 40px;
-    border-radius: 20px;
-    text-align: center;
-}
+            font-weight: 700;
+        }
 
-@media(max-width:991px){
+        .page-subtitle {
+            margin-bottom: 0;
+            color: var(--text-muted);
+        }
 
-    .content{
-        margin-left: 0;
-        padding: 20px;
-    }
+        .filter-form .form-select {
+            min-width: 190px;
+            min-height: 48px;
 
-}
+            background: var(--card-bg);
 
-</style>
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+
+            color: var(--text-main);
+        }
+
+        .filter-form .form-select:focus {
+            border-color: #60a5fa;
+
+            box-shadow:
+                0 0 0 .22rem rgba(37, 99, 235, .12);
+        }
+
+        .card-holerite {
+            height: 100%;
+
+            background: var(--card-bg);
+
+            border:
+                1px solid rgba(226, 232, 240, .8);
+
+            border-radius: 20px;
+
+            box-shadow: var(--shadow);
+
+            transition:
+                box-shadow .25s ease,
+                border-color .25s ease;
+        }
+
+        .card-holerite:hover {
+            border-color: #bfdbfe;
+
+            box-shadow:
+                0 16px 36px rgba(15, 23, 42, .12);
+        }
+
+        .badge-mes {
+            padding: 8px 12px;
+
+            background: var(--primary);
+
+            border-radius: 10px;
+
+            color: #ffffff;
+
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .empty-box {
+            padding: 40px;
+
+            background: var(--card-bg);
+
+            border: 1px solid var(--border);
+            border-radius: 20px;
+
+            box-shadow: var(--shadow);
+
+            text-align: center;
+        }
+
+        .btn {
+            border-radius: 8px;
+        }
+
+        .arquivo-indisponivel {
+            padding: 12px 14px;
+
+            background: var(--primary-soft);
+
+            border-radius: 10px;
+
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        body.dark,
+        body.dark-mode {
+            --page-bg: #0f172a;
+            --card-bg: #111c2f;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --border: #334155;
+            --primary-soft: #17233a;
+            --shadow:
+                0 10px 25px rgba(0, 0, 0, .24);
+        }
+
+        body.dark .text-secondary,
+        body.dark-mode .text-secondary {
+            color: var(--text-muted) !important;
+        }
+
+        body.dark .filter-form .form-select,
+        body.dark-mode .filter-form .form-select {
+            background: #0b1220;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        body.dark .filter-form option,
+        body.dark-mode .filter-form option {
+            background: #0b1220;
+            color: #f8fafc;
+        }
+
+        body.dark .card-holerite,
+        body.dark-mode .card-holerite {
+            border-color: #2b3a55;
+        }
+
+        body.dark .card-holerite:hover,
+        body.dark-mode .card-holerite:hover {
+            border-color: #3b82f6;
+        }
+
+        @media (max-width: 991px) {
+            .content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .filter-form {
+                width: 100%;
+            }
+
+            .filter-form .form-select {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .filter-form {
+                flex-direction: column;
+            }
+
+            .filter-form .form-select {
+                width: 100%;
+            }
+
+            .acoes-holerite {
+                flex-direction: column;
+            }
+
+            .acoes-holerite .btn {
+                width: 100% !important;
+            }
+        }
+    </style>
 
 </head>
 
@@ -233,7 +701,6 @@ body{
 
 <div class="content">
 
-    <!-- TOPO -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
 
         <div>
@@ -242,64 +709,85 @@ body{
                 Seus Holerites
             </h2>
 
-            <p class="text-secondary mb-0">
+            <p class="page-subtitle">
+
                 Total encontrado:
-                <b><?= $total ?></b>
+
+                <strong>
+                    <?= $total ?>
+                </strong>
+
             </p>
 
         </div>
 
-        <!-- FILTROS -->
-        <form method="GET" class="d-flex gap-2 flex-wrap">
+        <form
+            method="GET"
+            action=""
+            class="filter-form d-flex gap-2 flex-wrap"
+            id="formFiltroHolerites"
+        >
 
-            <!-- ANO -->
             <select
                 name="ano"
+                id="filtroAno"
                 class="form-select"
-                onchange="this.form.submit()"
+                aria-label="Filtrar por ano"
             >
 
-                <?php if($anos->num_rows > 0): ?>
+                <?php foreach (
+                    $anosDisponiveis as $anoDisponivel
+                ): ?>
 
-                    <?php while($a = $anos->fetch_assoc()): ?>
+                    <option
+                        value="<?= $anoDisponivel ?>"
+                        <?= $anoDisponivel === $ano
+                            ? 'selected'
+                            : ''
+                        ?>
+                    >
 
-                        <option
-                            value="<?= $a['ano'] ?>"
-                            <?= ($a['ano'] == $ano) ? 'selected' : '' ?>
-                        >
-                            <?= $a['ano'] ?>
-                        </option>
+                        <?= $anoDisponivel ?>
 
-                    <?php endwhile; ?>
-
-                <?php else: ?>
-
-                    <option value="<?= date('Y') ?>">
-                        <?= date('Y') ?>
                     </option>
 
-                <?php endif; ?>
+                <?php endforeach; ?>
 
             </select>
 
-            <!-- MÊS -->
             <select
                 name="mes"
+                id="filtroMes"
                 class="form-select"
-                onchange="this.form.submit()"
+                aria-label="Filtrar por mês"
             >
 
                 <option value="">
                     Todos
                 </option>
 
-                <?php foreach($meses as $num => $nome): ?>
+                <?php foreach (
+                    $meses as $numeroMes => $nomeMes
+                ): ?>
 
                     <option
-                        value="<?= $num ?>"
-                        <?= ($mes == $num) ? 'selected' : '' ?>
+                        value="<?= htmlspecialchars(
+                            $numeroMes,
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>"
+                        <?= $mes === $numeroMes
+                            ? 'selected'
+                            : ''
+                        ?>
                     >
-                        <?= $nome ?>
+
+                        <?= htmlspecialchars(
+                            $nomeMes,
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>
+
                     </option>
 
                 <?php endforeach; ?>
@@ -310,36 +798,59 @@ body{
 
     </div>
 
-    <!-- LISTA -->
     <div class="row g-4">
 
-        <?php if($total > 0): ?>
+        <?php if ($total > 0): ?>
 
-            <?php while($row = $result->fetch_assoc()): ?>
+            <?php foreach ($holerites as $row): ?>
 
                 <?php
 
-                 $periodo = explode('/', $row['periodo']);
+                $dadosPeriodo = separarPeriodo(
+                    $row['periodo'] ?? ''
+                );
 
-                $nomeMes = $periodo[0] ?? 'Mês';
-                
-                 $a = $periodo[1] ?? date('Y');
+                $nomeMes = $dadosPeriodo['mes'];
+                $anoPeriodo = $dadosPeriodo['ano'];
+
+                $arquivo = trim(
+                    (string) ($row['arquivo'] ?? '')
+                );
+
+                $caminhoArquivo = montarCaminhoArquivo(
+                    $arquivo
+                );
+
                 ?>
 
                 <div class="col-12 col-md-6 col-lg-4">
 
-                    <div class="card card-holerite shadow-sm h-100">
+                    <div class="card card-holerite">
 
                         <div class="card-body p-4 d-flex flex-column">
 
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
 
                                 <h5 class="mb-0 fw-bold">
                                     Holerite
                                 </h5>
 
-                                <span class="badge-mes text-white">
-                                    <?= $nomeMes ?> / <?= $a ?>
+                                <span class="badge-mes">
+
+                                    <?= htmlspecialchars(
+                                        $nomeMes,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+
+                                    /
+
+                                    <?= htmlspecialchars(
+                                        $anoPeriodo,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+
                                 </span>
 
                             </div>
@@ -347,31 +858,72 @@ body{
                             <p class="text-secondary flex-grow-1">
 
                                 Comprovante referente ao mês de
-                                <b><?= $nomeMes ?></b>.
+
+                                <strong>
+
+                                    <?= htmlspecialchars(
+                                        $nomeMes,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+
+                                </strong>.
 
                             </p>
 
-                            <div class="d-flex gap-2 mt-3">
+                            <?php if (
+                                $arquivo !== '' &&
+                                $caminhoArquivo !== ''
+                            ): ?>
 
-                                <a
-                                    href="../<?= $row['arquivo'] ?>"
-                                    target="_blank"
-                                    class="btn btn-primary w-50"
-                                >
-                                    <i class="fa-solid fa-eye me-1"></i>
-                                    Ver
-                                </a>
+                                <div class="acoes-holerite d-flex gap-2 mt-3">
 
-                                <a
-                                    href="../<?= $row['arquivo'] ?>"
-                                    download
-                                    class="btn btn-outline-primary w-50"
-                                >
-                                    <i class="fa-solid fa-download me-1"></i>
-                                    Baixar
-                                </a>
+                                    <a
+                                        href="<?= htmlspecialchars(
+                                            $caminhoArquivo,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="btn btn-primary w-50"
+                                    >
 
-                            </div>
+                                        <i class="fa-solid fa-eye me-1"></i>
+
+                                        Ver
+
+                                    </a>
+
+                                    <a
+                                        href="<?= htmlspecialchars(
+                                            $caminhoArquivo,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                        download
+                                        class="btn btn-outline-primary w-50"
+                                    >
+
+                                        <i class="fa-solid fa-download me-1"></i>
+
+                                        Baixar
+
+                                    </a>
+
+                                </div>
+
+                            <?php else: ?>
+
+                                <div class="arquivo-indisponivel mt-3">
+
+                                    <i class="fa-solid fa-file-circle-xmark me-1"></i>
+
+                                    Arquivo não disponível.
+
+                                </div>
+
+                            <?php endif; ?>
 
                         </div>
 
@@ -379,13 +931,13 @@ body{
 
                 </div>
 
-            <?php endwhile; ?>
+            <?php endforeach; ?>
 
         <?php else: ?>
 
             <div class="col-12">
 
-                <div class="empty-box shadow-sm">
+                <div class="empty-box">
 
                     <i class="fa-solid fa-file-circle-xmark fa-3x text-secondary mb-3"></i>
 
@@ -394,7 +946,35 @@ body{
                     </h4>
 
                     <p class="text-secondary mb-0">
-                        Não existem holerites para esse período.
+
+                        Não existem holerites enviados para
+
+                        <?php if ($mes !== ''): ?>
+
+                            <strong>
+
+                                <?= htmlspecialchars(
+                                    $meses[$mes],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>
+
+                                de
+
+                                <?= $ano ?>
+
+                            </strong>.
+
+                        <?php else: ?>
+
+                            o ano de
+
+                            <strong>
+                                <?= $ano ?>
+                            </strong>.
+
+                        <?php endif; ?>
+
                     </p>
 
                 </div>
@@ -408,6 +988,55 @@ body{
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="../js/theme.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const formulario = document.getElementById(
+        'formFiltroHolerites'
+    );
+
+    const filtroAno = document.getElementById(
+        'filtroAno'
+    );
+
+    const filtroMes = document.getElementById(
+        'filtroMes'
+    );
+
+    function enviarFormulario() {
+
+        if (!formulario) {
+            return;
+        }
+
+        formulario.submit();
+
+    }
+
+    if (filtroAno) {
+
+        filtroAno.addEventListener(
+            'change',
+            enviarFormulario
+        );
+
+    }
+
+    if (filtroMes) {
+
+        filtroMes.addEventListener(
+            'change',
+            enviarFormulario
+        );
+
+    }
+
+});
+</script>
+
 </body>
 </html>
+```
