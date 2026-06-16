@@ -5,8 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     | ANIMAÇÃO DE ENTRADA
     |--------------------------------------------------------------------------
     |
-    | A classe "active" agora é utilizada somente pelos elementos ".reveal".
-    | Ela nunca será removida ao clicar nos cards do FAQ.
+    | A classe "active" pertence somente aos elementos ".reveal".
+    | Os cards não usam essa classe.
     |
     */
 
@@ -40,11 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /*
     |--------------------------------------------------------------------------
-    | CARDS DO FAQ
+    | CARDS DAS LEIS
     |--------------------------------------------------------------------------
     |
-    | O FAQ utiliza "faq-open" em vez de "active".
-    | Dessa maneira, clicar no card não interfere na animação reveal.
+    | A classe "faq-open" abre e fecha apenas o conteúdo do card.
+    | Ela não interfere na animação reveal.
     |
     */
 
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /*
     |--------------------------------------------------------------------------
-    | PESQUISA DO FAQ
+    | PESQUISA
     |--------------------------------------------------------------------------
     */
 
@@ -92,18 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         busca.addEventListener("input", () => {
 
-            const termo = busca.value
-                .trim()
-                .toLocaleLowerCase("pt-BR");
+            const termo = normalizarTexto(busca.value.trim());
 
             let quantidadeVisivel = 0;
 
             faqCards.forEach((card) => {
 
-                const textoCard = card.textContent
-                    .trim()
-                    .toLocaleLowerCase("pt-BR");
-
+                const textoCard = normalizarTexto(card.textContent);
                 const corresponde = textoCard.includes(termo);
 
                 card.classList.toggle("faq-hidden", !corresponde);
@@ -115,10 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (avisoVazio) {
+
                 avisoVazio.classList.toggle(
                     "active",
                     quantidadeVisivel === 0
                 );
+
             }
 
         });
@@ -128,106 +125,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /*
     |--------------------------------------------------------------------------
-    | MODAL DE DÚVIDA
+    | NORMALIZAÇÃO DA PESQUISA
     |--------------------------------------------------------------------------
+    |
+    | Permite encontrar "ferias" mesmo que o card esteja escrito "Férias".
+    |
     */
 
-    const modal = document.getElementById("modalDuvida");
-    const abrir = document.getElementById("abrirFormulario");
-    const abrir2 = document.getElementById("abrirFormulario2");
-    const fechar = document.querySelector(".fechar");
+    function normalizarTexto(texto) {
 
-    function abrirModal() {
-
-        if (!modal) {
-            return;
-        }
-
-        modal.classList.add("active");
-        document.body.classList.add("modal-aberto");
-
-        const primeiroCampo = modal.querySelector(
-            "input, textarea, button"
-        );
-
-        if (primeiroCampo) {
-
-            setTimeout(() => {
-                primeiroCampo.focus();
-            }, 100);
-
-        }
-
-    }
-
-    function fecharModal() {
-
-        if (!modal) {
-            return;
-        }
-
-        modal.classList.remove("active");
-        document.body.classList.remove("modal-aberto");
-
-    }
-
-    if (abrir) {
-        abrir.addEventListener("click", abrirModal);
-    }
-
-    if (abrir2) {
-        abrir2.addEventListener("click", abrirModal);
-    }
-
-    if (fechar) {
-        fechar.addEventListener("click", fecharModal);
-    }
-
-    if (modal) {
-
-        modal.addEventListener("click", (evento) => {
-
-            if (evento.target === modal) {
-                fecharModal();
-            }
-
-        });
-
-    }
-
-    document.addEventListener("keydown", (evento) => {
-
-        if (evento.key === "Escape") {
-            fecharModal();
-        }
-
-    });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ENVIO DO FORMULÁRIO
-    |--------------------------------------------------------------------------
-    */
-
-    const formulario = document.getElementById("formDuvida");
-    const botaoEnviar = document.getElementById("btnEnviar");
-
-    if (formulario && botaoEnviar) {
-
-        formulario.addEventListener("submit", () => {
-
-            botaoEnviar.disabled = true;
-
-            botaoEnviar.innerHTML = `
-                <span
-                    class="spinner-border spinner-border-sm me-2"
-                    aria-hidden="true"
-                ></span>
-                Enviando...
-            `;
-
-        });
+        return texto
+            .toLocaleLowerCase("pt-BR")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
 
     }
 

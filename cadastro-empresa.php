@@ -1,598 +1,647 @@
 <?php
+session_start();
+require_once 'lang.php';
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-/*
-    GERADOR DE PONTOS AUTOMÁTICOS
-
-    ORIGEM:
-    db_mpd.usuarios
-
-    DESTINO:
-    db_ponto.registros_ponto
-*/
-
-
-function conectarBanco($nomeBanco) {
-
-    $tentativas = [
-        ["localhost", "root", "", $nomeBanco],
-        ["127.0.0.1", "root", "", $nomeBanco],
-        ["localhost", "root", "usbw", $nomeBanco],
-        ["127.0.0.1", "root", "usbw", $nomeBanco],
-    ];
-
-    foreach ($tentativas as $t) {
-
-        [$host, $user, $pass, $db] = $t;
-
-        $conexao = @new mysqli($host, $user, $pass, $db);
-
-        if (!$conexao->connect_error) {
-            $conexao->set_charset("utf8mb4");
-            return $conexao;
-        }
-    }
-
-    die("
-        <div style='font-family:Arial;padding:30px'>
-            <h2 style='color:#b91c1c'>Erro ao conectar no banco {$nomeBanco}</h2>
-            <p>Não foi possível conectar usando:</p>
-            <ul>
-                <li>root com senha vazia</li>
-                <li>root com senha usbw</li>
-            </ul>
-            <p>Confira no phpMyAdmin se o banco <strong>{$nomeBanco}</strong> existe e qual senha do MySQL está sendo usada.</p>
-        </div>
-    ");
-}
-
-
-/*
-    Conexões
-*/
-
-$conUsuarios = conectarBanco("db_mpd");
-$conPonto = conectarBanco("db_ponto");
-
-
-$mensagem = '';
 $erro = '';
 
-$totalCriados = 0;
-$totalAtualizados = 0;
-$totalPulados = 0;
+function validarCNPJ($cnpj) {
+    $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
 
+    if (strlen($cnpj) != 14) return false;
+    if (preg_match('/(\d)\1{13}/', $cnpj)) return false;
 
-function tabelaExiste($conexao, $tabela) {
-    $tabela = $conexao->real_escape_string($tabela);
+    for ($t = 12; $t < 14; $t++) {
+        $soma = 0;
+        $pos = $t - 7;
 
-    $resultado = $conexao->query("SHOW TABLES LIKE '$tabela'");
+        for ($i = 0; $i < $t; $i++) {
+            $soma += intval($cnpj[$i]) * $pos;
+            $pos--;
+            if ($pos < 2) $pos = 9;
+        }
 
-    return $resultado && $resultado->num_rows > 0;
-}
+        $digito = ((10 * $soma) % 11) % 10;
 
-
-function colunaExiste($conexao, $tabela, $coluna) {
-    $tabela = $conexao->real_escape_string($tabela);
-    $coluna = $conexao->real_escape_string($coluna);
-
-    $resultado = $conexao->query("SHOW COLUMNS FROM `$tabela` LIKE '$coluna'");
-
-    return $resultado && $resultado->num_rows > 0;
-}
-
-
-function horaParaMinutos($hora) {
-    if (!$hora) {
-        $hora = '08:00:00';
-    }
-
-    $partes = explode(':', $hora);
-
-    $h = intval($partes[0] ?? 8);
-    $m = intval($partes[1] ?? 0);
-
-    return ($h * 60) + $m;
-}
-
-
-function minutosParaHora($minutos) {
-    $h = floor($minutos / 60);
-    $m = $minutos % 60;
-
-    return sprintf('%02d:%02d:00', $h, $m);
-}
-
-
-function ehSabado($data) {
-    return date('N', strtotime($data)) == 6;
-}
-
-
-function ehDomingo($data) {
-    return date('N', strtotime($data)) == 7;
-}
-
-
-function gerarHorarioEntrada($horarioPadrao) {
-    $base = horaParaMinutos($horarioPadrao);
-
-    $chanceAtraso = rand(1, 100);
-
-    if ($chanceAtraso <= 25) {
-        return minutosParaHora($base + rand(10, 45));
-    }
-
-    return minutosParaHora($base + rand(-10, 8));
-}
-
-
-function gerarSaidaIntervalo() {
-    return minutosParaHora((12 * 60) + rand(-5, 10));
-}
-
-
-function gerarRetornoIntervalo() {
-    return minutosParaHora((13 * 60) + rand(-5, 15));
-}
-
-
-function gerarSaida($entrada) {
-    $entradaMin = horaParaMinutos($entrada);
-
-    return minutosParaHora($entradaMin + (9 * 60) + rand(-10, 20));
-}
-
-
-function deveTrabalharNoDia($data, $escala) {
-    $escala = strtolower(trim($escala));
-
-    if (ehDomingo($data)) {
-        return false;
-    }
-
-    if ($escala === '5x2' && ehSabado($data)) {
-        return false;
+        if (intval($cnpj[$t]) !== $digito) {
+            return false;
+        }
     }
 
     return true;
 }
 
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-/*
-    PROCESSAMENTO
-*/
+    if (!validarCNPJ($_POST['cnpj'])) {
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $erro = "CNPJ inválido.";
 
-    $dataInicio = $_POST['data_inicio'] ?? '';
-    $dataFim = $_POST['data_fim'] ?? '';
-    $sobrescrever = isset($_POST['sobrescrever']);
+    } elseif ($_POST['senha'] != $_POST['confirmar_senha']) {
 
-    if ($dataInicio === '' || $dataFim === '') {
-
-        $erro = 'Selecione a data inicial e a data final.';
-
-    } elseif ($dataInicio > $dataFim) {
-
-        $erro = 'A data inicial não pode ser maior que a data final.';
-
-    } elseif (!tabelaExiste($conUsuarios, 'usuarios')) {
-
-        $erro = 'A tabela usuarios não existe no banco db_mpd.';
-
-    } elseif (!tabelaExiste($conPonto, 'registros_ponto')) {
-
-        $erro = 'A tabela registros_ponto não existe no banco db_ponto.';
+        $erro = "As senhas não coincidem.";
 
     } else {
 
-        $temNome = colunaExiste($conUsuarios, 'usuarios', 'nome');
-        $temEmail = colunaExiste($conUsuarios, 'usuarios', 'email');
-        $temEscala = colunaExiste($conUsuarios, 'usuarios', 'escala');
-        $temHorarioPadrao = colunaExiste($conUsuarios, 'usuarios', 'horario_padrao');
-        $temStatus = colunaExiste($conUsuarios, 'usuarios', 'status');
-        $temTipo = colunaExiste($conUsuarios, 'usuarios', 'tipo');
+        $_SESSION['cadastro_empresa'] = [
+            'razao_social' => $_POST['razao_social'],
+            'nome_fantasia' => $_POST['nome_fantasia'],
+            'cnpj' => preg_replace('/[^0-9]/', '', $_POST['cnpj']),
+            'segmento' => $_POST['segmento'],
+            'email' => $_POST['email'],
+            'telefone' => $_POST['telefone'],
+            'responsavel' => $_POST['responsavel'],
+            'cargo' => $_POST['cargo'],
+            'endereco' => $_POST['endereco'],
+            'cidade' => $_POST['cidade'],
+            'estado' => $_POST['estado'],
+            'cep' => $_POST['cep'],
+            'senha' => $_POST['senha'],
+            'plano' => $_GET['plano'] ?? 'pequeno'
+        ];
 
-        if (!$temEmail) {
-
-            $erro = 'A tabela usuarios não possui a coluna email.';
-
-        } else {
-
-            $campoNome = $temNome ? "nome" : "email";
-            $campoEscala = $temEscala ? "escala" : "'5x2' AS escala";
-            $campoHorario = $temHorarioPadrao ? "horario_padrao" : "'08:00:00' AS horario_padrao";
-
-            $where = "
-                WHERE email IS NOT NULL
-                AND email <> ''
-            ";
-
-            if ($temStatus) {
-                $where .= "
-                    AND status = 'ativo'
-                ";
-            }
-
-            if ($temTipo) {
-                $where .= "
-                    AND tipo = 'funcionario'
-                ";
-            }
-
-            $sqlUsuarios = "
-                SELECT 
-                    $campoNome AS nome,
-                    email,
-                    $campoEscala,
-                    $campoHorario
-                FROM usuarios
-                $where
-                ORDER BY nome ASC
-            ";
-
-            $stmtUsuarios = $conUsuarios->prepare($sqlUsuarios);
-
-            if (!$stmtUsuarios) {
-                die("Erro ao buscar usuários: " . $conUsuarios->error);
-            }
-
-            $stmtUsuarios->execute();
-            $usuarios = $stmtUsuarios->get_result();
-
-            if ($usuarios->num_rows === 0) {
-
-                $erro = 'Nenhum funcionário ativo encontrado em db_mpd.usuarios.';
-
-            } else {
-
-                $inicio = new DateTime($dataInicio);
-                $fim = new DateTime($dataFim);
-                $fim->modify('+1 day');
-
-                $periodo = new DatePeriod($inicio, new DateInterval('P1D'), $fim);
-
-                while ($usuario = $usuarios->fetch_assoc()) {
-
-                    $email = $usuario['email'];
-                    $escala = $usuario['escala'] ?? '5x2';
-                    $horarioPadrao = $usuario['horario_padrao'] ?? '08:00:00';
-
-                    foreach ($periodo as $dia) {
-
-                        $data = $dia->format('Y-m-d');
-
-                        if (!deveTrabalharNoDia($data, $escala)) {
-                            $totalPulados++;
-                            continue;
-                        }
-
-                        /*
-                            5% de chance de falta para ficar mais realista
-                        */
-
-                        $chanceFalta = rand(1, 100);
-
-                        if ($chanceFalta <= 5) {
-                            $totalPulados++;
-                            continue;
-                        }
-
-                        $entrada = gerarHorarioEntrada($horarioPadrao);
-                        $saidaIntervalo = gerarSaidaIntervalo();
-                        $retornoIntervalo = gerarRetornoIntervalo();
-                        $saida = gerarSaida($entrada);
-
-                        $stmtVerifica = $conPonto->prepare("
-                            SELECT id
-                            FROM registros_ponto
-                            WHERE email = ?
-                            AND data = ?
-                            LIMIT 1
-                        ");
-
-                        if (!$stmtVerifica) {
-                            die("Erro ao verificar registro: " . $conPonto->error);
-                        }
-
-                        $stmtVerifica->bind_param("ss", $email, $data);
-                        $stmtVerifica->execute();
-
-                        $registroExistente = $stmtVerifica->get_result()->fetch_assoc();
-
-                        if ($registroExistente) {
-
-                            if ($sobrescrever) {
-
-                                $idRegistro = $registroExistente['id'];
-
-                                $stmtUpdate = $conPonto->prepare("
-                                    UPDATE registros_ponto
-                                    SET 
-                                        entrada = ?,
-                                        saida_intervalo = ?,
-                                        retorno_intervalo = ?,
-                                        saida = ?
-                                    WHERE id = ?
-                                ");
-
-                                if (!$stmtUpdate) {
-                                    die("Erro ao atualizar ponto: " . $conPonto->error);
-                                }
-
-                                $stmtUpdate->bind_param(
-                                    "ssssi",
-                                    $entrada,
-                                    $saidaIntervalo,
-                                    $retornoIntervalo,
-                                    $saida,
-                                    $idRegistro
-                                );
-
-                                if ($stmtUpdate->execute()) {
-                                    $totalAtualizados++;
-                                }
-
-                            } else {
-
-                                $totalPulados++;
-                            }
-
-                        } else {
-
-                            $stmtInsert = $conPonto->prepare("
-                                INSERT INTO registros_ponto (
-                                    email,
-                                    data,
-                                    entrada,
-                                    saida_intervalo,
-                                    retorno_intervalo,
-                                    saida
-                                )
-                                VALUES (?, ?, ?, ?, ?, ?)
-                            ");
-
-                            if (!$stmtInsert) {
-                                die("Erro ao inserir ponto: " . $conPonto->error);
-                            }
-
-                            $stmtInsert->bind_param(
-                                "ssssss",
-                                $email,
-                                $data,
-                                $entrada,
-                                $saidaIntervalo,
-                                $retornoIntervalo,
-                                $saida
-                            );
-
-                            if ($stmtInsert->execute()) {
-                                $totalCriados++;
-                            }
-                        }
-                    }
-                }
-
-                $mensagem = "Pontos gerados com sucesso. Criados: {$totalCriados}. Atualizados: {$totalAtualizados}. Pulados: {$totalPulados}.";
-            }
-        }
+        header("Location: pagamento.php");
+        exit;
     }
 }
-
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Gerar Pontos Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Cadastro de Empresa | Meu Ponto Diário</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-<style>
-body {
-    min-height: 100vh;
-    background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, .18), transparent 35%),
-        linear-gradient(135deg, #eff6ff, #f8fafc);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: Arial, sans-serif;
-    padding: 30px;
-}
-
-.card-demo {
-    width: 100%;
-    max-width: 820px;
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 34px;
-    box-shadow: 0 25px 70px rgba(15, 23, 42, .12);
-    border: 1px solid rgba(37, 99, 235, .12);
-}
-
-.icon-box {
-    width: 54px;
-    height: 54px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #2563eb, #1e40af);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    margin-bottom: 18px;
-}
-
-h1 {
-    color: #102a56;
-    font-weight: 800;
-}
-
-.text-muted-custom {
-    color: #64748b;
-}
-
-.form-control {
-    border-radius: 14px;
-    padding: 13px;
-}
-
-.btn-gerar {
-    background: linear-gradient(135deg, #2563eb, #1e40af);
-    color: white;
-    border: none;
-    border-radius: 14px;
-    padding: 14px 22px;
-    font-weight: 700;
-}
-
-.btn-gerar:hover {
-    color: white;
-    background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
-}
-
-.info-box {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    color: #1e40af;
-    border-radius: 18px;
-    padding: 16px;
-    font-size: 14px;
-}
-
-.alert {
-    border-radius: 16px;
-}
-
-.badge-db {
-    background: #e0f2fe;
-    color: #075985;
-    border-radius: 999px;
-    padding: 7px 12px;
-    font-weight: 700;
-    font-size: 13px;
-}
-</style>
+<link rel="stylesheet" href="css/cadastroem.css?v=4">
 </head>
 
 <body>
 
-<div class="card-demo">
+<section class="cadastro-page">
 
-    <div class="icon-box">
-        <i class="bi bi-clock-history"></i>
-    </div>
+    <div class="cadastro-bg-logo"></div>
 
-    <h1>Gerar pontos automáticos</h1>
+    <div class="container position-relative">
 
-    <p class="text-muted-custom mb-4">
-        Essa tela busca funcionários em <strong>db_mpd.usuarios</strong> e salva os pontos em
-        <strong>db_ponto.registros_ponto</strong>.
-    </p>
+        <div class="top-cadastro">
 
-    <div class="d-flex gap-2 flex-wrap mb-4">
-        <span class="badge-db">
-            Origem: db_mpd.usuarios
-        </span>
-
-        <span class="badge-db">
-            Destino: db_ponto.registros_ponto
-        </span>
-
-        <span class="badge-db">
-            Tipo: funcionario
-        </span>
-    </div>
-
-    <?php if ($mensagem): ?>
-        <div class="alert alert-success fw-bold">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <?= htmlspecialchars($mensagem) ?>
         </div>
-    <?php endif; ?>
 
-    <?php if ($erro): ?>
-        <div class="alert alert-danger fw-bold">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <?= htmlspecialchars($erro) ?>
-        </div>
-    <?php endif; ?>
+        <div class="row align-items-center g-5 mb-5">
 
-    <div class="info-box mb-4">
-        <strong>O que será gerado?</strong><br>
-        Para cada funcionário ativo, serão criados registros com:
-        <strong>entrada</strong>, <strong>saida_intervalo</strong>,
-        <strong>retorno_intervalo</strong> e <strong>saida</strong>.
-        O sistema também cria alguns atrasos e faltas aleatórias para parecer mais realista.
-    </div>
+            <div class="col-lg-7">
 
-    <form method="POST">
+                <span class="badge badge-soft rounded-pill px-3 py-2 mb-4">
+                    <i class="bi bi-building-check me-1"></i>
+                    Cadastro empresarial
+                </span>
 
-        <div class="row g-3">
+                <h1 class="cadastro-title">
+                    Crie sua conta no
+                    <span>Meu Ponto Diário</span>
+                </h1>
 
-            <div class="col-md-6">
-                <label class="form-label fw-bold">Data inicial</label>
-                <input 
-                    type="date" 
-                    name="data_inicio" 
-                    class="form-control"
-                    value="<?= date('Y-m-01') ?>"
-                    required
-                >
+                <p class="cadastro-subtitle">
+                    Cadastre sua empresa, valide o CNPJ e comece a gerenciar ponto,
+                    banco de horas, férias, licenças, holerites e comunicados.
+                </p>
+
             </div>
 
-            <div class="col-md-6">
-                <label class="form-label fw-bold">Data final</label>
-                <input 
-                    type="date" 
-                    name="data_fim" 
-                    class="form-control"
-                    value="<?= date('Y-m-d') ?>"
-                    required
-                >
+            <div class="col-lg-5">
+
+                <div class="info-card">
+
+                    <div class="info-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+
+                    <h3>Ambiente seguro</h3>
+
+                    <p>
+                        O CNPJ será validado e consultado para confirmar se pertence
+                        a uma empresa real e ativa.
+                    </p>
+
+                    <div class="info-check">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Validação de CNPJ
+                    </div>
+
+                    <div class="info-check">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Dados preenchidos automaticamente
+                    </div>
+
+                    <div class="info-check">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Plano selecionado automaticamente
+                    </div>
+
+                </div>
+
             </div>
 
         </div>
 
-        <div class="form-check mt-4">
-            <input 
-                class="form-check-input" 
-                type="checkbox" 
-                name="sobrescrever" 
-                id="sobrescrever"
-            >
+        <?php if($erro): ?>
+            <div class="alert alert-danger rounded-4 fw-bold">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <?= htmlspecialchars($erro) ?>
+            </div>
+        <?php endif; ?>
 
-            <label class="form-check-label fw-semibold" for="sobrescrever">
-                Sobrescrever registros já existentes nesse período
-            </label>
+        <form method="POST" enctype="multipart/form-data">
+
+            <div class="row g-4">
+
+                <div class="col-lg-6">
+
+                    <div class="form-card">
+
+                        <div class="form-card-header">
+                            <div>
+                                <i class="bi bi-building"></i>
+                            </div>
+
+                            <span>Dados da Empresa</span>
+                        </div>
+
+                        <div class="form-card-body">
+
+                            <label>CNPJ</label>
+                            <input type="text" name="cnpj" id="cnpj" placeholder="00.000.000/0000-00" required>
+
+                            <label>Razão Social</label>
+                            <input type="text" name="razao_social" id="razao_social" placeholder="Razão social" required>
+
+                            <label>Nome Fantasia</label>
+                            <input type="text" name="nome_fantasia" id="nome_fantasia" placeholder="Nome fantasia" required>
+
+                            <label>Segmento</label>
+                            <select name="segmento" required>
+                                <option value="">Selecione o segmento</option>
+                                <option>Comércio</option>
+                                <option>Serviços</option>
+                                <option>Tecnologia</option>
+                                <option>Indústria</option>
+                                <option>Saúde</option>
+                                <option>Educação</option>
+                                <option>Construção Civil</option>
+                                <option>Logística</option>
+                            </select>
+
+                            <label>E-mail Corporativo</label>
+                            <input type="email" name="email" id="email" placeholder="empresa@email.com" required>
+
+                            <label>Telefone</label>
+                            <input type="text" name="telefone" id="telefone" placeholder="(00) 00000-0000" required>
+
+                            <label>Senha</label>
+                            <div class="input-senha">
+                                <input
+                                    type="password"
+                                    name="senha"
+                                    id="senha"
+                                    placeholder="Crie uma senha"
+                                    required
+                                >
+
+                                <i
+                                    class="bi bi-eye-fill olho-senha"
+                                    onclick="toggleSenha('senha', this)"
+                                ></i>
+                            </div>
+
+                            <label>Confirmar Senha</label>
+                            <div class="input-senha">
+                                <input
+                                    type="password"
+                                    name="confirmar_senha"
+                                    id="confirmar_senha"
+                                    placeholder="Confirme a senha"
+                                    required
+                                >
+
+                                <i
+                                    class="bi bi-eye-fill olho-senha"
+                                    onclick="toggleSenha('confirmar_senha', this)"
+                                ></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-lg-6">
+
+                    <div class="form-card">
+
+                        <div class="form-card-header">
+                            <div>
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+
+                            <span>Responsável e Endereço</span>
+                        </div>
+
+                        <div class="form-card-body">
+
+                            <label>Responsável pela Empresa</label>
+                            <input type="text" name="responsavel" placeholder="Nome do responsável" required>
+
+                            <label>Cargo do Responsável</label>
+                            <input type="text" name="cargo" placeholder="Ex: Gerente de RH" required>
+
+                            <label>Endereço</label>
+                            <input type="text" name="endereco" id="endereco" placeholder="Rua, número e bairro" required>
+
+                            <div class="row">
+
+                                <div class="col-md-8">
+                                    <label>Cidade</label>
+                                    <input type="text" name="cidade" id="cidade" placeholder="Cidade" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>UF</label>
+                                    <input type="text" name="estado" id="estado" placeholder="SP" maxlength="2" required>
+                                </div>
+
+                            </div>
+
+                            <label>CEP</label>
+                            <input type="text" name="cep" id="cep" placeholder="00000-000" required>
+
+                            <div class="logo-upload">
+
+                                <label>Logo da Empresa</label>
+
+                                <input
+                                    type="file"
+                                    name="logo"
+                                    id="logo"
+                                    accept=".png,.jpg,.jpeg,.svg"
+                                >
+
+                                <div class="preview-box">
+                                    <img id="preview" class="logo-preview">
+                                    <span id="previewTexto">
+                                        A prévia da logo aparecerá aqui
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <button
+                    type="button"
+                    class="btn btn-cadastro"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalTermos"
+                >
+                    Criar conta
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+
+                <a href="login.php" class="link-login">
+                    Já possui uma conta? Entrar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
+<footer>
+
+    <div class="container">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-6 text-center text-md-start">
+
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 mb-3">
+
+                    <img
+                        src="img/logo-branca.png"
+                        alt="Meu Ponto Diário"
+                        class="footer-logo"
+                    >
+
+                    <div>
+
+                        <h5 class="fw-bold mb-1">
+                            Meu Ponto Diário
+                        </h5>
+
+                        <small>
+                            Gestão de RH, Ponto e Banco de Horas.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6 text-center text-md-end">
+
+                <a href="index.php" class="me-4">
+                    Início
+                </a>
+
+                <a href="ajuda.php" class="me-4">
+                    Ajuda
+                </a>
+
+                <a href="leis.php" class="me-4">
+                    Leis Trabalhistas
+                </a>
+
+                <a href="login.php">
+                    Entrar
+                </a>
+
+            </div>
+
         </div>
 
-        <div class="d-flex gap-3 mt-4 flex-wrap">
+        <hr class="border-light opacity-25 my-4">
 
-            <button type="submit" class="btn btn-gerar">
-                <i class="bi bi-magic me-2"></i>
-                Gerar pontos
-            </button>
+        <div class="row">
 
-            <a href="index.php" class="btn btn-outline-primary rounded-4 px-4">
-                Ver registros
-            </a>
+            <div class="col-md-6 text-center text-md-start">
 
-            <a href="registrar_ponto.php" class="btn btn-outline-secondary rounded-4 px-4">
-                Voltar
-            </a>
+                <small>
+                    © <?= date('Y') ?> Meu Ponto Diário. Todos os direitos reservados.
+                </small>
+
+            </div>
+
+            <div class="col-md-6 text-center text-md-end">
+
+                <small>
+                    Desenvolvido para modernizar a gestão de pessoas.
+                </small>
+
+            </div>
 
         </div>
 
-    </form>
+    </div>
+
+</footer>
+
+<div class="modal fade" id="modalTermos" tabindex="-1">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content modal-premium">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-file-earmark-lock me-2"></i>
+                    Termos de Uso e Política de Privacidade
+                </h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <h6>1. Utilização da Plataforma</h6>
+                <p>
+                    A plataforma Meu Ponto Diário destina-se à gestão de recursos humanos,
+                    controle de jornada, banco de horas, férias, documentos e demais
+                    processos administrativos internos das empresas contratantes.
+                </p>
+
+                <h6>2. Responsabilidade das Informações</h6>
+                <p>
+                    A empresa contratante é responsável pela veracidade, legalidade e
+                    atualização dos dados cadastrados no sistema, incluindo informações
+                    de colaboradores, documentos, jornadas, eventos e registros administrativos.
+                </p>
+
+                <h6>3. Disponibilidade do Serviço</h6>
+                <p>
+                    Empregamos esforços razoáveis para manter a plataforma disponível de forma
+                    contínua. Eventuais interrupções poderão ocorrer em razão de manutenção,
+                    atualizações, falhas de infraestrutura, serviços de terceiros ou situações
+                    fora do nosso controle.
+                </p>
+
+                <h6>4. Limitação de Responsabilidade</h6>
+                <p>
+                    O Meu Ponto Diário atua como ferramenta de apoio à gestão empresarial.
+                    As decisões administrativas, trabalhistas, financeiras ou jurídicas tomadas
+                    pelos usuários com base nas informações registradas permanecem sob
+                    responsabilidade da empresa contratante.
+                </p>
+
+                <p>
+                    Nossa responsabilidade limita-se à disponibilização e funcionamento da
+                    plataforma, não abrangendo prejuízos decorrentes de informações incorretas,
+                    omissões, uso inadequado do sistema ou descumprimento de obrigações legais
+                    pela empresa usuária.
+                </p>
+
+                <h6>5. Segurança e Proteção de Dados</h6>
+                <p>
+                    Adotamos medidas técnicas e organizacionais razoáveis para proteção dos dados
+                    armazenados. Entretanto, nenhum sistema conectado à internet pode garantir
+                    segurança absoluta contra todos os riscos existentes.
+                </p>
+
+                <h6>6. Serviços de Terceiros</h6>
+                <p>
+                    Algumas funcionalidades poderão depender de serviços externos, integrações,
+                    provedores de hospedagem, APIs, operadoras de comunicação ou outros
+                    fornecedores. Não nos responsabilizamos por indisponibilidades ou falhas
+                    originadas exclusivamente nesses serviços terceiros.
+                </p>
+
+                <h6>7. Backup e Guarda de Informações</h6>
+                <p>
+                    Embora sejam adotadas rotinas de proteção e armazenamento dos dados,
+                    recomendamos que a empresa mantenha cópias próprias dos documentos e
+                    informações considerados essenciais para suas operações.
+                </p>
+
+                <h6>8. Alterações da Plataforma</h6>
+                <p>
+                    Poderemos realizar melhorias, correções, atualizações e alterações de
+                    funcionalidades visando a evolução do serviço, preservando sempre que
+                    possível a continuidade das operações dos usuários.
+                </p>
+
+                <h6>9. Aceitação</h6>
+                <p>
+                    Ao concluir o cadastro e utilizar a plataforma, a empresa declara ter lido,
+                    compreendido e concordado com estes Termos de Uso e Política de Privacidade.
+                </p>
+
+                <div class="form-check mt-4">
+
+                    <input class="form-check-input" type="checkbox" id="aceitarTermos">
+
+                    <label class="form-check-label fw-semibold" for="aceitarTermos">
+                        Li e concordo com os Termos de Uso e Política de Privacidade.
+                    </label>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary rounded-4 px-4" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button" class="btn btn-primary rounded-4 px-4" id="btnFinalizarCadastro">
+                    Aceitar e Criar Conta
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
+<script>
+const logo = document.getElementById('logo');
+const preview = document.getElementById('preview');
+const previewTexto = document.getElementById('previewTexto');
+
+if (logo) {
+    logo.addEventListener('change', function () {
+        const arquivo = this.files[0];
+
+        if (arquivo) {
+            preview.src = URL.createObjectURL(arquivo);
+            preview.style.display = 'block';
+            previewTexto.style.display = 'none';
+        }
+    });
+}
+
+function toggleSenha(id, icone){
+
+    const campo = document.getElementById(id);
+
+    if(campo.type === 'password'){
+
+        campo.type = 'text';
+
+        icone.classList.remove('bi-eye-fill');
+        icone.classList.add('bi-eye-slash-fill');
+
+    } else {
+
+        campo.type = 'password';
+
+        icone.classList.remove('bi-eye-slash-fill');
+        icone.classList.add('bi-eye-fill');
+
+    }
+}
+
+const cnpjInput = document.getElementById('cnpj');
+
+if (cnpjInput) {
+
+    cnpjInput.addEventListener('blur', async function () {
+
+        const cnpj = this.value.replace(/\D/g, '');
+
+        if (cnpj.length !== 14) {
+            return;
+        }
+
+        const valorOriginal = this.value;
+
+        this.disabled = true;
+        this.value = 'Consultando CNPJ...';
+
+        try {
+
+            const resposta = await fetch('consultar_cnpj.php?cnpj=' + cnpj);
+            const texto = await resposta.text();
+            const dados = JSON.parse(texto);
+
+            this.disabled = false;
+            this.value = valorOriginal;
+
+            if (!dados.sucesso) {
+                alert(dados.mensagem);
+                return;
+            }
+
+            document.getElementById('razao_social').value = dados.razao_social || '';
+            document.getElementById('nome_fantasia').value = dados.nome_fantasia || '';
+            document.getElementById('email').value = dados.email || '';
+            document.getElementById('telefone').value = dados.telefone || '';
+            document.getElementById('endereco').value = dados.endereco || '';
+            document.getElementById('cidade').value = dados.cidade || '';
+            document.getElementById('estado').value = dados.estado || '';
+            document.getElementById('cep').value = dados.cep || '';
+
+            alert('CNPJ encontrado e ativo.');
+
+        } catch (e) {
+
+            this.disabled = false;
+            this.value = valorOriginal;
+
+            alert('Erro ao preencher os dados do CNPJ.');
+        }
+
+    });
+
+}
+
+document
+.getElementById('btnFinalizarCadastro')
+.addEventListener('click', function () {
+
+    const aceitou = document.getElementById('aceitarTermos');
+
+    if (!aceitou.checked) {
+        alert('Você precisa aceitar os termos para continuar.');
+        return;
+    }
+
+    document.querySelector('form').submit();
+
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/translate.js"></script>
 </body>
 </html>

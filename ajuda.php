@@ -7,17 +7,27 @@ require_once 'lang.php';
 <html lang="pt-br">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Ajuda | Meu Ponto Diário</title>
+    <title>Ajuda | Meu Ponto Diário</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
 
-<link rel="stylesheet" href="css/ajuda.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="css/ajuda.css">
 </head>
 
 <body>
@@ -29,8 +39,6 @@ require_once 'lang.php';
     <div class="container position-relative">
 
         <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-
-
         </div>
 
         <div class="row align-items-center g-5">
@@ -48,8 +56,8 @@ require_once 'lang.php';
                 </h1>
 
                 <p class="subtitulo-ajuda">
-                    Encontre respostas rápidas sobre ponto, holerites, férias, licenças,
-                    comunicados e acesso ao sistema.
+                    Encontre respostas rápidas sobre ponto, holerites, férias,
+                    licenças, comunicados e acesso ao sistema.
                 </p>
 
                 <div class="search-box mt-4">
@@ -60,6 +68,8 @@ require_once 'lang.php';
                         type="text"
                         id="buscarFaq"
                         placeholder="Pesquisar uma dúvida..."
+                        autocomplete="off"
+                        aria-label="Pesquisar uma dúvida"
                     >
 
                 </div>
@@ -77,10 +87,15 @@ require_once 'lang.php';
                     <h3>Precisa de suporte?</h3>
 
                     <p>
-                        Registre sua dúvida e nossa equipe irá analisar sua solicitação.
+                        Registre sua dúvida e nossa equipe irá analisar sua
+                        solicitação.
                     </p>
 
-                    <button id="abrirFormulario" class="btn btn-main w-100">
+                    <button
+                        id="abrirFormulario"
+                        class="btn btn-main w-100"
+                        type="button"
+                    >
                         Registrar dúvida
                         <i class="bi bi-send ms-2"></i>
                     </button>
@@ -111,80 +126,210 @@ require_once 'lang.php';
 
         </div>
 
-        <div class="faq-grid">
+        <div class="faq-grid" id="faqGrid">
 
-            <div class="faq-card reveal">
-                <div class="faq-title">
-                    <i class="bi bi-cash-stack"></i>
-                    Como acessar meus holerites?
-                </div>
+            <article class="faq-card">
 
-                <div class="faq-answer">
-                    Vá até a área de documentos e selecione a opção “Holerites”.
-                    Lá você poderá visualizar os comprovantes enviados pelo RH.
-                </div>
-            </div>
+                <button
+                    class="faq-button"
+                    type="button"
+                    aria-expanded="false"
+                >
 
-            <div class="faq-card reveal">
-                <div class="faq-title">
-                    <i class="bi bi-clock-history"></i>
-                    Como ver meu registro de ponto?
-                </div>
+                    <span class="faq-title">
 
-                <div class="faq-answer">
-                    Utilize o menu lateral e clique em "Histórico de Ponto".
-                    O sistema mostra a batida vinculada ao seu usuário e à sua empresa.
-                </div>
-            </div>
+                        <i class="bi bi-cash-stack"></i>
 
-            <div class="faq-card reveal">
-                <div class="faq-title">
-                    <i class="bi bi-umbrella-fill"></i>
-                    Como solicitar férias?
-                </div>
+                        <span>Como acessar meus holerites?</span>
+
+                    </span>
+
+                    <i class="bi bi-chevron-down faq-arrow"></i>
+
+                </button>
 
                 <div class="faq-answer">
-                    Acesse a tela de pedidos, escolha o período desejado e envie a solicitação.
-                    O status ficará disponível na área de solicitações.
-                </div>
-            </div>
 
-            <div class="faq-card reveal">
-                <div class="faq-title">
-                    <i class="bi bi-file-medical-fill"></i>
-                    Como enviar licença médica?
+                    <div class="faq-answer-content">
+                        Vá até a área de documentos e selecione a opção
+                        “Holerites”. Lá você poderá visualizar os comprovantes
+                        enviados pelo RH.
+                    </div>
+
                 </div>
 
-                <div class="faq-answer">
-                    Na tela de pedidos, envie o atestado em PDF, PNG, JPG ou JPEG.
-                    Depois disso, o RH poderá visualizar sua solicitação.
-                </div>
-            </div>
+            </article>
 
-            <div class="faq-card reveal">
-                <div class="faq-title">
-                    <i class="bi bi-hourglass-split"></i>
-                    Como funciona o banco de horas?
-                </div>
+            <article class="faq-card">
 
-                <div class="faq-answer">
-                    O banco de horas mostra saldo total, horas extras e débitos.
-                    Ele é calculado com base nas informações registradas/importadas pela empresa.
-                </div>
-            </div>
+                <button
+                    class="faq-button"
+                    type="button"
+                    aria-expanded="false"
+                >
 
-            <div class="faq-card reveal">
-                <div class="faq-title">
-                    <i class="bi bi-megaphone-fill"></i>
-                    Onde vejo comunicados?
-                </div>
+                    <span class="faq-title">
+
+                        <i class="bi bi-clock-history"></i>
+
+                        <span>Como ver meu registro de ponto?</span>
+
+                    </span>
+
+                    <i class="bi bi-chevron-down faq-arrow"></i>
+
+                </button>
 
                 <div class="faq-answer">
-                    Os comunicados aparecem na área do colaborador e são enviados pelo RH
-                    para manter todos informados sobre avisos importantes.
-                </div>
-            </div>
 
+                    <div class="faq-answer-content">
+                        Utilize o menu lateral e clique em “Histórico de
+                        Ponto”. O sistema mostra a batida vinculada ao seu
+                        usuário e à sua empresa.
+                    </div>
+
+                </div>
+
+            </article>
+
+            <article class="faq-card">
+
+                <button
+                    class="faq-button"
+                    type="button"
+                    aria-expanded="false"
+                >
+
+                    <span class="faq-title">
+
+                        <i class="bi bi-umbrella-fill"></i>
+
+                        <span>Como solicitar férias?</span>
+
+                    </span>
+
+                    <i class="bi bi-chevron-down faq-arrow"></i>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <div class="faq-answer-content">
+                        Acesse a tela de pedidos, escolha o período desejado e
+                        envie a solicitação. O status ficará disponível na área
+                        de solicitações.
+                    </div>
+
+                </div>
+
+            </article>
+
+            <article class="faq-card">
+
+                <button
+                    class="faq-button"
+                    type="button"
+                    aria-expanded="false"
+                >
+
+                    <span class="faq-title">
+
+                        <i class="bi bi-file-medical-fill"></i>
+
+                        <span>Como enviar licença médica?</span>
+
+                    </span>
+
+                    <i class="bi bi-chevron-down faq-arrow"></i>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <div class="faq-answer-content">
+                        Na tela de pedidos, envie o atestado em PDF, PNG, JPG
+                        ou JPEG. Depois disso, o RH poderá visualizar sua
+                        solicitação.
+                    </div>
+
+                </div>
+
+            </article>
+
+            <article class="faq-card">
+
+                <button
+                    class="faq-button"
+                    type="button"
+                    aria-expanded="false"
+                >
+
+                    <span class="faq-title">
+
+                        <i class="bi bi-hourglass-split"></i>
+
+                        <span>Como funciona o banco de horas?</span>
+
+                    </span>
+
+                    <i class="bi bi-chevron-down faq-arrow"></i>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <div class="faq-answer-content">
+                        O banco de horas mostra saldo total, horas extras e
+                        débitos. Ele é calculado com base nas informações
+                        registradas ou importadas pela empresa.
+                    </div>
+
+                </div>
+
+            </article>
+
+            <article class="faq-card">
+
+                <button
+                    class="faq-button"
+                    type="button"
+                    aria-expanded="false"
+                >
+
+                    <span class="faq-title">
+
+                        <i class="bi bi-megaphone-fill"></i>
+
+                        <span>Onde vejo comunicados?</span>
+
+                    </span>
+
+                    <i class="bi bi-chevron-down faq-arrow"></i>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <div class="faq-answer-content">
+                        Os comunicados aparecem na área do colaborador e são
+                        enviados pelo RH para manter todos informados sobre
+                        avisos importantes.
+                    </div>
+
+                </div>
+
+            </article>
+
+        </div>
+
+        <div class="faq-empty" id="faqEmpty">
+            <i class="bi bi-search"></i>
+
+            <h3>Nenhuma dúvida encontrada</h3>
+
+            <p>
+                Tente pesquisar usando outras palavras.
+            </p>
         </div>
 
     </div>
@@ -200,11 +345,13 @@ require_once 'lang.php';
             <div class="row align-items-center g-4">
 
                 <div class="col-lg-2 text-center text-lg-start">
+
                     <img
                         src="img/logo-azul.png"
                         alt="Meu Ponto Diário"
                         class="cta-logo"
                     >
+
                 </div>
 
                 <div class="col-lg-7">
@@ -214,14 +361,19 @@ require_once 'lang.php';
                     </h2>
 
                     <p class="mb-0">
-                        Registre sua dúvida detalhadamente para que o suporte consiga entender melhor sua necessidade.
+                        Registre sua dúvida detalhadamente para que o suporte
+                        consiga entender melhor sua necessidade.
                     </p>
 
                 </div>
 
                 <div class="col-lg-3 text-lg-end">
 
-                    <button class="btn btn-light fw-bold rounded-4 px-4 py-3" id="abrirFormulario2">
+                    <button
+                        class="btn btn-light fw-bold rounded-4 px-4 py-3"
+                        id="abrirFormulario2"
+                        type="button"
+                    >
                         Falar com suporte
                     </button>
 
@@ -295,11 +447,21 @@ require_once 'lang.php';
 
 </footer>
 
-<div class="modal-ajuda" id="modalDuvida">
+<div
+    class="modal-ajuda"
+    id="modalDuvida"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tituloModalDuvida"
+>
 
     <div class="modal-content-ajuda">
 
-        <button class="fechar" type="button">
+        <button
+            class="fechar"
+            type="button"
+            aria-label="Fechar formulário"
+        >
             <i class="bi bi-x-lg"></i>
         </button>
 
@@ -307,7 +469,9 @@ require_once 'lang.php';
             <i class="bi bi-chat-dots-fill"></i>
         </div>
 
-        <h2>Registrar Dúvida</h2>
+        <h2 id="tituloModalDuvida">
+            Registrar Dúvida
+        </h2>
 
         <p class="text-muted mb-4">
             Preencha os dados abaixo para enviar sua solicitação.
@@ -319,6 +483,7 @@ require_once 'lang.php';
                 type="text"
                 name="nome"
                 placeholder="Digite seu nome"
+                autocomplete="name"
                 required
             >
 
@@ -326,6 +491,7 @@ require_once 'lang.php';
                 type="email"
                 name="email"
                 placeholder="Digite seu email"
+                autocomplete="email"
                 required
             >
 
@@ -346,8 +512,8 @@ require_once 'lang.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="js/ajuda.js"></script>
 <script src="js/translate.js"></script>
+
 </body>
 </html>
