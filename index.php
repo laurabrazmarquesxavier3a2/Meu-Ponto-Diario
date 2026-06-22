@@ -169,13 +169,6 @@ require_once 'lang.php';
 
                     </div>
 
-                    <div class="floating-card float-1">
-                        <strong>
-                            <i class="bi bi-check-circle-fill text-success me-2"></i>
-                            Ponto registrado
-                        </strong>
-                    </div>
-
                 </div>
 
             </div>

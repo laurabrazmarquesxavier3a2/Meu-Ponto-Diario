@@ -36,6 +36,13 @@ require_once 'lang.php';
 
 <body>
 
+    <a href="sobre.php" class="top-logo" id="topLogo" aria-label="Conhecer o projeto">
+        <img
+            src="img/logo-azul.png"
+            alt="Meu Ponto Diário"
+            class="top-logo-img">
+    </a>
+
 <section class="ajuda-hero">
 
     <div class="hero-bg-logo"></div>
@@ -56,9 +63,9 @@ require_once 'lang.php';
 
                 <h1 class="titulo-ajuda">
 
-                    Leis
-
-                    <span>Trabalhistas</span>
+                Leis
+                    
+                    <span> Trabalhistas</span>
 
                 </h1>
 

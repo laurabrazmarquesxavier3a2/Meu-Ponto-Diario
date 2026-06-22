@@ -1,35 +1,11 @@
 
-RH
-hash:
-$2y$10$mlY4g7mWOo0n6QlyFJE1EeELkvlrdtJ4MEQiPDgsLjsQmTUhlZOn2
-E-mail:
-rh@empresa.com
-Senha:
-123456
-----------------------------------------------------------------------
-Funcionario:
-hash:
-$2y$10$ptIRnPXcMYLzUncmVeBfGOk4Cyb5TWkW5TQW1DolVevkhTrcCygqy
-email:
-joao@empresa.com
-senha:
-123
-
-
-Empresa:
-Revotech1234@Gmail.com
-4444
-
-
-Funcionário Teste: Bruno Martins
-Bruno@empresa.com
-123456
-
-o bruno só vai funcionar dps que importar os funcionarios
-
 cnpj falso para apresentação e criação de empresa
 12.345.678/0001-95
 
-cnpj falso com empresa ja criada
+cnpj falso com empresa ja criada e alimentada
 Alves@technova.com.br
 1234
+
+login funcionario
+bruno.teixeira@technova.com.br
+123456

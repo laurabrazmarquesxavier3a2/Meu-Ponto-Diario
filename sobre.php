@@ -23,7 +23,6 @@ require_once 'lang.php';
 
 <body>
 
-<!-- LOADER -->
 <div class="page-loader" id="pageLoader">
     <div class="loader-content">
         <div class="loader-glow"></div>
@@ -32,12 +31,11 @@ require_once 'lang.php';
     </div>
 </div>
 
-<!-- LOGO TOPO -->
+
 <a href="index.php" class="top-logo" id="topLogo" aria-label="Voltar para início">
     <img src="img/logo-azul.png" alt="Meu Ponto Diário">
 </a>
 
-<!-- HERO SOBRE -->
 <section class="about-hero">
 
     <div class="particles-box" id="particlesBox"></div>
@@ -135,7 +133,6 @@ require_once 'lang.php';
 
 </section>
 
-<!-- SOBRE O PROJETO -->
 <section class="section" id="projeto">
 
     <div class="container">
@@ -220,7 +217,6 @@ require_once 'lang.php';
 
 </section>
 
-<!-- LINHA DO TEMPO -->
 <section class="section timeline-section">
 
     <div class="container">
@@ -297,7 +293,6 @@ require_once 'lang.php';
 
 </section>
 
-<!-- MEMBROS -->
 <section class="section" id="membros">
 
     <div class="container">
@@ -312,15 +307,11 @@ require_once 'lang.php';
                 Integrantes do projeto
             </h2>
 
-            <p class="text-muted fs-5 mx-auto" style="max-width:720px;">
-                Esta seção apresenta os membros responsáveis pelo desenvolvimento do Meu Ponto Diário.
-            </p>
-
         </div>
 
         <div class="row g-4 justify-content-center">
 
-            <!-- INTEGRANTE 1 -->
+
             <div class="col-md-6 col-lg-4 reveal">
                 <div class="member-card">
 
@@ -331,59 +322,16 @@ require_once 'lang.php';
                     <h4> Ana Beatriz Vidal </h4>
 
                     <span class="member-role">
-                        Back End / Front End / Design
+                        Back End / Pesquisa / Front End / Design
                     </span>
 
                     <p>
-                        Ana Beatriz Vidal realizou o desenvolvimento do back-end e front-end do projeto, contribuindo para a estruturação do banco de dados, implementação das funcionalidades e criação da interface visual do sistema.
-                    </p>
+                        Ana Beatriz Vidal participou do desenvolvimento do back-end, realizou pesquisas para o projeto, contribuiu para o front-end e participou do design da interface.
 
                 </div>
             </div>
 
-            <!-- INTEGRANTE 2 -->
-            <div class="col-md-6 col-lg-4 reveal">
-                <div class="member-card">
 
-                    <div class="member-avatar">
-                        <span>LB</span>
-                    </div>
-
-                    <h4> Laura Braz</h4>
-
-                    <span class="member-role">
-                        Front End / Pesquisa / Documentação / Design
-                    </span>
-
-                    <p>
-                        Laura Braz contribuiu para o desenvolvimento do front-end, realizou pesquisas e documentou o projeto, além de participar do design da interface.
-                    </p>
-
-                </div>
-            </div>
-
-            <!-- INTEGRANTE 3 -->
-            <div class="col-md-6 col-lg-4 reveal">
-                <div class="member-card">
-
-                    <div class="member-avatar">
-                        <span>LS</span>
-                    </div>
-
-                    <h4>Lyvia Santos</h4>
-
-                    <span class="member-role">
-                        Front End / Back End / Design / Segurança Da Informação
-                    </span>
-
-                    <p>
-                        Lyvia Santos participou do desenvolvimento do front-end e back-end, contribuiu para o design da interface e implementou medidas de segurança da informação no projeto.
-                    </p>
-
-                </div>
-            </div>
-
-            <!-- INTEGRANTE 4 -->
             <div class="col-md-6 col-lg-4 reveal">
                 <div class="member-card">
 
@@ -404,7 +352,7 @@ require_once 'lang.php';
                 </div>
             </div>
 
-            <!-- INTEGRANTE 5 -->
+
             <div class="col-md-6 col-lg-4 reveal">
                 <div class="member-card">
 
@@ -425,13 +373,56 @@ require_once 'lang.php';
                 </div>
             </div>
 
+
+            <div class="col-md-6 col-lg-4 reveal">
+                <div class="member-card">
+
+                    <div class="member-avatar">
+                        <span>LB</span>
+                    </div>
+
+                    <h4> Laura Braz</h4>
+
+                    <span class="member-role">
+                        Front End / Pesquisa / Documentação / Design
+                    </span>
+
+                    <p>
+                        Laura Braz contribuiu para o desenvolvimento do front-end, realizou pesquisas e documentou o projeto, além de participar do design da interface.
+                    </p>
+
+                </div>
+            </div>
+
+
+            <div class="col-md-6 col-lg-4 reveal">
+                <div class="member-card">
+
+                    <div class="member-avatar">
+                        <span>LS</span>
+                    </div>
+
+                    <h4>Lyvia Santos</h4>
+
+                    <span class="member-role">
+                        Front End / Back End / Design / Segurança Da Informação
+                    </span>
+
+                    <p>
+                        Lyvia Santos participou do desenvolvimento do front-end e back-end, contribuiu para o design da interface e implementou medidas de segurança da informação no projeto.
+                    </p>
+
+                </div>
+            </div>
+
+
         </div>
 
     </div>
 
 </section>
 
-<!-- FOOTER -->
+
 <footer>
 
     <div class="container">
@@ -454,11 +445,140 @@ require_once 'lang.php';
 
     </div>
 
-</footer>
 
-<button class="back-top" id="backTop" type="button">
-    <i class="bi bi-arrow-up"></i>
-</button>
+    <footer>
+
+        <div class="container">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-6 text-center text-md-start">
+
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-2">
+
+                        <img
+                            src="img/logo-branca.png"
+                            alt="Meu Ponto Diário"
+                            class="footer-logo">
+
+                        <h5 class="fw-bold mb-0">
+                            Meu Ponto Diário
+                        </h5>
+
+                    </div>
+
+                    <small>
+                        Sistema de Gestão de RH, Ponto e Banco de Horas.
+                    </small>
+
+                </div>
+
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+
+                    <a href="#funcionalidades" class="me-4">
+                        Funcionalidades
+                    </a>
+
+                    <a href="#planos" class="me-4">
+                        Planos
+                    </a>
+
+                    <a href="ajuda.php" class="me-4">
+                        Ajuda
+                    </a>
+
+                    <a href="leis.php" class="me-4">
+                        Leis
+                    </a>
+
+                    <a href="login.php">
+                        Entrar
+                    </a>
+
+                </div>
+
+            </div>
+
+            <hr class="border-light opacity-25 my-4">
+
+            <div class="text-center">
+
+                <small>
+                    © 2026 Meu Ponto Diário · Todos os direitos reservados.
+                </small>
+
+            </div>
+
+        </div>
+
+    <footer>
+
+        <div class="container">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-6 text-center text-md-start">
+
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-2">
+
+                        <img
+                            src="img/logo-branca.png"
+                            alt="Meu Ponto Diário"
+                            class="footer-logo">
+
+                        <h5 class="fw-bold mb-0">
+                            Meu Ponto Diário
+                        </h5>
+
+                    </div>
+
+                    <small>
+                        Sistema de Gestão de RH, Ponto e Banco de Horas.
+                    </small>
+
+                </div>
+
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+
+                    <a href="#funcionalidades" class="me-4">
+                        Funcionalidades
+                    </a>
+
+                    <a href="#planos" class="me-4">
+                        Planos
+                    </a>
+
+                    <a href="ajuda.php" class="me-4">
+                        Ajuda
+                    </a>
+
+                    <a href="leis.php" class="me-4">
+                        Leis
+                    </a>
+
+                    <a href="login.php">
+                        Entrar
+                    </a>
+
+                </div>
+
+            </div>
+
+            <hr class="border-light opacity-25 my-4">
+
+            <div class="text-center">
+
+                <small>
+                    © 2026 Meu Ponto Diário · Todos os direitos reservados.
+                </small>
+
+            </div>
+
+        </div>
+
+    </footer>
+    
+</html>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

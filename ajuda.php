@@ -32,6 +32,13 @@ require_once 'lang.php';
 
 <body>
 
+    <a href="sobre.php" class="top-logo" id="topLogo" aria-label="Conhecer o projeto">
+        <img
+            src="img/logo-azul.png"
+            alt="Meu Ponto Diário"
+            class="top-logo-img">
+    </a>
+
 <section class="ajuda-hero">
 
     <div class="hero-bg-logo"></div>

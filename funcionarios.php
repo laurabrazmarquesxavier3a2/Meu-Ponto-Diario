@@ -13,6 +13,64 @@ if (!$idEmpresa) {
 $mensagem = '';
 $erro = '';
 
+function calcularDataFim(string $dataInicio, int $dias): string
+{
+    if ($dataInicio === '' || $dias <= 0) {
+        return '';
+    }
+
+    $data = new DateTime($dataInicio);
+    $data->modify('+' . ($dias - 1) . ' days');
+
+    return $data->format('Y-m-d');
+}
+
+function removerAusenciasAtuaisEFuturas(
+    mysqli $con,
+    int $idFuncionario,
+    int $idEmpresa,
+    string $tabela,
+    string $campoStatus
+): void {
+    $tabelasPermitidas = [
+        'ferias' => 'status',
+        'licencas_medicas' => 'status',
+        'afastamentos' => 'status'
+    ];
+
+    if (
+        !isset($tabelasPermitidas[$tabela]) ||
+        $tabelasPermitidas[$tabela] !== $campoStatus
+    ) {
+        throw new Exception('Tabela de ausência inválida.');
+    }
+
+    $sql = "
+        DELETE FROM {$tabela}
+        WHERE id_funcionario = ?
+          AND id_empresa = ?
+          AND data_fim >= CURDATE()
+    ";
+
+    $stmt = $con->prepare($sql);
+
+    if (!$stmt) {
+        throw new Exception(
+            'Erro ao limpar períodos anteriores: ' . $con->error
+        );
+    }
+
+    $stmt->bind_param('ii', $idFuncionario, $idEmpresa);
+
+    if (!$stmt->execute()) {
+        throw new Exception(
+            'Erro ao limpar períodos anteriores: ' . $stmt->error
+        );
+    }
+
+    $stmt->close();
+}
+
 /* EDITAR FUNCIONÁRIO */
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_funcionario'])) {
 
@@ -27,6 +85,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_funcionario']))
     $horario = trim($_POST['horario'] ?? '');
     $tipo = trim($_POST['tipo'] ?? 'funcionario');
     $status = trim($_POST['status'] ?? 'ativo');
+
+    $dataInicioAusencia = trim(
+        $_POST['data_inicio_ausencia'] ?? ''
+    );
+
+    $duracaoAusencia = (int) (
+        $_POST['duracao_ausencia'] ?? 0
+    );
+
+    $motivoAusencia = trim(
+        $_POST['motivo_ausencia'] ?? ''
+    );
+
+    $dataFimAusencia = calcularDataFim(
+        $dataInicioAusencia,
+        $duracaoAusencia
+    );
 
     if ($nome == '' || $email == '' || $cargo == '' || $departamento == '') {
 
@@ -45,6 +120,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_funcionario']))
         if (!in_array($tipo, $tiposPermitidos)) {
             $tipo = 'funcionario';
         }
+
+        if (
+            in_array($status, ['ferias', 'licenca', 'afastado'], true) &&
+            (
+                $dataInicioAusencia === '' ||
+                $duracaoAusencia <= 0
+            )
+        ) {
+            $erro =
+                'Informe a data de início e a duração do período.';
+        }
+
+        if (
+            $status === 'ferias' &&
+            $duracaoAusencia > 30
+        ) {
+            $erro =
+                'O período de férias não pode ultrapassar 30 dias.';
+        }
+
+        if ($erro !== '') {
+            // Interrompe antes de consultar e atualizar o banco.
+        } else {
 
         $verifica = $con->prepare("
             SELECT id_usuario
@@ -136,9 +234,358 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_funcionario']))
                     throw new Exception("Erro ao atualizar usuário: " . $stmtUser->error);
                 }
 
+                /*
+                |--------------------------------------------------------------------------
+                | PERÍODO DE FÉRIAS
+                |--------------------------------------------------------------------------
+                */
+
+                if ($status === 'ferias') {
+
+                    removerAusenciasAtuaisEFuturas(
+                        $con,
+                        $idFuncionario,
+                        (int) $idEmpresa,
+                        'ferias',
+                        'status'
+                    );
+
+                    $stmtFerias = $con->prepare("
+                        INSERT INTO ferias (
+                            id_funcionario,
+                            id_empresa,
+                            data_inicio,
+                            data_fim,
+                            dias,
+                            status,
+                            data_solicitacao,
+                            data_visto,
+                            mensagem_colaborador,
+                            alteracoes_restantes
+                        )
+                        VALUES (
+                            ?, ?, ?, ?, ?,
+                            'aprovado',
+                            NOW(),
+                            NOW(),
+                            ?,
+                            0
+                        )
+                    ");
+
+                    if (!$stmtFerias) {
+                        throw new Exception(
+                            'Erro SQL férias: ' . $con->error
+                        );
+                    }
+
+                    $mensagemFerias =
+                        $motivoAusencia !== ''
+                            ? $motivoAusencia
+                            : 'Férias cadastradas pelo RH no perfil do funcionário.';
+
+                    $stmtFerias->bind_param(
+                        'iissis',
+                        $idFuncionario,
+                        $idEmpresa,
+                        $dataInicioAusencia,
+                        $dataFimAusencia,
+                        $duracaoAusencia,
+                        $mensagemFerias
+                    );
+
+                    if (!$stmtFerias->execute()) {
+                        throw new Exception(
+                            'Erro ao cadastrar férias: ' .
+                            $stmtFerias->error
+                        );
+                    }
+
+                    $stmtFerias->close();
+
+                    /*
+                     * Remove pontos que estejam dentro das férias.
+                     */
+                    $stmtLimparPontos = $con->prepare("
+                        DELETE FROM pontos
+                        WHERE id_funcionario = ?
+                          AND id_empresa = ?
+                          AND data BETWEEN ? AND ?
+                    ");
+
+                    if (!$stmtLimparPontos) {
+                        throw new Exception(
+                            'Erro ao preparar limpeza de pontos: ' .
+                            $con->error
+                        );
+                    }
+
+                    $stmtLimparPontos->bind_param(
+                        'iiss',
+                        $idFuncionario,
+                        $idEmpresa,
+                        $dataInicioAusencia,
+                        $dataFimAusencia
+                    );
+
+                    $stmtLimparPontos->execute();
+                    $stmtLimparPontos->close();
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | PERÍODO DE LICENÇA MÉDICA
+                |--------------------------------------------------------------------------
+                */
+
+                if ($status === 'licenca') {
+
+                    removerAusenciasAtuaisEFuturas(
+                        $con,
+                        $idFuncionario,
+                        (int) $idEmpresa,
+                        'licencas_medicas',
+                        'status'
+                    );
+
+                    $stmtLicenca = $con->prepare("
+                        INSERT INTO licencas_medicas (
+                            id_funcionario,
+                            arquivo_atestado,
+                            tipo_arquivo,
+                            motivo,
+                            data_inicio,
+                            data_fim,
+                            dias,
+                            observacao,
+                            id_empresa,
+                            status,
+                            data_visto,
+                            mensagem_colaborador
+                        )
+                        VALUES (
+                            ?,
+                            'cadastro-rh-sem-anexo',
+                            'sem_anexo',
+                            ?,
+                            ?, ?,
+                            ?,
+                            'Licença cadastrada diretamente pelo RH na edição do funcionário.',
+                            ?,
+                            'visto',
+                            NOW(),
+                            'Licença registrada e validada pelo RH.'
+                        )
+                    ");
+
+                    if (!$stmtLicenca) {
+                        throw new Exception(
+                            'Erro SQL licença médica: ' . $con->error
+                        );
+                    }
+
+                    $motivoFinalLicenca =
+                        $motivoAusencia !== ''
+                            ? $motivoAusencia
+                            : 'Licença médica cadastrada pelo RH.';
+
+                    $stmtLicenca->bind_param(
+                        'isssii',
+                        $idFuncionario,
+                        $motivoFinalLicenca,
+                        $dataInicioAusencia,
+                        $dataFimAusencia,
+                        $duracaoAusencia,
+                        $idEmpresa
+                    );
+
+                    if (!$stmtLicenca->execute()) {
+                        throw new Exception(
+                            'Erro ao cadastrar licença médica: ' .
+                            $stmtLicenca->error
+                        );
+                    }
+
+                    $stmtLicenca->close();
+
+                    $stmtLimparPontos = $con->prepare("
+                        DELETE FROM pontos
+                        WHERE id_funcionario = ?
+                          AND id_empresa = ?
+                          AND data BETWEEN ? AND ?
+                    ");
+
+                    if (!$stmtLimparPontos) {
+                        throw new Exception(
+                            'Erro ao preparar limpeza de pontos: ' .
+                            $con->error
+                        );
+                    }
+
+                    $stmtLimparPontos->bind_param(
+                        'iiss',
+                        $idFuncionario,
+                        $idEmpresa,
+                        $dataInicioAusencia,
+                        $dataFimAusencia
+                    );
+
+                    $stmtLimparPontos->execute();
+                    $stmtLimparPontos->close();
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | PERÍODO DE AFASTAMENTO
+                |--------------------------------------------------------------------------
+                */
+
+                if ($status === 'afastado') {
+
+                    removerAusenciasAtuaisEFuturas(
+                        $con,
+                        $idFuncionario,
+                        (int) $idEmpresa,
+                        'afastamentos',
+                        'status'
+                    );
+
+                    $stmtAfastamento = $con->prepare("
+                        INSERT INTO afastamentos (
+                            id_funcionario,
+                            id_empresa,
+                            tipo,
+                            motivo,
+                            data_inicio,
+                            data_fim,
+                            dias,
+                            status,
+                            observacao
+                        )
+                        VALUES (
+                            ?, ?,
+                            'Afastamento temporário',
+                            ?,
+                            ?, ?,
+                            ?,
+                            'aprovado',
+                            'Cadastrado pelo RH na edição do funcionário.'
+                        )
+                    ");
+
+                    if (!$stmtAfastamento) {
+                        throw new Exception(
+                            'Erro SQL afastamento: ' . $con->error
+                        );
+                    }
+
+                    $motivoFinalAfastamento =
+                        $motivoAusencia !== ''
+                            ? $motivoAusencia
+                            : 'Afastamento cadastrado pelo RH.';
+
+                    $stmtAfastamento->bind_param(
+                        'iisssi',
+                        $idFuncionario,
+                        $idEmpresa,
+                        $motivoFinalAfastamento,
+                        $dataInicioAusencia,
+                        $dataFimAusencia,
+                        $duracaoAusencia
+                    );
+
+                    if (!$stmtAfastamento->execute()) {
+                        throw new Exception(
+                            'Erro ao cadastrar afastamento: ' .
+                            $stmtAfastamento->error
+                        );
+                    }
+
+                    $stmtAfastamento->close();
+
+                    $stmtLimparPontos = $con->prepare("
+                        DELETE FROM pontos
+                        WHERE id_funcionario = ?
+                          AND id_empresa = ?
+                          AND data BETWEEN ? AND ?
+                    ");
+
+                    if (!$stmtLimparPontos) {
+                        throw new Exception(
+                            'Erro ao preparar limpeza de pontos: ' .
+                            $con->error
+                        );
+                    }
+
+                    $stmtLimparPontos->bind_param(
+                        'iiss',
+                        $idFuncionario,
+                        $idEmpresa,
+                        $dataInicioAusencia,
+                        $dataFimAusencia
+                    );
+
+                    $stmtLimparPontos->execute();
+                    $stmtLimparPontos->close();
+                }
+
+                /*
+                 * Ao voltar para ativo ou inativo, remove apenas períodos
+                 * atuais e futuros. Registros históricos continuam salvos.
+                 */
+                if (in_array($status, ['ativo', 'inativo'], true)) {
+
+                    removerAusenciasAtuaisEFuturas(
+                        $con,
+                        $idFuncionario,
+                        (int) $idEmpresa,
+                        'ferias',
+                        'status'
+                    );
+
+                    removerAusenciasAtuaisEFuturas(
+                        $con,
+                        $idFuncionario,
+                        (int) $idEmpresa,
+                        'licencas_medicas',
+                        'status'
+                    );
+
+                    removerAusenciasAtuaisEFuturas(
+                        $con,
+                        $idFuncionario,
+                        (int) $idEmpresa,
+                        'afastamentos',
+                        'status'
+                    );
+                }
+
                 mysqli_commit($con);
 
-                $mensagem = "Funcionário atualizado com sucesso.";
+                if ($status === 'ferias') {
+                    $mensagem =
+                        'Funcionário atualizado e férias cadastradas de ' .
+                        date('d/m/Y', strtotime($dataInicioAusencia)) .
+                        ' até ' .
+                        date('d/m/Y', strtotime($dataFimAusencia)) .
+                        '.';
+                } elseif ($status === 'licenca') {
+                    $mensagem =
+                        'Funcionário atualizado e licença cadastrada de ' .
+                        date('d/m/Y', strtotime($dataInicioAusencia)) .
+                        ' até ' .
+                        date('d/m/Y', strtotime($dataFimAusencia)) .
+                        '.';
+                } elseif ($status === 'afastado') {
+                    $mensagem =
+                        'Funcionário atualizado e afastamento cadastrado de ' .
+                        date('d/m/Y', strtotime($dataInicioAusencia)) .
+                        ' até ' .
+                        date('d/m/Y', strtotime($dataFimAusencia)) .
+                        '.';
+                } else {
+                    $mensagem = 'Funcionário atualizado com sucesso.';
+                }
 
             } catch (Exception $e) {
 
@@ -146,33 +593,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_funcionario']))
                 $erro = $e->getMessage();
             }
         }
-    }
-}
-
-/* ALTERAR STATUS */
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['alterar_status'])) {
-
-    $idUsuario = intval($_POST['id_usuario']);
-    $status = $_POST['status'];
-
-    $stmt = $con->prepare("
-        UPDATE usuarios
-        SET status = ?
-        WHERE id_usuario = ?
-        AND id_empresa = ?
-    ");
-
-    $stmt->bind_param(
-        "sii",
-        $status,
-        $idUsuario,
-        $idEmpresa
-    );
-
-    if ($stmt->execute()) {
-        $mensagem = "Status atualizado com sucesso.";
-    } else {
-        $erro = "Erro ao atualizar status.";
+        }
     }
 }
 
@@ -190,7 +611,107 @@ $stmt = $con->prepare("
         usuarios.telefone,
         usuarios.status,
         usuarios.tipo,
-        usuarios.foto
+        usuarios.foto,
+
+        (
+            SELECT fe.data_inicio
+            FROM ferias AS fe
+            WHERE fe.id_funcionario = funcionarios.id_funcionario
+              AND fe.id_empresa = funcionarios.id_empresa
+              AND fe.status = 'aprovado'
+              AND fe.data_fim >= CURDATE()
+            ORDER BY fe.data_inicio DESC
+            LIMIT 1
+        ) AS ferias_inicio,
+
+        (
+            SELECT fe.dias
+            FROM ferias AS fe
+            WHERE fe.id_funcionario = funcionarios.id_funcionario
+              AND fe.id_empresa = funcionarios.id_empresa
+              AND fe.status = 'aprovado'
+              AND fe.data_fim >= CURDATE()
+            ORDER BY fe.data_inicio DESC
+            LIMIT 1
+        ) AS ferias_dias,
+
+        (
+            SELECT fe.mensagem_colaborador
+            FROM ferias AS fe
+            WHERE fe.id_funcionario = funcionarios.id_funcionario
+              AND fe.id_empresa = funcionarios.id_empresa
+              AND fe.status = 'aprovado'
+              AND fe.data_fim >= CURDATE()
+            ORDER BY fe.data_inicio DESC
+            LIMIT 1
+        ) AS ferias_motivo,
+
+        (
+            SELECT lm.data_inicio
+            FROM licencas_medicas AS lm
+            WHERE lm.id_funcionario = funcionarios.id_funcionario
+              AND lm.id_empresa = funcionarios.id_empresa
+              AND lm.status IN ('visto', 'aprovado')
+              AND lm.data_fim >= CURDATE()
+            ORDER BY lm.data_inicio DESC
+            LIMIT 1
+        ) AS licenca_inicio,
+
+        (
+            SELECT lm.dias
+            FROM licencas_medicas AS lm
+            WHERE lm.id_funcionario = funcionarios.id_funcionario
+              AND lm.id_empresa = funcionarios.id_empresa
+              AND lm.status IN ('visto', 'aprovado')
+              AND lm.data_fim >= CURDATE()
+            ORDER BY lm.data_inicio DESC
+            LIMIT 1
+        ) AS licenca_dias,
+
+        (
+            SELECT lm.motivo
+            FROM licencas_medicas AS lm
+            WHERE lm.id_funcionario = funcionarios.id_funcionario
+              AND lm.id_empresa = funcionarios.id_empresa
+              AND lm.status IN ('visto', 'aprovado')
+              AND lm.data_fim >= CURDATE()
+            ORDER BY lm.data_inicio DESC
+            LIMIT 1
+        ) AS licenca_motivo,
+
+        (
+            SELECT af.data_inicio
+            FROM afastamentos AS af
+            WHERE af.id_funcionario = funcionarios.id_funcionario
+              AND af.id_empresa = funcionarios.id_empresa
+              AND af.status = 'aprovado'
+              AND af.data_fim >= CURDATE()
+            ORDER BY af.data_inicio DESC
+            LIMIT 1
+        ) AS afastamento_inicio,
+
+        (
+            SELECT af.dias
+            FROM afastamentos AS af
+            WHERE af.id_funcionario = funcionarios.id_funcionario
+              AND af.id_empresa = funcionarios.id_empresa
+              AND af.status = 'aprovado'
+              AND af.data_fim >= CURDATE()
+            ORDER BY af.data_inicio DESC
+            LIMIT 1
+        ) AS afastamento_dias,
+
+        (
+            SELECT af.motivo
+            FROM afastamentos AS af
+            WHERE af.id_funcionario = funcionarios.id_funcionario
+              AND af.id_empresa = funcionarios.id_empresa
+              AND af.status = 'aprovado'
+              AND af.data_fim >= CURDATE()
+            ORDER BY af.data_inicio DESC
+            LIMIT 1
+        ) AS afastamento_motivo
+
     FROM funcionarios
     LEFT JOIN usuarios
     ON usuarios.id_funcionario = funcionarios.id_funcionario
@@ -330,6 +851,8 @@ function badgeStatus($status) {
     padding-bottom:8px;
     margin-bottom:16px;
 }
+
+#edit_data_fim_ausencia[readonly],
 </style>
 
 </head>
@@ -620,6 +1143,15 @@ function badgeStatus($status) {
                                     data-horario="<?= htmlspecialchars($f['horario_padrao'] ?? '') ?>"
                                     data-tipo="<?= htmlspecialchars($tipo) ?>"
                                     data-status="<?= htmlspecialchars($status) ?>"
+                                    data-ferias-inicio="<?= htmlspecialchars($f['ferias_inicio'] ?? '') ?>"
+                                    data-ferias-dias="<?= htmlspecialchars($f['ferias_dias'] ?? '') ?>"
+                                    data-ferias-motivo="<?= htmlspecialchars($f['ferias_motivo'] ?? '') ?>"
+                                    data-licenca-inicio="<?= htmlspecialchars($f['licenca_inicio'] ?? '') ?>"
+                                    data-licenca-dias="<?= htmlspecialchars($f['licenca_dias'] ?? '') ?>"
+                                    data-licenca-motivo="<?= htmlspecialchars($f['licenca_motivo'] ?? '') ?>"
+                                    data-afastamento-inicio="<?= htmlspecialchars($f['afastamento_inicio'] ?? '') ?>"
+                                    data-afastamento-dias="<?= htmlspecialchars($f['afastamento_dias'] ?? '') ?>"
+                                    data-afastamento-motivo="<?= htmlspecialchars($f['afastamento_motivo'] ?? '') ?>"
                                     <?= !$idUsuario ? 'disabled' : '' ?>
                                 >
                                     <i class="bi bi-pencil-square me-1"></i>
@@ -628,56 +1160,6 @@ function badgeStatus($status) {
 
                             </div>
 
-                            <form method="POST">
-
-                                <input
-                                    type="hidden"
-                                    name="id_usuario"
-                                    value="<?= htmlspecialchars($idUsuario) ?>"
-                                >
-
-                                <label class="form-label small fw-semibold">
-                                    Alterar status
-                                </label>
-
-                                <div class="input-group">
-
-                                    <select name="status" class="form-select form-select-sm" <?= !$idUsuario ? 'disabled' : '' ?>>
-
-                                        <option value="ativo" <?= $status == 'ativo' ? 'selected' : '' ?>>
-                                            Ativo
-                                        </option>
-
-                                        <option value="inativo" <?= $status == 'inativo' ? 'selected' : '' ?>>
-                                            Inativo
-                                        </option>
-
-                                        <option value="ferias" <?= $status == 'ferias' ? 'selected' : '' ?>>
-                                            Férias
-                                        </option>
-
-                                        <option value="licenca" <?= $status == 'licenca' ? 'selected' : '' ?>>
-                                            Licença
-                                        </option>
-
-                                        <option value="afastado" <?= $status == 'afastado' ? 'selected' : '' ?>>
-                                            Afastado
-                                        </option>
-
-                                    </select>
-
-                                    <button
-                                        type="submit"
-                                        name="alterar_status"
-                                        class="btn btn-primary btn-sm"
-                                        <?= !$idUsuario ? 'disabled' : '' ?>
-                                    >
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-
-                                </div>
-
-                            </form>
 
                         </div>
 
@@ -831,6 +1313,99 @@ function badgeStatus($status) {
                                 <option value="licenca">Licença</option>
                                 <option value="afastado">Afastado</option>
                             </select>
+
+                            <small class="text-muted">
+                                Ao selecionar férias, licença ou afastamento,
+                                os campos de período aparecerão abaixo.
+                            </small>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="blocoPeriodoAusencia"
+                        class="mt-4 d-none"
+                    >
+
+                        <div class="modal-section-title">
+                            Período do status
+                        </div>
+
+                        <div class="alert alert-light border mb-3">
+                            O período será usado para férias, licença médica ou afastamento. A data final será calculada automaticamente.
+                        </div>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+
+                                <label class="form-label fw-bold">
+                                    Data de início
+                                </label>
+
+                                <input
+                                    type="date"
+                                    name="data_inicio_ausencia"
+                                    id="edit_data_inicio_ausencia"
+                                    class="form-control"
+                                >
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label fw-bold">
+                                    Duração em dias
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="duracao_ausencia"
+                                    id="edit_duracao_ausencia"
+                                    class="form-control"
+                                    min="1"
+                                    max="365"
+                                    placeholder="Ex.: 30"
+                                >
+
+                                <small
+                                    class="text-muted"
+                                    id="ajudaDuracaoAusencia"
+                                ></small>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label fw-bold">
+                                    Data final
+                                </label>
+
+                                <input
+                                    type="date"
+                                    id="edit_data_fim_ausencia"
+                                    class="form-control"
+                                    readonly
+                                >
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <label class="form-label fw-bold">
+                                    Motivo ou observação
+                                </label>
+
+                                <textarea
+                                    name="motivo_ausencia"
+                                    id="edit_motivo_ausencia"
+                                    class="form-control"
+                                    rows="3"
+                                    placeholder="Descreva o motivo ou uma observação sobre o período"
+                                ></textarea>
+
+                            </div>
+
                         </div>
 
                     </div>
@@ -894,6 +1469,127 @@ function filtrarFuncionarios(){
 pesquisa.addEventListener('keyup', filtrarFuncionarios);
 filtroStatus.addEventListener('change', filtrarFuncionarios);
 
+/* PERÍODO DO MODAL DE EDIÇÃO */
+const statusEdicao = document.getElementById('edit_status');
+const blocoPeriodoAusencia = document.getElementById('blocoPeriodoAusencia');
+const dataInicioAusencia = document.getElementById('edit_data_inicio_ausencia');
+const duracaoAusencia = document.getElementById('edit_duracao_ausencia');
+const dataFimAusencia = document.getElementById('edit_data_fim_ausencia');
+const motivoAusencia = document.getElementById('edit_motivo_ausencia');
+const ajudaDuracaoAusencia = document.getElementById('ajudaDuracaoAusencia');
+
+function formatarDataInput(data) {
+    if (!data) {
+        return '';
+    }
+
+    return String(data).substring(0, 10);
+}
+
+function calcularFimPeriodo() {
+
+    const inicio = dataInicioAusencia.value;
+    const dias = parseInt(duracaoAusencia.value || '0', 10);
+
+    if (!inicio || dias <= 0) {
+        dataFimAusencia.value = '';
+        return;
+    }
+
+    const partes = inicio.split('-');
+
+    const data = new Date(
+        Number(partes[0]),
+        Number(partes[1]) - 1,
+        Number(partes[2])
+    );
+
+    data.setDate(data.getDate() + dias - 1);
+
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+
+    dataFimAusencia.value = `${ano}-${mes}-${dia}`;
+}
+
+function atualizarCamposPeriodo(limpar = false) {
+
+    const status = statusEdicao.value;
+    const mostrar =
+        status === 'ferias' ||
+        status === 'licenca' ||
+        status === 'afastado';
+
+    blocoPeriodoAusencia.classList.toggle('d-none', !mostrar);
+
+    dataInicioAusencia.required = mostrar;
+    duracaoAusencia.required = mostrar;
+
+    if (!mostrar) {
+        if (limpar) {
+            dataInicioAusencia.value = '';
+            duracaoAusencia.value = '';
+            dataFimAusencia.value = '';
+            motivoAusencia.value = '';
+        }
+
+        return;
+    }
+
+    if (status === 'ferias') {
+
+        duracaoAusencia.max = '30';
+        ajudaDuracaoAusencia.textContent =
+            'Para férias, informe de 1 a 30 dias.';
+
+        if (!duracaoAusencia.value) {
+            duracaoAusencia.value = '30';
+        }
+
+    } else if (status === 'licenca') {
+
+        duracaoAusencia.max = '365';
+        ajudaDuracaoAusencia.textContent =
+            'Informe a duração da licença médica.';
+
+        if (!duracaoAusencia.value) {
+            duracaoAusencia.value = '1';
+        }
+
+    } else {
+
+        duracaoAusencia.max = '365';
+        ajudaDuracaoAusencia.textContent =
+            'Informe a quantidade de dias do afastamento.';
+
+        if (!duracaoAusencia.value) {
+            duracaoAusencia.value = '1';
+        }
+    }
+
+    if (!dataInicioAusencia.value) {
+        dataInicioAusencia.value =
+            new Date().toISOString().split('T')[0];
+    }
+
+    calcularFimPeriodo();
+}
+
+statusEdicao.addEventListener('change', function() {
+    atualizarCamposPeriodo(true);
+});
+
+dataInicioAusencia.addEventListener(
+    'change',
+    calcularFimPeriodo
+);
+
+duracaoAusencia.addEventListener(
+    'input',
+    calcularFimPeriodo
+);
+
 /* PREENCHER MODAL DE EDIÇÃO */
 document.querySelectorAll('.btnEditarFuncionario').forEach(function(botao){
 
@@ -909,6 +1605,54 @@ document.querySelectorAll('.btnEditarFuncionario').forEach(function(botao){
         document.getElementById('edit_horario').value = this.dataset.horario;
         document.getElementById('edit_tipo').value = this.dataset.tipo;
         document.getElementById('edit_status').value = this.dataset.status;
+
+        dataInicioAusencia.value = '';
+        duracaoAusencia.value = '';
+        dataFimAusencia.value = '';
+        motivoAusencia.value = '';
+
+        if (this.dataset.status === 'ferias') {
+
+            dataInicioAusencia.value =
+                formatarDataInput(
+                    this.dataset.feriasInicio
+                );
+
+            duracaoAusencia.value =
+                this.dataset.feriasDias || '30';
+
+            motivoAusencia.value =
+                this.dataset.feriasMotivo || '';
+
+        } else if (this.dataset.status === 'licenca') {
+
+            dataInicioAusencia.value =
+                formatarDataInput(
+                    this.dataset.licencaInicio
+                );
+
+            duracaoAusencia.value =
+                this.dataset.licencaDias || '1';
+
+            motivoAusencia.value =
+                this.dataset.licencaMotivo || '';
+
+        } else if (this.dataset.status === 'afastado') {
+
+            dataInicioAusencia.value =
+                formatarDataInput(
+                    this.dataset.afastamentoInicio
+                );
+
+            duracaoAusencia.value =
+                this.dataset.afastamentoDias || '1';
+
+            motivoAusencia.value =
+                this.dataset.afastamentoMotivo || '';
+        }
+
+        atualizarCamposPeriodo(false);
+        calcularFimPeriodo();
 
     });
 
