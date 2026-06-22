@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 16-Jun-2026 às 01:43
+-- Tempo de geração: 22-Jun-2026 às 02:28
 -- Versão do servidor: 5.7.36
--- versão do PHP: 8.0.16
+-- versão do PHP: 8.1.3
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,6 +20,34 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `db_mpd`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `afastamentos`
+--
+
+CREATE TABLE `afastamentos` (
+  `id_afastamento` int(11) NOT NULL,
+  `id_funcionario` int(11) NOT NULL,
+  `id_empresa` int(11) NOT NULL,
+  `tipo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `motivo` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `data_inicio` date NOT NULL,
+  `data_fim` date NOT NULL,
+  `dias` int(11) NOT NULL DEFAULT '1',
+  `status` enum('pendente','aprovado','encerrado','cancelado') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'aprovado',
+  `observacao` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `data_cadastro` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Extraindo dados da tabela `afastamentos`
+--
+
+INSERT INTO `afastamentos` (`id_afastamento`, `id_funcionario`, `id_empresa`, `tipo`, `motivo`, `data_inicio`, `data_fim`, `dias`, `status`, `observacao`, `data_cadastro`) VALUES
+(1, 27, 5, 'Afastamento ocupacional', 'Recuperação de lesão ocorrida fora do ambiente de trabalho.', '2026-06-08', '2026-06-12', 5, 'aprovado', 'Registro criado para demonstração do histórico.', '2026-06-21 19:27:24'),
+(2, 43, 5, 'Afastamento temporário', 'Recomendação de afastamento para recuperação física.', '2026-06-18', '2026-06-26', 9, 'aprovado', 'Afastamento de demonstração para teste do calendário.', '2026-06-21 19:27:24');
 
 -- --------------------------------------------------------
 
@@ -106,7 +134,7 @@ INSERT INTO `banco_horas` (`id_banco`, `id_funcionario`, `mes`, `saldo_total`, `
 (19, 19, '2026-06', '1.29', '1.29', '1.34', '0.05', '2026-06-16', 'positivo', 4),
 (20, 20, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
 (21, 21, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
-(22, 22, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
+(22, 22, '2026-06', '0.60', '0.60', '1.13', '0.53', '2026-06-21', 'positivo', 5),
 (23, 23, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (24, 24, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (25, 25, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
@@ -127,7 +155,7 @@ INSERT INTO `banco_horas` (`id_banco`, `id_funcionario`, `mes`, `saldo_total`, `
 (40, 40, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (41, 41, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (42, 42, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
-(43, 43, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
+(43, 43, '2026-06', '0.21', '0.21', '0.56', '0.35', '2026-06-21', 'positivo', 5),
 (44, 44, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (45, 45, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (46, 46, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
@@ -204,7 +232,8 @@ CREATE TABLE `config_notificacoes` (
 
 INSERT INTO `config_notificacoes` (`id_config`, `id_usuario`, `id_empresa`, `novas_solicitacoes`, `aprovacoes_pendentes`, `alertas_emergencia`, `resumo_semanal`, `data_atualizacao`) VALUES
 (1, 21, 4, 1, 1, 1, 0, '2026-06-09 15:51:34'),
-(3, 12, 4, 1, 1, 1, 0, '2026-06-09 17:22:00');
+(3, 12, 4, 1, 1, 1, 0, '2026-06-09 17:22:00'),
+(4, 23, 5, 1, 1, 1, 0, '2026-06-21 18:20:05');
 
 -- --------------------------------------------------------
 
@@ -280,10 +309,45 @@ CREATE TABLE `ferias` (
 --
 
 INSERT INTO `ferias` (`id_ferias`, `id_funcionario`, `id_empresa`, `data_inicio`, `data_fim`, `dias`, `data_solicitacao`, `status`, `data_visto`, `mensagem_colaborador`, `alteracoes_restantes`, `motivo_rejeicao`) VALUES
+(1, 19, 4, '2027-05-01', '2027-05-30', 30, '2026-06-09 15:48:42', 'aprovado', '2026-06-09 16:45:19', 'Férias de 30 dias aprovadas pelo RH. Período de 01/05/2027 até 30/05/2027.', 0, NULL),
+(2, 14, 4, '2026-07-01', '2026-07-30', 30, '2026-06-09 16:17:45', 'aprovado', '2026-06-09 16:45:17', 'Férias de 30 dias aprovadas pelo RH. Período de 01/07/2026 até 30/07/2026.', 0, NULL),
+(3, 19, 4, '2027-03-01', '2027-03-30', 30, '2026-06-09 17:06:37', 'rejeitado', '2026-06-09 17:22:24', 'Sua solicitação de férias foi rejeitada pelo RH.', 2, 'ja foi aprovado um pedido anteriormente'),
+(4, 19, 4, '2026-07-01', '2026-07-30', 30, '2026-06-15 21:47:36', 'pendente', NULL, 'Solicitação alterada. Aguardando visualização do RH.', 0, NULL),
+(5, 22, 5, '2026-06-15', '2026-07-14', 30, '2026-06-21 19:27:24', 'aprovado', '2026-06-21 19:27:24', 'Férias de 30 dias aprovadas pelo RH. Período de 15/06/2026 até 14/07/2026.', 0, NULL),
+(6, 30, 5, '2026-06-22', '2026-07-21', 30, '2026-06-21 19:27:24', 'aprovado', '2026-06-21 19:27:24', 'Férias de 30 dias aprovadas pelo RH. Período de 22/06/2026 até 21/07/2026.', 0, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `ferias_backup_antes_correcao`
+--
+
+CREATE TABLE `ferias_backup_antes_correcao` (
+  `id_ferias` int(11) NOT NULL DEFAULT '0',
+  `id_funcionario` int(11) NOT NULL,
+  `id_empresa` int(11) NOT NULL,
+  `data_inicio` date NOT NULL,
+  `data_fim` date NOT NULL,
+  `dias` int(11) NOT NULL,
+  `data_solicitacao` datetime DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('pendente','visto','aprovado','rejeitado') CHARACTER SET utf8mb4 DEFAULT 'pendente',
+  `data_visto` datetime DEFAULT NULL,
+  `mensagem_colaborador` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `alteracoes_restantes` int(11) DEFAULT '2',
+  `motivo_rejeicao` text CHARACTER SET utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Extraindo dados da tabela `ferias_backup_antes_correcao`
+--
+
+INSERT INTO `ferias_backup_antes_correcao` (`id_ferias`, `id_funcionario`, `id_empresa`, `data_inicio`, `data_fim`, `dias`, `data_solicitacao`, `status`, `data_visto`, `mensagem_colaborador`, `alteracoes_restantes`, `motivo_rejeicao`) VALUES
 (1, 19, 4, '2027-05-01', '2027-05-30', 30, '2026-06-09 15:48:42', 'aprovado', '2026-06-09 16:45:19', 'Sua solicitação de férias foi aprovada pelo RH.', 0, NULL),
 (2, 14, 4, '2026-07-01', '2026-07-30', 30, '2026-06-09 16:17:45', 'aprovado', '2026-06-09 16:45:17', 'Sua solicitação de férias foi aprovada pelo RH.', 1, NULL),
 (3, 19, 4, '2027-03-01', '2027-03-30', 30, '2026-06-09 17:06:37', 'rejeitado', '2026-06-09 17:22:24', 'Sua solicitação de férias foi rejeitada pelo RH.', 2, 'ja foi aprovado um pedido anteriormente'),
-(4, 19, 4, '2026-07-01', '2026-07-30', 30, '2026-06-15 21:47:36', 'pendente', NULL, 'Solicitação alterada. Aguardando visualização do RH.', 0, NULL);
+(4, 19, 4, '2026-07-01', '2026-07-30', 30, '2026-06-15 21:47:36', 'pendente', NULL, 'Solicitação alterada. Aguardando visualização do RH.', 0, NULL),
+(5, 22, 5, '2026-06-15', '2026-06-19', 5, '2026-06-21 19:27:24', 'aprovado', '2026-06-21 19:27:24', 'Férias aprovadas pelo RH para demonstração do sistema.', 0, NULL),
+(6, 30, 5, '2026-06-22', '2026-06-30', 9, '2026-06-21 19:27:24', 'aprovado', '2026-06-21 19:27:24', 'Férias aprovadas pelo RH para demonstração do sistema.', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -469,7 +533,9 @@ CREATE TABLE `licencas_medicas` (
 
 INSERT INTO `licencas_medicas` (`id`, `id_funcionario`, `arquivo_atestado`, `tipo_arquivo`, `motivo`, `data_inicio`, `data_fim`, `dias`, `observacao`, `data_envio`, `id_empresa`, `status`, `data_visto`, `mensagem_colaborador`) VALUES
 (1, 19, 'uploads/licencas/licenca_6a28614867b88.jpg', 'jpg', 'Gripe', '2026-06-09', '2026-06-12', 4, '', '2026-06-09 18:54:00', 4, 'visto', '2026-06-09 16:45:06', 'Sua licença médica foi visualizada pelo RH.'),
-(2, 14, 'uploads/licencas/licenca_6a2866e7dd8f0.jpg', 'jpg', 'dor de cabeça', '2026-06-09', '2026-06-10', 2, '', '2026-06-09 19:17:59', 4, 'visto', '2026-06-09 16:45:04', 'Sua licença médica foi visualizada pelo RH.');
+(2, 14, 'uploads/licencas/licenca_6a2866e7dd8f0.jpg', 'jpg', 'dor de cabeça', '2026-06-09', '2026-06-10', 2, '', '2026-06-09 19:17:59', 4, 'visto', '2026-06-09 16:45:04', 'Sua licença médica foi visualizada pelo RH.'),
+(3, 23, 'uploads/licencas/atestado-demo-pedro.pdf', 'pdf', 'Gripe e recomendação de repouso', '2026-06-17', '2026-06-19', 3, 'Licença médica criada para demonstração.', '2026-06-21 22:27:24', 5, 'visto', '2026-06-21 19:27:24', 'Seu atestado foi visualizado e registrado pelo RH.'),
+(4, 28, 'uploads/licencas/atestado-demo-camila.pdf', 'pdf', 'Procedimento odontológico', '2026-06-03', '2026-06-05', 3, 'Afastamento médico temporário para demonstração.', '2026-06-21 22:27:24', 5, 'visto', '2026-06-21 19:27:24', 'Sua licença médica foi visualizada pelo RH.');
 
 -- --------------------------------------------------------
 
@@ -572,31 +638,6 @@ CREATE TABLE `pontos` (
 --
 
 INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hora_saida`, `total_horas`, `status`, `justificativa`, `created_at`, `id_empresa`, `saida_intervalo`, `retorno_intervalo`) VALUES
-(1, 45, '2026-06-11', '08:23:00', '17:20:00', '8.18', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:10:00', '12:56:00'),
-(2, 41, '2026-06-11', '08:08:00', '17:23:00', '8.32', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:06:00', '13:02:00'),
-(3, 48, '2026-06-11', '08:37:00', '17:35:00', '7.87', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:57:00', '13:03:00'),
-(4, 35, '2026-06-11', '08:01:00', '17:11:00', '7.98', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:57:00', '13:08:00'),
-(5, 49, '2026-06-11', '08:01:00', '17:03:00', '7.85', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '13:07:00'),
-(6, 27, '2026-06-11', '08:03:00', '17:14:00', '8.03', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:57:00', '13:06:00'),
-(7, 23, '2026-06-11', '08:38:00', '17:42:00', '8.02', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:00:00', '13:03:00'),
-(8, 36, '2026-06-11', '08:42:00', '17:57:00', '8.08', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:03:00', '13:13:00'),
-(9, 42, '2026-06-11', '08:44:00', '17:57:00', '8.18', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '12:58:00'),
-(10, 40, '2026-06-11', '08:07:00', '17:20:00', '8.35', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:06:00', '12:58:00'),
-(11, 22, '2026-06-11', '07:53:00', '16:51:00', '7.88', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:08:00', '13:13:00'),
-(12, 25, '2026-06-11', '07:52:00', '17:07:00', '8.05', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '13:13:00'),
-(13, 50, '2026-06-11', '07:58:00', '17:03:00', '7.92', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '13:06:00'),
-(14, 30, '2026-06-11', '07:59:00', '17:17:00', '8.18', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:04:00', '13:11:00'),
-(15, 32, '2026-06-11', '07:50:00', '16:46:00', '8.10', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:10:00', '13:00:00'),
-(16, 21, '2026-06-11', '07:56:00', '17:06:00', '8.28', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:07:00', '13:00:00'),
-(17, 38, '2026-06-11', '08:28:00', '17:43:00', '8.45', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:08:00', '12:56:00'),
-(18, 39, '2026-06-11', '07:50:00', '17:09:00', '8.20', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '13:08:00'),
-(19, 29, '2026-06-11', '07:52:00', '17:05:00', '7.98', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '13:10:00'),
-(20, 34, '2026-06-11', '08:00:00', '17:15:00', '8.13', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:04:00', '13:11:00'),
-(21, 31, '2026-06-11', '08:39:00', '17:59:00', '8.45', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:04:00', '12:57:00'),
-(22, 47, '2026-06-11', '08:25:00', '17:32:00', '8.00', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:07:00', '13:14:00'),
-(23, 37, '2026-06-11', '07:54:00', '16:56:00', '8.00', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:03:00', '13:05:00'),
-(24, 46, '2026-06-11', '08:35:00', '17:43:00', '7.97', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:55:00', '13:05:00'),
-(25, 33, '2026-06-11', '08:01:00', '17:05:00', '7.98', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:59:00', '13:04:00'),
 (26, 28, '2026-06-11', '07:56:00', '16:49:00', '7.90', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:02:00', '13:01:00'),
 (27, 43, '2026-06-11', '07:51:00', '16:57:00', '8.08', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '12:57:00'),
 (28, 26, '2026-06-11', '08:02:00', '17:22:00', '8.55', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:10:00', '12:57:00'),
@@ -609,7 +650,6 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (35, 48, '2026-06-10', '08:08:00', '17:07:00', '7.85', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:07:00', '13:15:00'),
 (36, 35, '2026-06-10', '08:03:00', '17:12:00', '7.95', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '13:08:00'),
 (37, 49, '2026-06-10', '08:35:00', '17:27:00', '7.93', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '12:57:00'),
-(38, 27, '2026-06-10', '08:15:00', '17:05:00', '7.63', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:57:00', '13:09:00'),
 (39, 23, '2026-06-10', '07:51:00', '17:07:00', '8.25', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '13:02:00'),
 (40, 36, '2026-06-10', '07:53:00', '17:08:00', '8.23', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '13:02:00'),
 (41, 42, '2026-06-10', '07:53:00', '16:46:00', '7.70', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:59:00', '13:10:00'),
@@ -638,7 +678,6 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (64, 48, '2026-06-09', '08:01:00', '17:11:00', '8.05', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '13:03:00'),
 (65, 35, '2026-06-09', '08:45:00', '17:43:00', '7.77', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:58:00', '13:10:00'),
 (66, 49, '2026-06-09', '07:55:00', '17:06:00', '8.02', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '13:06:00'),
-(67, 27, '2026-06-09', '07:50:00', '17:01:00', '8.18', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:08:00', '13:08:00'),
 (68, 23, '2026-06-09', '07:57:00', '17:06:00', '8.05', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:09:00', '13:15:00'),
 (69, 36, '2026-06-09', '08:41:00', '17:48:00', '8.08', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '12:58:00'),
 (70, 42, '2026-06-09', '07:59:00', '16:56:00', '7.73', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:56:00', '13:09:00'),
@@ -668,7 +707,6 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (94, 48, '2026-06-08', '08:01:00', '16:53:00', '7.88', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:09:00', '13:08:00'),
 (95, 35, '2026-06-08', '08:13:00', '17:06:00', '8.03', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:06:00', '12:57:00'),
 (96, 49, '2026-06-08', '08:02:00', '16:58:00', '7.65', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:58:00', '13:15:00'),
-(97, 27, '2026-06-08', '07:56:00', '16:51:00', '7.78', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:58:00', '13:06:00'),
 (98, 23, '2026-06-08', '07:59:00', '16:58:00', '7.83', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:05:00', '13:14:00'),
 (99, 36, '2026-06-08', '08:02:00', '17:06:00', '8.05', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:04:00', '13:05:00'),
 (100, 42, '2026-06-08', '08:13:00', '17:26:00', '8.22', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:03:00', '13:03:00'),
@@ -717,7 +755,6 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (143, 47, '2026-06-05', '08:07:00', '17:06:00', '8.00', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:59:00', '12:58:00'),
 (144, 37, '2026-06-05', '07:55:00', '16:57:00', '8.03', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:10:00', '13:10:00'),
 (145, 33, '2026-06-05', '07:57:00', '16:51:00', '8.05', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:05:00', '12:56:00'),
-(146, 28, '2026-06-05', '08:41:00', '17:49:00', '8.15', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:58:00', '12:57:00'),
 (147, 43, '2026-06-05', '08:27:00', '17:20:00', '8.05', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:06:00', '12:56:00'),
 (148, 26, '2026-06-05', '08:17:00', '17:18:00', '8.02', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:08:00', '13:08:00'),
 (149, 24, '2026-06-05', '07:53:00', '16:45:00', '7.98', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:09:00', '13:02:00'),
@@ -747,7 +784,6 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (173, 37, '2026-06-04', '08:17:00', '17:21:00', '8.22', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:04:00', '12:55:00'),
 (174, 46, '2026-06-04', '07:54:00', '17:11:00', '8.13', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:59:00', '13:08:00'),
 (175, 33, '2026-06-04', '07:56:00', '17:14:00', '8.13', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:02:00', '13:12:00'),
-(176, 28, '2026-06-04', '08:38:00', '17:28:00', '7.63', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '13:13:00'),
 (177, 43, '2026-06-04', '07:53:00', '17:00:00', '8.05', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '13:05:00'),
 (178, 26, '2026-06-04', '07:53:00', '17:06:00', '8.10', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:00:00', '13:07:00'),
 (179, 24, '2026-06-04', '07:58:00', '17:09:00', '8.27', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:02:00', '12:57:00'),
@@ -777,7 +813,6 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (203, 37, '2026-06-03', '07:57:00', '17:09:00', '8.23', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '12:59:00'),
 (204, 46, '2026-06-03', '08:29:00', '17:33:00', '7.93', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:01:00', '13:09:00'),
 (205, 33, '2026-06-03', '07:57:00', '17:04:00', '8.10', 'completo', NULL, '2026-06-12 00:09:04', 5, '12:04:00', '13:05:00'),
-(206, 28, '2026-06-03', '08:45:00', '17:40:00', '7.75', 'completo', NULL, '2026-06-12 00:09:04', 5, '11:58:00', '13:08:00'),
 (207, 43, '2026-06-03', '07:57:00', '17:17:00', '8.02', 'completo', NULL, '2026-06-12 00:09:05', 5, '11:56:00', '13:15:00'),
 (208, 26, '2026-06-03', '08:11:00', '17:06:00', '7.62', 'completo', NULL, '2026-06-12 00:09:05', 5, '11:56:00', '13:14:00'),
 (209, 24, '2026-06-03', '07:54:00', '16:58:00', '8.12', 'completo', NULL, '2026-06-12 00:09:05', 5, '11:58:00', '12:55:00'),
@@ -822,7 +857,7 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (248, 36, '2026-06-01', '07:59:00', '16:56:00', '7.83', 'completo', NULL, '2026-06-12 00:09:05', 5, '11:57:00', '13:04:00'),
 (249, 42, '2026-06-01', '07:58:00', '16:54:00', '7.92', 'completo', NULL, '2026-06-12 00:09:05', 5, '12:04:00', '13:05:00'),
 (250, 40, '2026-06-01', '08:24:00', '17:22:00', '7.92', 'completo', NULL, '2026-06-12 00:09:05', 5, '11:57:00', '13:00:00'),
-(251, 22, '2026-06-01', '08:10:00', '17:25:00', '8.27', 'completo', NULL, '2026-06-12 00:09:05', 5, '11:57:00', '12:56:00'),
+(251, 22, '2026-06-01', '09:08:00', '17:25:00', '7.30', 'atraso', 'Ponto editado manualmente pelo RH. Entrada alterada para 09:08.', '2026-06-12 00:09:05', 5, '11:57:00', '12:56:00'),
 (252, 25, '2026-06-01', '08:15:00', '17:35:00', '8.38', 'completo', NULL, '2026-06-12 00:09:05', 5, '12:10:00', '13:07:00'),
 (253, 50, '2026-06-01', '08:37:00', '17:52:00', '8.13', 'completo', NULL, '2026-06-12 00:09:05', 5, '12:05:00', '13:12:00'),
 (254, 30, '2026-06-01', '07:52:00', '17:06:00', '8.07', 'completo', NULL, '2026-06-12 00:09:05', 5, '12:00:00', '13:10:00'),
@@ -937,9 +972,9 @@ INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`
 (20, 18, 'Juliana Alves', 'juliana@empresa.com', '$2y$10$rA77xAwSJp7A39/oZ8rVp.vVAKAv2XeD/Jf.mXM7RPROmz2t116FS', 'funcionario', 'ferias', NULL, '2026-06-09 03:05:12', '11999998888', 'São Paulo', NULL, 'Analista Comercial', 'Comercial', 4),
 (21, 19, 'Bruno Martins', 'bruno@empresa.com', '$2y$10$FI84T4iaHtpPdZPkA79ueO3.Yb2i5gcbjHFd7ZE7KWGIEdRXY80HC', 'funcionario', 'ativo', '2026-06-15 22:36:51', '2026-06-09 03:05:12', '11999999999', 'São Bernardo', NULL, 'Técnico de Suporte', 'TI', 4),
 (22, 20, 'Carla Rocha', 'carla@empresa.com', '$2y$10$iYiNGRoSO6VyfVGVwQeq.eAGS5J9vtN29s7hOgIRyPPq5XJnrIMSS', 'funcionario', 'ativo', NULL, '2026-06-09 03:05:12', '11988880000', 'São Paulo', NULL, 'Coordenadora RH', 'RH', 4),
-(23, NULL, 'Mariana Alves', 'Alves@technova.com.br', '$2y$10$//6b0igvCvXGEFh3Kg919OynR7ze.S0nc.hczpYwFEFVij1sf5OE2', 'rh', 'ativo', '2026-06-15 22:36:30', '2026-06-11 23:26:23', '(11) 97777-2020', 'São Paulo', NULL, 'Gerente de RH', NULL, 5),
+(23, NULL, 'Mariana Alves', 'Alves@technova.com.br', '$2y$10$//6b0igvCvXGEFh3Kg919OynR7ze.S0nc.hczpYwFEFVij1sf5OE2', 'rh', 'ativo', '2026-06-21 20:30:55', '2026-06-11 23:26:23', '(11) 97777-2020', 'São Paulo', NULL, 'Gerente de RH', NULL, 5),
 (24, 21, 'João Silva', 'joao.silva@technova.com.br', '$2y$10$rFUxfy23YQyltmLM/poAsuktIXYTy4p7qSMA6wr7QE238gwDssjSW', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999991111', 'São Paulo', NULL, 'Analista de TI', 'TI', 5),
-(25, 22, 'Maria Oliveira', 'maria.oliveira@technova.com.br', '$2y$10$GRRLjj61haT06yFAeID.E.hnH/XSF3jhG6SsRorv8WrbktybbIBX.', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999992222', 'São Paulo', NULL, 'Desenvolvedora Back-end', 'TI', 5),
+(25, 22, 'Maria Oliveira', 'maria.oliveira@technova.com.br', '$2y$10$GRRLjj61haT06yFAeID.E.hnH/XSF3jhG6SsRorv8WrbktybbIBX.', 'funcionario', 'ativo', '2026-06-21 20:30:20', '2026-06-11 23:27:03', '11999992222', 'São Paulo', NULL, 'Desenvolvedora Back-end', 'TI', 5),
 (26, 23, 'Pedro Santos', 'pedro.santos@technova.com.br', '$2y$10$p3hOxE3N1YrTrptGY.4PwOYmLeJzgSzQ9nfaGCHEaeJs3HLHEFoTy', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999993333', 'Santos', NULL, 'Desenvolvedor Front-end', 'TI', 5),
 (27, 24, 'Ana Costa', 'ana.costa@technova.com.br', '$2y$10$gCDU6AbL8IrcKD4IPgtVreCUQkS5C7pI9uoS7HC33nxZhyppnVE3W', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999994444', 'São Paulo', NULL, 'Analista de RH', 'RH', 5),
 (28, 25, 'Lucas Pereira', 'lucas.pereira@technova.com.br', '$2y$10$mrqlzC4KUppN5//mDJK6WuO3krUZ6fH5XDDQikRc2IfZVoE1G0GFC', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999995555', 'São Vicente', NULL, 'Designer UX UI', 'Design', 5),
@@ -948,7 +983,7 @@ INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`
 (31, 28, 'Camila Ferreira', 'camila.ferreira@technova.com.br', '$2y$10$zXCuP9zOuYOi8FkvnXQIoO1DjyVp7FSIuKjMBqoTn19knut/FhptG', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999998888', 'Santos', NULL, 'Técnica de Suporte', 'Suporte', 5),
 (32, 29, 'Gustavo Martins', 'gustavo.martins@technova.com.br', '$2y$10$vNckOeCwjZaKZMUjBQ6jcOl/TZ6yQVRC4oG9LfpFNeqwUGh7vsdfi', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999990001', 'São Paulo', NULL, 'Administrador de Redes', 'Infraestrutura', 5),
 (33, 30, 'Larissa Gomes', 'larissa.gomes@technova.com.br', '$2y$10$EytwPto7OXjfPbebmGqHf.awMf9FLhkbzAQEDsgwAx1RjtOSwj.tG', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990002', 'São Paulo', NULL, 'Product Owner', 'Produto', 5),
-(34, 31, 'Felipe Barbosa', 'felipe.barbosa@technova.com.br', '$2y$10$NVBXjqwA6wV00BccmCPyAOQ9Kisj4x6/XzAXXhcf9KW0yH3Q7lYBi', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990003', 'São Paulo', NULL, 'Scrum Master', 'Produto', 5),
+(34, 31, 'Felipe Barbosa', 'felipe.barbosa@technova.com.br', '$2y$10$NVBXjqwA6wV00BccmCPyAOQ9Kisj4x6/XzAXXhcf9KW0yH3Q7lYBi', 'funcionario', 'ativo', '2026-06-21 20:00:17', '2026-06-11 23:27:04', '11999990003', 'São Paulo', NULL, 'Scrum Master', 'Produto', 5),
 (35, 32, 'Juliana Rocha', 'juliana.rocha@technova.com.br', '$2y$10$rp9pa3zdQZdoGbTkjSfUoO8jJw0OBRrXlXPsBZqEGvm4Kn0TsX4hy', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990004', 'Praia Grande', NULL, 'Gerente de Suporte', 'Suporte', 5),
 (36, 33, 'Carlos Mendes', 'carlos.mendes@technova.com.br', '$2y$10$ci7a8PNu70YFsy.FXndzkOeiw/7hy5Ptdwwp2FpZ8N2f.MAtzmLxK', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990005', 'São Paulo', NULL, 'Gerente de TI', 'TI', 5),
 (37, 34, 'Fernanda Lima', 'fernanda.lima@technova.com.br', '$2y$10$RCwk6LeSbVxnD7WzGmtqlekP.HuFicOtzNtdlK..5kuKSHWiHxQw6', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990006', 'São Vicente', NULL, 'Coordenadora de Design', 'Design', 5),
@@ -960,8 +995,8 @@ INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`
 (43, 40, 'Mariana Alves', 'mariana.alves@technova.com.br', '$2y$10$aiOgvBlP08qZGvgRqXoYCuLHTlSbfrwbMkIM8MOEF3mYSq23HRwLm', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990012', 'São Paulo', NULL, 'Gerente de RH', 'RH', 5),
 (44, 41, 'Thiago Moreira', 'thiago.moreira@technova.com.br', '$2y$10$jxfpLkN7Huu0aavCBdnVA.KCe8B.ZE1ILvg/NzyUvDY0GvGicAbP.', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990013', 'São Paulo', NULL, 'Analista de Segurança', 'Segurança da Informação', 5),
 (45, 42, 'Natália Dias', 'natalia.dias@technova.com.br', '$2y$10$RrJ1838XimSttDwfLFcS9eV.RSIZINK/rB9k3a/bFs1gNlEeJmGC2', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990014', 'Santos', NULL, 'DevOps Junior', 'Infraestrutura', 5),
-(46, 43, 'Bruno Teixeira', 'bruno.teixeira@technova.com.br', '$2y$10$.2JqZagXMKPpZNY3F5gRu.NsKZmKbgKPg7Ui8q1cv2.tTvN0ftFO6', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990015', 'São Paulo', NULL, 'DevOps Pleno', 'Infraestrutura', 5),
-(47, 44, 'Amanda Reis', 'amanda.reis@technova.com.br', '$2y$10$WGdv021qKuLaIN.hsOhEjOLzjMs5iobCJ5hp.qDQ8H/LKFd4BBvEq', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990016', 'São Vicente', NULL, 'Assistente de RH', 'RH', 5),
+(46, 43, 'Bruno Teixeira', 'bruno.teixeira@technova.com.br', '$2y$10$.2JqZagXMKPpZNY3F5gRu.NsKZmKbgKPg7Ui8q1cv2.tTvN0ftFO6', 'funcionario', 'ativo', '2026-06-21 19:56:15', '2026-06-11 23:27:04', '11999990015', 'São Paulo', NULL, 'DevOps Pleno', 'Infraestrutura', 5),
+(47, 44, 'Amanda Reis', 'amanda.reis@technova.com.br', '$2y$10$WGdv021qKuLaIN.hsOhEjOLzjMs5iobCJ5hp.qDQ8H/LKFd4BBvEq', 'funcionario', 'ferias', NULL, '2026-06-11 23:27:04', '11999990016', 'São Vicente', NULL, 'Assistente de RH', 'RH', 5),
 (48, 45, 'Vinícius Duarte', 'vinicius.duarte@technova.com.br', '$2y$10$mzTNemqthXww.rPxE1xZM.eEF3fyICkRSoF05RLiukoW0gxnMMN82', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990017', 'Praia Grande', NULL, 'QA Tester', 'Qualidade', 5),
 (49, 46, 'Carolina Matos', 'carolina.matos@technova.com.br', '$2y$10$pv0olWoieqYtNKr6Ff8jde2RW8Wc6FfxcsSFh6viiUn8P/k1TDT3i', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990018', 'São Paulo', NULL, 'Coordenadora de Qualidade', 'Qualidade', 5),
 (50, 47, 'Eduardo Ramos', 'eduardo.ramos@technova.com.br', '$2y$10$LPp00J/6R/WVhBiSr9eUKePc1lF3j5zzGA5Sm5r38NZN933XYknQm', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:05', '11999990019', 'Santos', NULL, 'QA Automatizador', 'Qualidade', 5),
@@ -972,6 +1007,14 @@ INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`
 --
 -- Índices para tabelas despejadas
 --
+
+--
+-- Índices para tabela `afastamentos`
+--
+ALTER TABLE `afastamentos`
+  ADD PRIMARY KEY (`id_afastamento`),
+  ADD KEY `idx_afastamento_funcionario` (`id_funcionario`,`id_empresa`),
+  ADD KEY `idx_afastamento_periodo` (`data_inicio`,`data_fim`);
 
 --
 -- Índices para tabela `assinaturas`
@@ -1095,6 +1138,12 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT de tabela `afastamentos`
+--
+ALTER TABLE `afastamentos`
+  MODIFY `id_afastamento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT de tabela `assinaturas`
 --
 ALTER TABLE `assinaturas`
@@ -1128,7 +1177,7 @@ ALTER TABLE `comunicados`
 -- AUTO_INCREMENT de tabela `config_notificacoes`
 --
 ALTER TABLE `config_notificacoes`
-  MODIFY `id_config` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_config` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de tabela `duvidas`
@@ -1146,13 +1195,13 @@ ALTER TABLE `empresas`
 -- AUTO_INCREMENT de tabela `ferias`
 --
 ALTER TABLE `ferias`
-  MODIFY `id_ferias` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_ferias` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de tabela `ferias_meses_disponiveis`
 --
 ALTER TABLE `ferias_meses_disponiveis`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=397;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=613;
 
 --
 -- AUTO_INCREMENT de tabela `funcionarios`
@@ -1170,7 +1219,7 @@ ALTER TABLE `holerites`
 -- AUTO_INCREMENT de tabela `licencas_medicas`
 --
 ALTER TABLE `licencas_medicas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de tabela `notificacoes`
