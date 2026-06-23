@@ -344,7 +344,7 @@ footer small{
                 </a>
 
                 <a href="leis.php" class="me-4">
-                    Leis Trabalhistas
+                    Leis
                 </a>
 
                 <a href="login.php">

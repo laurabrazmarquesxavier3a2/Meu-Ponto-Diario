@@ -7,5 +7,5 @@ Alves@technova.com.br
 1234
 
 login funcionario
-bruno.teixeira@technova.com.br
+camila.ferreira@technova.com.br
 123456
