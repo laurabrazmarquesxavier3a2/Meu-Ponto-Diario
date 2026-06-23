@@ -7,7 +7,7 @@ $con = new mysqli(
     DB_USER,
     DB_PASS,
     DB_NAME,
-    (int) $_ENV['MYSQLPORT']
+    (int) getenv('MYSQLPORT')
 );
 
 if ($con->connect_error) {

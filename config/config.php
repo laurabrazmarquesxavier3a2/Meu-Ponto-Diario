@@ -1,6 +1,6 @@
 <?php
 
-define('DB_HOST', $_ENV['MYSQLHOST']);
-define('DB_USER', $_ENV['MYSQLUSER']);
-define('DB_PASS', $_ENV['MYSQLPASSWORD']);
-define('DB_NAME', $_ENV['MYSQLDATABASE']);
+define('DB_HOST', getenv('MYSQLHOST'));
+define('DB_USER', getenv('MYSQLUSER'));
+define('DB_PASS', getenv('MYSQLPASSWORD'));
+define('DB_NAME', getenv('MYSQLDATABASE'));
