@@ -1,11 +1,7 @@
 <?php
 
-echo "<pre>";
-
-var_dump(getenv('MYSQLHOST'));
-var_dump(getenv('MYSQLUSER'));
-var_dump(getenv('MYSQLPASSWORD'));
-var_dump(getenv('MYSQLDATABASE'));
-var_dump(getenv('MYSQLPORT'));
-
-die();
+define('DB_HOST', getenv('MYSQLHOST'));
+define('DB_USER', getenv('MYSQLUSER'));
+define('DB_PASS', getenv('MYSQLPASSWORD'));
+define('DB_NAME', getenv('MYSQLDATABASE'));
+define('DB_PORT', getenv('MYSQLPORT'));
