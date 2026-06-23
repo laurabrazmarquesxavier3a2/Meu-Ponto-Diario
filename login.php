@@ -382,6 +382,5 @@ footer small{
     </div>
 
 </footer>
-<script src="js/translate.js"></script>
 </body>
 </html>

@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 
 error_reporting(E_ALL);
@@ -189,5 +188,4 @@ if ($stmtAtv) {
 
 header("Location: pedidosf.php?sucesso=1");
 exit;
-
 ?>

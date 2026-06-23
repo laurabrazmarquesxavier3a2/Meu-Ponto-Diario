@@ -2068,9 +2068,5 @@ document.addEventListener(
 </script>
 
 <script src="js/theme.js"></script>
-<script src="js/translate.js"></script>
-
 </body>
-
 </html>
-```

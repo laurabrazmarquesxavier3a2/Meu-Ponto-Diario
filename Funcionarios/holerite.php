@@ -9,10 +9,7 @@ error_reporting(E_ALL);
 require_once '../config/database.php';
 require_once '../lang.php';
 
-/* =========================================================
-   VALIDAÇÃO DO LOGIN
-========================================================= */
-
+/*  VALIDAÇÃO DO LOGIN */
 if (!isset($_SESSION['id_usuario'])) {
     header('Location: ../login.php');
     exit;
@@ -27,10 +24,7 @@ if ($id_usuario <= 0) {
     exit;
 }
 
-/* =========================================================
-   BUSCAR FUNCIONÁRIO E EMPRESA
-========================================================= */
-
+/*BUSCAR FUNCIONÁRIO E EMPRESA */
 $sqlUsuario = "
     SELECT
         id_funcionario,
@@ -88,9 +82,6 @@ if ($id_empresa <= 0) {
     die('Empresa não identificada.');
 }
 
-/* =========================================================
-   MESES
-========================================================= */
 
 $meses = [
     '01' => 'Janeiro',
@@ -107,25 +98,6 @@ $meses = [
     '12' => 'Dezembro'
 ];
 
-/* =========================================================
-   ANOS DISPONÍVEIS PELA COMPETÊNCIA
-========================================================= */
-
-/*
-|--------------------------------------------------------------------------
-| O ano é obtido pelo campo periodo.
-|--------------------------------------------------------------------------
-|
-| Exemplos armazenados:
-|
-| Janeiro/2026
-| Abril/2026
-| Dezembro/2025
-|
-| Não usamos YEAR(data_envio), porque data_envio representa somente
-| o dia em que o RH realizou o envio.
-|
-*/
 
 $sqlAnos = "
     SELECT DISTINCT
@@ -188,19 +160,9 @@ while ($linhaAno = $resultadoAnos->fetch_assoc()) {
 
 $stmtAnos->close();
 
-/*
-|--------------------------------------------------------------------------
-| Se não existir holerite, mostra o ano atual no filtro.
-|--------------------------------------------------------------------------
-*/
-
 if (count($anosDisponiveis) === 0) {
     $anosDisponiveis[] = (int) date('Y');
 }
-
-/* =========================================================
-   FILTROS RECEBIDOS
-========================================================= */
 
 $ano = isset($_GET['ano'])
     ? (int) $_GET['ano']
@@ -230,35 +192,6 @@ if (!array_key_exists($mes, $meses)) {
 if ($ano < 2000 || $ano > 2100) {
     $ano = $anosDisponiveis[0];
 }
-
-/*
-|--------------------------------------------------------------------------
-| Caso o ano enviado não esteja mais disponível, mantém o valor.
-|--------------------------------------------------------------------------
-|
-| Isso evita que um filtro válido deixe de funcionar por causa de um
-| registro recém-inserido. A validação de 2000 até 2100 já foi aplicada.
-|
-*/
-
-/* =========================================================
-   CONSULTA PRINCIPAL DOS HOLERITES
-========================================================= */
-
-/*
-|--------------------------------------------------------------------------
-| COLUNAS REAIS DA TABELA:
-|--------------------------------------------------------------------------
-|
-| id
-| funcionario_id
-| arquivo
-| periodo
-| data_envio
-| status
-| id_empresa
-|
-*/
 
 $sql = "
     SELECT
@@ -292,10 +225,6 @@ $parametros = [
     $ano
 ];
 
-/* =========================================================
-   FILTRO POR MÊS DA COMPETÊNCIA
-========================================================= */
-
 if ($mes !== '') {
     $nomeMesSelecionado = $meses[$mes];
 
@@ -311,21 +240,6 @@ if ($mes !== '') {
     $parametros[] = $nomeMesSelecionado;
 }
 
-/* =========================================================
-   ORDENAÇÃO
-========================================================= */
-
-/*
-|--------------------------------------------------------------------------
-| A ordenação usa o número equivalente de cada mês.
-|--------------------------------------------------------------------------
-|
-| Dezembro = 12
-| Novembro = 11
-| ...
-| Janeiro = 1
-|
-*/
 
 $sql .= "
     ORDER BY
@@ -395,10 +309,6 @@ $stmt->close();
 
 $total = count($holerites);
 
-/* =========================================================
-   FUNÇÃO PARA SEPARAR O PERÍODO
-========================================================= */
-
 function separarPeriodo(?string $periodo): array
 {
     $periodo = trim((string) $periodo);
@@ -429,9 +339,6 @@ function separarPeriodo(?string $periodo): array
     ];
 }
 
-/* =========================================================
-   FUNÇÃO PARA CAMINHO DO ARQUIVO
-========================================================= */
 
 function montarCaminhoArquivo(?string $arquivo): string
 {
@@ -441,9 +348,6 @@ function montarCaminhoArquivo(?string $arquivo): string
         return '';
     }
 
-    /*
-     * Se já for uma URL completa, mantém como está.
-     */
     if (
         str_starts_with($arquivo, 'http://') ||
         str_starts_with($arquivo, 'https://')
@@ -451,9 +355,6 @@ function montarCaminhoArquivo(?string $arquivo): string
         return $arquivo;
     }
 
-    /*
-     * Remove barras e caminhos relativos repetidos do começo.
-     */
     $arquivo = preg_replace(
         '#^(\.\./)+#',
         '',
@@ -483,16 +384,8 @@ function montarCaminhoArquivo(?string $arquivo): string
 
     <title>Seus Holerites</title>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    >
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/sidebarfunc.css">
     <link rel="stylesheet" href="../css/global.css">
 
@@ -1036,7 +929,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
-
 </body>
 </html>
-```
+

@@ -52,14 +52,6 @@ function formatarHora($hora): string
     return date('H:i', $timestamp);
 }
 
-/**
- * Formata uma duração em minutos.
- *
- * Exemplos:
- * 479 => 7h59min
- * 489 => 8h09min
- * 480 => 8h
- */
 function formatarDuracaoMinutos(?int $totalMinutos): string
 {
     if ($totalMinutos === null) {

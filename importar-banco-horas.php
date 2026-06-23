@@ -213,13 +213,9 @@ Importar
 
 <pre class="bg-light p-3 rounded">email,mes,saldo_total,saldo_mes,horas_extras_mes,horas_debito_mes
 bruno@empresa.com,2026-06,12.50,4.00,6.00,2.00</pre>
-
-</div>
-
 </div>
 </div>
-
+</div>
 <script src="js/theme.js"></script>
-<script src="js/translate.js"></script>
 </body>
 </html>

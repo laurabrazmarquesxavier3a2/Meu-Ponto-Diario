@@ -269,6 +269,5 @@ buscar.addEventListener('keyup', function(){
 });
 </script>
 <script src="../js/theme.js"></script>
-<script src="../js/translate.js"></script>
 </body>
 </html>

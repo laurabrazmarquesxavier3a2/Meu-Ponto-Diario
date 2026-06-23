@@ -14,12 +14,6 @@ if (!$idUsuario || !$idEmpresa) {
     die("Sessão inválida. Faça login novamente.");
 }
 
-/*
-========================================
-BUSCAR ID_FUNCIONARIO CASO NÃO ESTEJA NA SESSÃO
-========================================
-*/
-
 if (!$idFuncionario) {
 
     $stmtUser = $con->prepare("
@@ -49,21 +43,9 @@ if (!$idFuncionario) {
     die("Funcionário não encontrado.");
 }
 
-/*
-========================================
-LISTAS
-========================================
-*/
-
 $feriasLista = [];
 $licencasLista = [];
 $ocorrenciasLista = [];
-
-/*
-========================================
-FÉRIAS
-========================================
-*/
 
 $stmtFerias = $con->prepare("
     SELECT
@@ -94,12 +76,6 @@ $resFerias = $stmtFerias->get_result();
 while ($f = $resFerias->fetch_assoc()) {
     $feriasLista[] = $f;
 }
-
-/*
-========================================
-LICENÇAS MÉDICAS / ATESTADOS
-========================================
-*/
 
 $stmtLicencas = $con->prepare("
     SELECT
@@ -135,12 +111,6 @@ while ($l = $resLicencas->fetch_assoc()) {
     $licencasLista[] = $l;
 }
 
-/*
-========================================
-OCORRÊNCIAS DO USUÁRIO
-========================================
-*/
-
 $stmtOcorrencias = $con->prepare("
     SELECT
         id_ocorrencia,
@@ -173,22 +143,10 @@ while ($o = $resOcorrencias->fetch_assoc()) {
     $ocorrenciasLista[] = $o;
 }
 
-/*
-========================================
-CONTADORES
-========================================
-*/
-
 $totalFerias = count($feriasLista);
 $totalLicencas = count($licencasLista);
 $totalOcorrencias = count($ocorrenciasLista);
 $totalSolicitacoes = $totalFerias + $totalLicencas + $totalOcorrencias;
-
-/*
-========================================
-FUNÇÕES VISUAIS
-========================================
-*/
 
 function textoStatusSolic($status) {
 
@@ -324,10 +282,6 @@ function linkArquivoSolic($arquivo) {
         $arquivo = substr($arquivo, 2);
     }
 
-    /*
-        solic.php fica dentro da pasta do colaborador.
-        Então arquivos salvos como uploads/... precisam virar ../uploads/...
-    */
     if (file_exists(__DIR__ . '/../' . $arquivo)) {
         return '../' . $arquivo;
     }
@@ -936,6 +890,5 @@ body{
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../js/theme.js"></script>
-<script src="../js/translate.js"></script>
 </body>
 </html>

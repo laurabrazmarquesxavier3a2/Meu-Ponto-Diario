@@ -1,5 +1,4 @@
 <?php
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -9,10 +8,6 @@ require_once '../auth.php';
 require_once '../config/database.php';
 require_once '../lang.php';
 
-/* =========================================================
-   SESSÃO
-========================================================= */
-
 $idEmpresa = (int) ($_SESSION['id_empresa'] ?? 0);
 $idUsuario = (int) ($_SESSION['id_usuario'] ?? 0);
 $idFuncionario = (int) ($_SESSION['id_funcionario'] ?? 0);
@@ -20,10 +15,6 @@ $idFuncionario = (int) ($_SESSION['id_funcionario'] ?? 0);
 if ($idEmpresa <= 0 || $idUsuario <= 0) {
     die('Sessão inválida. Faça login novamente.');
 }
-
-/* =========================================================
-   FUNCIONÁRIO DO USUÁRIO LOGADO
-========================================================= */
 
 if ($idFuncionario <= 0) {
 
@@ -62,10 +53,6 @@ if ($idFuncionario <= 0) {
 if ($idFuncionario <= 0) {
     die('Funcionário não encontrado para este usuário.');
 }
-
-/* =========================================================
-   FUNÇÕES
-========================================================= */
 
 function formatarHora($hora): string
 {
@@ -201,10 +188,6 @@ function adicionarPeriodoAoCalendario(
     }
 }
 
-/* =========================================================
-   DADOS DO FUNCIONÁRIO
-========================================================= */
-
 $stmtFuncionario = $con->prepare("
     SELECT
         f.nome,
@@ -250,10 +233,7 @@ $emailFuncionario = trim(
     $funcionario['email'] ?? ''
 );
 
-/* =========================================================
-   DATAS
-========================================================= */
-
+/* DATAS*/
 $fuso = new DateTimeZone('America/Sao_Paulo');
 $dataAtual = new DateTime('now', $fuso);
 
@@ -277,10 +257,7 @@ $dataFimSemana = $fimSemana->format('Y-m-d');
 $inicioMes = $dataAtual->format('Y-m-01');
 $fimMes = $dataAtual->format('Y-m-t');
 
-/* =========================================================
-   CONEXÃO COM db_ponto
-========================================================= */
-
+/*CONEXÃO COM O BANCO*/
 mysqli_report(MYSQLI_REPORT_OFF);
 
 $conPonto = @new mysqli(
@@ -301,10 +278,7 @@ mysqli_report(
     MYSQLI_REPORT_STRICT
 );
 
-/* =========================================================
-   PONTOS DO db_mpd
-========================================================= */
-
+/*PONTOS*/
 $registrosPrincipais = [];
 
 $stmtPontos = $con->prepare("
@@ -357,10 +331,7 @@ while ($ponto = $resultadoPontos->fetch_assoc()) {
 
 $stmtPontos->close();
 
-/* =========================================================
-   PONTOS DO db_ponto
-========================================================= */
-
+/*PONTOS DO db_ponto */
 $registrosExternos = [];
 
 if (
@@ -423,16 +394,10 @@ if (
     }
 }
 
-/* =========================================================
-   AUSÊNCIAS
-========================================================= */
-
+/* AUSÊNCIAS */
 $ausenciasMes = [];
 
-/* =========================================================
-   FÉRIAS APROVADAS
-========================================================= */
-
+/*FÉRIAS APROVADA */
 $stmtFerias = $con->prepare("
     SELECT
         id_ferias,
@@ -489,10 +454,7 @@ while ($ferias = $resultadoFerias->fetch_assoc()) {
 
 $stmtFerias->close();
 
-/* =========================================================
-   LICENÇAS MÉDICAS
-========================================================= */
-
+/*LICENÇAS MÉDICAS */
 $stmtLicencas = $con->prepare("
     SELECT
         id,
@@ -552,10 +514,7 @@ while ($licenca = $resultadoLicencas->fetch_assoc()) {
 
 $stmtLicencas->close();
 
-/* =========================================================
-   AFASTAMENTOS
-========================================================= */
-
+/*AFASTAMENTOS */
 $tabelaAfastamentos = $con->query("
     SHOW TABLES LIKE 'afastamentos'
 ");
@@ -633,16 +592,8 @@ if (
     $stmtAfastamentos->close();
 }
 
-/* =========================================================
-   JUNTA PONTOS E AUSÊNCIAS
-========================================================= */
 
 $registrosCompletos = $registrosPrincipais;
-
-/*
- * O registro externo substitui o importado
- * quando houver o mesmo dia.
- */
 foreach (
     $registrosExternos as
     $dataRegistro => $registroExterno
@@ -651,14 +602,8 @@ foreach (
         $registroExterno;
 }
 
-/*
- * Primeiro adiciona férias, licenças e afastamentos.
- */
 $eventosCalendario = $ausenciasMes;
 
-/*
- * Caso exista ponto no mesmo dia, o ponto tem prioridade.
- */
 foreach (
     $registrosCompletos as
     $dataRegistro => $registroPonto
@@ -667,10 +612,7 @@ foreach (
         $registroPonto;
 }
 
-/* =========================================================
-   SEMANA
-========================================================= */
-
+/* SEMANA*/
 $eventosSemana = [];
 
 foreach (
@@ -687,17 +629,10 @@ foreach (
 
 ksort($eventosSemana);
 
-/* =========================================================
-   MÊS
-========================================================= */
-
 $eventosMes = $eventosCalendario;
 krsort($eventosMes);
 
-/* =========================================================
-   CARDS SUPERIORES
-========================================================= */
-
+/* CARDS SUPERIORES */
 if (isset($registrosCompletos[$hoje])) {
 
     $registroAtual = $registrosCompletos[$hoje];
@@ -767,10 +702,7 @@ if (isset($registrosCompletos[$hoje])) {
     $statusHoje = 'Sem registro';
 }
 
-/* =========================================================
-   CALENDÁRIO
-========================================================= */
-
+/*CALENDÁRIO */
 $primeiroDiaMes = new DateTime($inicioMes, $fuso);
 $ultimoDiaMes = new DateTime($fimMes, $fuso);
 
@@ -800,493 +732,20 @@ $nomesMeses = [
     11 => 'Novembro',
     12 => 'Dezembro'
 ];
-
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ponto do Funcionário</title>
-
-    <link
-        rel="stylesheet"
-        href="../css/sidebarfunc.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="../css/pontof.css"
-    >
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    >
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
-        rel="stylesheet"
-    >
-
-    <style>
-
-        .calendar-section {
-            display: grid;
-            grid-template-columns:
-                minmax(0, 1fr)
-                minmax(0, 1fr);
-            gap: 24px;
-            align-items: start;
-            margin-top: 24px;
-        }
-
-        .calendar-box {
-            min-width: 0;
-            overflow: hidden;
-        }
-
-        .week-history {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .week-day-item {
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .week-day-item:last-child {
-            border-bottom: 0;
-        }
-
-        .week-day-button {
-            width: 100%;
-            border: 0;
-            background: transparent;
-            padding: 15px 4px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-
-            text-align: left;
-        }
-
-        button.week-day-button {
-            cursor: pointer;
-        }
-
-        button.week-day-button:hover {
-            background: #f8fafc;
-        }
-
-        .week-day-button.no-record {
-            cursor: default;
-        }
-
-        .week-day-info {
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .week-day-name {
-            color: #111827;
-            font-weight: 700;
-        }
-
-        .week-day-info small {
-            color: #64748b;
-        }
-
-        .week-day-status {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .week-day-status i {
-            margin-left: 4px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            flex: 0 0 8px;
-            border-radius: 50%;
-        }
-
-        .status-ponto {
-            color: #1d4ed8;
-        }
-
-        .status-ponto .status-dot {
-            background: #2563eb;
-        }
-
-        .status-ferias {
-            color: #7e22ce;
-        }
-
-        .status-ferias .status-dot {
-            background: #a855f7;
-        }
-
-        .status-licenca {
-            color: #854d0e;
-        }
-
-        .status-licenca .status-dot {
-            background: #eab308;
-        }
-
-        .status-afastamento {
-            color: #c2410c;
-        }
-
-        .status-afastamento .status-dot {
-            background: #f97316;
-        }
-
-        .week-day-empty {
-            color: #94a3b8;
-            font-size: 13px;
-        }
-
-        .week-day-details {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 12px;
-            margin: 0 4px 14px;
-
-            display: grid;
-            grid-template-columns:
-                repeat(3, minmax(0, 1fr));
-            gap: 8px;
-        }
-
-        .compact-detail {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 9px;
-            padding: 9px;
-            min-width: 0;
-        }
-
-        .compact-detail span {
-            display: block;
-            color: #64748b;
-            font-size: 10px;
-            margin-bottom: 2px;
-        }
-
-        .compact-detail strong {
-            display: block;
-            color: #111827;
-            font-size: 13px;
-            overflow-wrap: anywhere;
-        }
-
-        .absence-ferias {
-            background: #faf5ff;
-            border-radius: 10px;
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .absence-licenca {
-            background: #fefce8;
-            border-radius: 10px;
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .absence-afastamento {
-            background: #fff7ed;
-            border-radius: 10px;
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .month-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-
-        .month-header strong {
-            color: #111827;
-            font-size: 17px;
-        }
-
-        .month-header span {
-            color: #64748b;
-            font-size: 12px;
-        }
-
-        .month-calendar {
-            display: grid;
-            grid-template-columns:
-                repeat(7, minmax(0, 1fr));
-            gap: 7px;
-        }
-
-        .calendar-week-name {
-            text-align: center;
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 0 8px;
-        }
-
-        .calendar-day {
-            position: relative;
-            min-width: 0;
-            aspect-ratio: 1 / 1;
-
-            border: 1px solid transparent;
-            border-radius: 11px;
-            background: #f8fafc;
-            color: #334155;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-family: inherit;
-            font-size: 13px;
-        }
-
-        button.calendar-day {
-            cursor: pointer;
-            font-weight: 700;
-
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease;
-        }
-
-        button.calendar-day:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 8px 18px
-                rgba(15, 23, 42, .14);
-        }
-
-        .event-ponto {
-            background: #eff6ff;
-            border-color: #93c5fd;
-            color: #1d4ed8;
-        }
-
-        .event-ferias {
-            background: #f3e8ff;
-            border-color: #c084fc;
-            color: #7e22ce;
-        }
-
-        .event-licenca {
-            background: #fef9c3;
-            border-color: #facc15;
-            color: #854d0e;
-        }
-
-        .event-afastamento {
-            background: #ffedd5;
-            border-color: #fb923c;
-            color: #c2410c;
-        }
-
-        .calendar-day.today {
-            outline: 2px solid #2563eb;
-            outline-offset: 2px;
-        }
-
-        .calendar-day.empty-day {
-            background: transparent;
-        }
-
-        .record-indicator {
-            position: absolute;
-            bottom: 6px;
-
-            width: 5px;
-            height: 5px;
-
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .calendar-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-top: 18px;
-
-            color: #64748b;
-            font-size: 11px;
-        }
-
-        .calendar-legend span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .legend-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-        }
-
-        .legend-ponto {
-            background: #2563eb;
-        }
-
-        .legend-ferias {
-            background: #a855f7;
-        }
-
-        .legend-licenca {
-            background: #eab308;
-        }
-
-        .legend-afastamento {
-            background: #f97316;
-        }
-
-        .legend-hoje {
-            background: transparent;
-            border: 2px solid #2563eb;
-        }
-
-        .modal-record-date {
-            background: #eff6ff;
-            color: #1d4ed8;
-            border-radius: 11px;
-            padding: 12px 14px;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .modal-record-grid {
-            display: grid;
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .modal-record-item {
-            background: #f8fafc;
-            border-radius: 11px;
-            padding: 12px;
-            min-width: 0;
-        }
-
-        .modal-record-item span {
-            display: block;
-            color: #64748b;
-            font-size: 11px;
-            margin-bottom: 4px;
-        }
-
-        .modal-record-item strong {
-            display: block;
-            color: #111827;
-            font-size: 15px;
-            overflow-wrap: anywhere;
-        }
-
-        .modal-record-item.full {
-            grid-column: 1 / -1;
-        }
-
-        .modal-record-origin {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-
-            margin-top: 14px;
-            padding: 7px 10px;
-
-            border-radius: 999px;
-            background: #eff6ff;
-            color: #1d4ed8;
-
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        @media (max-width: 1100px) {
-
-            .calendar-section {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 600px) {
-
-            .week-day-details {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
-
-            .week-day-button {
-                align-items: flex-start;
-            }
-
-            .week-day-status,
-            .week-day-empty {
-                white-space: normal;
-                text-align: right;
-            }
-
-            .month-calendar {
-                gap: 4px;
-            }
-
-            .calendar-day {
-                border-radius: 8px;
-                font-size: 11px;
-            }
-
-            .modal-record-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-record-item.full {
-                grid-column: auto;
-            }
-
-            .month-header {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-        }
-
-    </style>
-
+    <link rel="stylesheet" href="../css/sidebarfunc.css">
+    <link rel="stylesheet" href="../css/pontof.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -1651,14 +1110,9 @@ $nomesMeses = [
                             $dataLoop->modify('+1 day');
 
                         endwhile;
-
                         ?>
-
-                    </div>
-
+                    </diV>
                 </div>
-
-                <!-- MÊS -->
 
                 <div class="calendar-box">
 
@@ -1682,7 +1136,6 @@ $nomesMeses = [
                     </div>
 
                     <div class="month-calendar">
-
                         <div class="calendar-week-name">Seg</div>
                         <div class="calendar-week-name">Ter</div>
                         <div class="calendar-week-name">Qua</div>
@@ -1819,33 +1272,14 @@ $nomesMeses = [
         </div>
 
         <div class="clock-box">
-
             <i class="fa-regular fa-clock"></i>
-
             <div id="clock" class="clock"></div>
-
             <div id="date" class="date"></div>
-
-            <div class="mt-3 text-muted small">
-
-                ID Funcionário:
-                <?= $idFuncionario ?>
-
-                <br>
-
-                ID Empresa:
-                <?= $idEmpresa ?>
-
-            </div>
-
         </div>
-
     </div>
-
 </div>
 
 <!-- MODAL -->
-
 <div
     class="modal fade"
     id="modalEvento"
@@ -1919,292 +1353,20 @@ $nomesMeses = [
                 >
                     Fechar
                 </button>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 <script>
-
 const eventosDoMes = <?= json_encode(
     $eventosMes,
     JSON_UNESCAPED_UNICODE |
     JSON_UNESCAPED_SLASHES
 ) ?>;
-
-function escaparHtml(valor) {
-
-    const elemento =
-        document.createElement('div');
-
-    elemento.textContent =
-        valor === null ||
-        valor === undefined
-            ? ''
-            : String(valor);
-
-    return elemento.innerHTML;
-}
-
-function horaCurta(hora) {
-
-    if (
-        !hora ||
-        hora === '00:00:00'
-    ) {
-        return '--:--';
-    }
-
-    return String(hora).substring(0, 5);
-}
-
-function dataBrasil(data) {
-
-    if (!data) {
-        return '-';
-    }
-
-    const partes = String(data).split('-');
-
-    if (partes.length !== 3) {
-        return data;
-    }
-
-    return (
-        partes[2] +
-        '/' +
-        partes[1] +
-        '/' +
-        partes[0]
-    );
-}
-
-function primeiraMaiuscula(texto) {
-
-    if (!texto) {
-        return '';
-    }
-
-    texto = String(texto);
-
-    return (
-        texto.charAt(0).toUpperCase() +
-        texto.slice(1)
-    );
-}
-
-function criarCampo(titulo, valor, classeExtra = '') {
-
-    return `
-        <div class="modal-record-item ${classeExtra}">
-            <span>${escaparHtml(titulo)}</span>
-            <strong>${escaparHtml(valor)}</strong>
-        </div>
-    `;
-}
-
-function abrirModalEvento(dataEvento) {
-
-    const evento =
-        eventosDoMes[dataEvento];
-
-    if (!evento) {
-        return;
-    }
-
-    const tipo =
-        evento.tipo_evento || 'ponto';
-
-    const titulo =
-        document.getElementById('modalTitulo');
-
-    const subtitulo =
-        document.getElementById('modalSubtitulo');
-
-    const data =
-        document.getElementById('modalData');
-
-    const conteudo =
-        document.getElementById('modalConteudo');
-
-    const origem =
-        document.getElementById('modalOrigem');
-
-    data.textContent =
-        dataBrasil(dataEvento);
-
-    let html = '';
-
-    if (tipo === 'ponto') {
-
-        subtitulo.textContent =
-            'Histórico de ponto';
-
-        titulo.textContent =
-            'Registro do dia';
-
-        html += criarCampo(
-            'Entrada',
-            horaCurta(evento.hora_entrada)
-        );
-
-        html += criarCampo(
-            'Saída do intervalo',
-            horaCurta(evento.saida_intervalo)
-        );
-
-        html += criarCampo(
-            'Retorno do intervalo',
-            horaCurta(evento.retorno_intervalo)
-        );
-
-        html += criarCampo(
-            'Saída',
-            horaCurta(evento.hora_saida)
-        );
-
-        html += criarCampo(
-            'Total trabalhado',
-            Number(
-                evento.total_horas || 0
-            ).toFixed(2) + 'h'
-        );
-
-        html += criarCampo(
-            'Status',
-            primeiraMaiuscula(
-                evento.status || 'Sem status'
-            )
-        );
-
-        origem.textContent =
-            evento.origem === 'db_ponto'
-                ? 'Registro externo'
-                : 'Registro importado';
-
-    } else {
-
-        subtitulo.textContent =
-            'Ausência justificada';
-
-        titulo.textContent =
-            evento.titulo ||
-            evento.status ||
-            'Ausência';
-
-        html += criarCampo(
-            'Situação',
-            evento.status || 'Ausência'
-        );
-
-        html += criarCampo(
-            'Período',
-            dataBrasil(evento.data_inicio) +
-            ' até ' +
-            dataBrasil(evento.data_fim)
-        );
-
-        html += criarCampo(
-            'Quantidade de dias',
-            String(evento.dias || 0)
-        );
-
-        html += criarCampo(
-            'Motivo',
-            evento.motivo ||
-            'Não informado',
-            'full'
-        );
-
-        if (evento.observacao) {
-
-            html += criarCampo(
-                'Observação',
-                evento.observacao,
-                'full'
-            );
-        }
-
-        origem.textContent =
-            tipo === 'ferias'
-                ? 'Férias aprovadas'
-                : (
-                    tipo === 'licenca'
-                        ? 'Licença médica'
-                        : 'Afastamento'
-                );
-    }
-
-    conteudo.innerHTML = html;
-
-    const modal =
-        bootstrap.Modal.getOrCreateInstance(
-            document.getElementById(
-                'modalEvento'
-            )
-        );
-
-    modal.show();
-}
-
-function updateClock() {
-
-    const now = new Date();
-
-    document.getElementById('clock').innerText =
-        now.toLocaleTimeString('pt-BR');
-
-    document.getElementById('date').innerText =
-        now.toLocaleDateString(
-            'pt-BR',
-            {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            }
-        );
-}
-
-setInterval(updateClock, 1000);
-updateClock();
-
-document.addEventListener(
-    'DOMContentLoaded',
-    function () {
-
-        document
-            .querySelectorAll(
-                '.botao-evento-calendario, .botao-ausencia'
-            )
-            .forEach(function (botao) {
-
-                botao.addEventListener(
-                    'click',
-                    function () {
-
-                        abrirModalEvento(
-                            this.dataset.eventDate
-                        );
-                    }
-                );
-            });
-    }
-);
-
 </script>
-
-<script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../js/theme.js"></script>
-<script src="../js/translate.js"></script>
-
+<script src="../js/pontoF.js"></script>
 </body>
-
 </html>

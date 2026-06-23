@@ -360,27 +360,78 @@ foreach ($mesesConfigurados as $config) {
 }
 
 /* CARDS */
-$stmtCards = $con->prepare("
+/* ==========================================================
+   INDICADORES (MESMA LÓGICA DO BANCO DE HORAS)
+   ========================================================== */
+
+$pendentes = 0;
+$aprovados = 0;
+$rejeitados = 0;
+$totalSolicitacoes = 0;
+
+$proximoInicio = null;
+$ultimaAprovacao = null;
+
+$stmtIndicadores = $con->prepare("
     SELECT
-        SUM(CASE WHEN status = 'pendente' THEN 1 ELSE 0 END) AS pendentes,
-        SUM(CASE WHEN status = 'visto' THEN 1 ELSE 0 END) AS vistos,
-        SUM(CASE WHEN status = 'aprovado' THEN 1 ELSE 0 END) AS aprovados,
-        SUM(CASE WHEN status = 'rejeitado' THEN 1 ELSE 0 END) AS rejeitados,
-        COUNT(*) AS total
+        id_ferias,
+        data_inicio,
+        data_fim,
+        data_solicitacao,
+        status
     FROM ferias
     WHERE id_empresa = ?
 ");
 
-$stmtCards->bind_param("i", $id_empresa);
-$stmtCards->execute();
-$cards = $stmtCards->get_result()->fetch_assoc();
-$stmtCards->close();
+$stmtIndicadores->bind_param("i", $id_empresa);
+$stmtIndicadores->execute();
 
-$pendentes = $cards['pendentes'] ?? 0;
-$vistos = $cards['vistos'] ?? 0;
-$aprovados = $cards['aprovados'] ?? 0;
-$rejeitados = $cards['rejeitados'] ?? 0;
-$total = $cards['total'] ?? 0;
+$resIndicadores = $stmtIndicadores->get_result();
+
+while ($row = $resIndicadores->fetch_assoc()) {
+
+    $totalSolicitacoes++;
+
+    switch ($row['status']) {
+
+        case 'pendente':
+            $pendentes++;
+            break;
+
+        case 'aprovado':
+            $aprovados++;
+
+            if (
+                $ultimaAprovacao === null ||
+                strtotime($row['data_solicitacao']) >
+                strtotime($ultimaAprovacao['data_solicitacao'])
+            ) {
+                $ultimaAprovacao = $row;
+            }
+
+            break;
+
+        case 'rejeitado':
+            $rejeitados++;
+            break;
+    }
+
+    if (
+        $row['status'] === 'aprovado' &&
+        strtotime($row['data_inicio']) >= strtotime(date('Y-m-d'))
+    ) {
+
+        if (
+            $proximoInicio === null ||
+            strtotime($row['data_inicio']) <
+            strtotime($proximoInicio['data_inicio'])
+        ) {
+            $proximoInicio = $row;
+        }
+    }
+}
+
+$stmtIndicadores->close();
 
 /* LISTAGEM */
 $stmt = $con->prepare("
@@ -437,552 +488,10 @@ function classeMes($config) {
 <title>Pedidos de Férias</title>
 
 <link rel="stylesheet" href="css/style.css">
-
+<link rel="stylesheet" href="css/ferias.css">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-<style>
-:root {
-    --bg: #f5f7fb;
-    --card: #ffffff;
-    --card-soft: #f8fafc;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --blue: #2563eb;
-    --shadow: 0 10px 26px rgba(15, 23, 42, .06);
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-}
-
-.content {
-    min-height: 100vh;
-    padding: 32px;
-}
-
-.dashboard-header,
-.kpi-card,
-.panel-card,
-.table-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-}
-
-.dashboard-header {
-    border-radius: 22px;
-    padding: 26px;
-    margin-bottom: 22px;
-}
-
-.dashboard-title {
-    font-size: 31px;
-    font-weight: 850;
-    margin: 0 0 6px;
-    color: var(--text);
-}
-
-.dashboard-subtitle {
-    color: var(--muted);
-    margin: 0;
-}
-
-.year-pill {
-    background: #eff6ff;
-    color: var(--blue);
-    border-radius: 999px;
-    padding: 9px 15px;
-    font-size: 14px;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.kpi-card {
-    border-radius: 20px;
-    padding: 20px;
-    height: 100%;
-}
-
-.kpi-label {
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 8px;
-}
-
-.kpi-value {
-    color: var(--text);
-    font-size: 30px;
-    font-weight: 850;
-    margin-bottom: 3px;
-}
-
-.kpi-small {
-    color: var(--muted);
-    font-size: 13px;
-}
-
-.kpi-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    background: #eff6ff;
-    color: var(--blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-}
-
-.panel-card {
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.panel-header,
-.table-card-header {
-    padding: 20px 22px;
-    border-bottom: 1px solid var(--border);
-    background: var(--card-soft);
-}
-
-.panel-header h5,
-.table-card-header h5 {
-    color: var(--text);
-    font-weight: 850;
-    margin-bottom: 4px;
-}
-
-.panel-header p,
-.table-card-header p {
-    color: var(--muted);
-    margin-bottom: 0;
-    font-size: 14px;
-}
-
-.panel-body-custom {
-    padding: 20px 22px;
-}
-
-/* MESES */
-
-.month-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
-}
-
-.month-card {
-    width: 100%;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--text);
-    border-radius: 16px;
-    padding: 16px 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: .2s ease;
-    font-weight: 850;
-    font-size: 14px;
-}
-
-.month-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(15, 23, 42, .10);
-    border-color: #93c5fd;
-    color: var(--blue);
-}
-
-/* LIBERADO SEM LIMITE */
-.month-liberado {
-    background: #ffffff;
-    border-color: var(--border);
-    color: var(--text);
-}
-
-/* LIBERADO COM LIMITE - AZUL CLARO */
-.month-limitado {
-    background: #e0f2fe;
-    border-color: #7dd3fc;
-    color: #0c4a6e;
-}
-
-.month-limitado:hover {
-    background: #bae6fd;
-    border-color: #38bdf8;
-    color: #075985;
-}
-
-/* BLOQUEADO */
-.month-bloqueado {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #991b1b;
-}
-
-.month-bloqueado:hover {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    color: #7f1d1d;
-}
-
-/* TABELA */
-
-.table-card {
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.search-input {
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    height: 42px;
-    color: var(--text);
-    background: var(--card);
-}
-
-.search-input::placeholder {
-    color: var(--muted);
-}
-
-.table {
-    margin-bottom: 0;
-    color: var(--text);
-}
-
-.table thead th {
-    background: var(--card-soft);
-    color: var(--muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    padding: 15px 20px;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-}
-
-.table tbody td {
-    background: var(--card);
-    color: var(--text);
-    padding: 16px 20px;
-    vertical-align: middle;
-    border-bottom: 1px solid var(--border);
-}
-
-.table tbody tr:hover td {
-    background: var(--card-soft);
-}
-
-.employee-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #eff6ff;
-    color: var(--blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 850;
-    flex-shrink: 0;
-}
-
-.employee-name {
-    color: var(--text);
-    font-weight: 800;
-}
-
-.badge-status {
-    border-radius: 999px;
-    padding: 7px 11px;
-    font-size: 12px;
-    font-weight: 800;
-    display: inline-block;
-}
-
-.badge-pendente {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.badge-visto {
-    background: #cffafe;
-    color: #155e75;
-}
-
-.badge-aprovado {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.badge-rejeitado {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.badge-indefinido {
-    background: #e2e8f0;
-    color: #334155;
-}
-
-.btn-action {
-    border-radius: 12px;
-    font-weight: 750;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 36px 20px;
-    color: var(--muted);
-}
-
-.alert {
-    border-radius: 16px;
-    border: 0;
-}
-
-/* MODAIS */
-
-.modal {
-    z-index: 99999 !important;
-}
-
-.modal-backdrop {
-    z-index: 99998 !important;
-}
-
-.modal-content {
-    background: var(--card);
-    color: var(--text);
-    border-radius: 20px;
-}
-
-.modal-header,
-.modal-footer {
-    border-color: var(--border);
-}
-
-.form-control,
-.form-select {
-    background: var(--card);
-    color: var(--text);
-    border-color: var(--border);
-}
-
-.form-control::placeholder {
-    color: var(--muted);
-}
-
-/* RADIO CUSTOM */
-
-.config-box {
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 14px;
-    cursor: pointer;
-    transition: .2s ease;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    outline: none !important;
-}
-
-.config-box:hover {
-    border-color: #93c5fd;
-    background: #eff6ff;
-}
-
-.config-box input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.radio-fake {
-    width: 19px;
-    height: 19px;
-    border-radius: 50%;
-    border: 2px solid #94a3b8;
-    background: transparent;
-    flex-shrink: 0;
-    margin-top: 3px;
-    position: relative;
-    transition: .2s ease;
-}
-
-.radio-fake::after {
-    content: "";
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #2563eb;
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    opacity: 0;
-    transform: scale(.4);
-    transition: .2s ease;
-}
-
-.config-box input[type="radio"]:checked + .radio-fake {
-    border-color: #2563eb;
-}
-
-.config-box input[type="radio"]:checked + .radio-fake::after {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.config-box:has(input[type="radio"]:checked) {
-    border-color: rgba(37, 99, 235, .45);
-    background: #eff6ff;
-}
-
-/* DARK MODE */
-
-body.dark,
-body.dark-mode {
-    --bg: #0f172a;
-    --card: #111c2f;
-    --card-soft: #17233a;
-    --text: #f8fafc;
-    --muted: #cbd5e1;
-    --border: #2b3a55;
-    --shadow: 0 10px 28px rgba(0, 0, 0, .22);
-}
-
-body.dark .year-pill,
-body.dark-mode .year-pill,
-body.dark .kpi-icon,
-body.dark-mode .kpi-icon,
-body.dark .employee-avatar,
-body.dark-mode .employee-avatar {
-    background: rgba(37, 99, 235, .16);
-    color: #93c5fd;
-}
-
-body.dark .search-input,
-body.dark-mode .search-input,
-body.dark .form-control,
-body.dark-mode .form-control,
-body.dark .form-select,
-body.dark-mode .form-select {
-    background: #0b1220;
-    color: #f8fafc;
-    border-color: #334155;
-}
-
-body.dark .month-card,
-body.dark-mode .month-card {
-    background: #0b1220;
-    color: #f8fafc;
-    border-color: #334155;
-}
-
-body.dark .month-card:hover,
-body.dark-mode .month-card:hover {
-    background: rgba(37, 99, 235, .14);
-    color: #93c5fd;
-    border-color: rgba(147, 197, 253, .45);
-}
-
-/* COM LIMITE NO DARK MODE - AZUL CLARO */
-body.dark .month-limitado,
-body.dark-mode .month-limitado {
-    background: rgba(14, 165, 233, .18);
-    border-color: rgba(125, 211, 252, .45);
-    color: #bae6fd;
-}
-
-body.dark .month-limitado:hover,
-body.dark-mode .month-limitado:hover {
-    background: rgba(14, 165, 233, .28);
-    border-color: rgba(125, 211, 252, .70);
-    color: #e0f2fe;
-}
-
-/* BLOQUEADO NO DARK MODE */
-body.dark .month-bloqueado,
-body.dark-mode .month-bloqueado {
-    background: rgba(220, 38, 38, .14);
-    color: #fca5a5;
-    border-color: rgba(248, 113, 113, .35);
-}
-
-body.dark .month-bloqueado:hover,
-body.dark-mode .month-bloqueado:hover {
-    background: rgba(220, 38, 38, .22);
-    color: #fecaca;
-    border-color: rgba(248, 113, 113, .55);
-}
-
-body.dark .config-box,
-body.dark-mode .config-box {
-    border-color: #334155;
-}
-
-body.dark .config-box:hover,
-body.dark-mode .config-box:hover,
-body.dark .config-box:has(input[type="radio"]:checked),
-body.dark-mode .config-box:has(input[type="radio"]:checked) {
-    background: rgba(37, 99, 235, .14);
-    color: #bfdbfe;
-    border-color: rgba(147, 197, 253, .35);
-}
-
-body.dark .radio-fake,
-body.dark-mode .radio-fake {
-    border-color: #64748b;
-}
-
-body.dark .radio-fake::after,
-body.dark-mode .radio-fake::after {
-    background: #60a5fa;
-}
-
-body.dark .config-box input[type="radio"]:checked + .radio-fake,
-body.dark-mode .config-box input[type="radio"]:checked + .radio-fake {
-    border-color: #60a5fa;
-}
-
-@media (max-width: 1100px) {
-    .month-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .content {
-        padding: 20px;
-    }
-
-    .dashboard-header {
-        padding: 22px;
-    }
-
-    .dashboard-title {
-        font-size: 26px;
-    }
-
-    .kpi-value {
-        font-size: 26px;
-    }
-
-    .month-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 520px) {
-    .month-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-</style>
 </head>
-
 <body>
 
 <?php include 'sidebar.php'; ?>
@@ -1046,12 +555,12 @@ body.dark-mode .config-box input[type="radio"]:checked + .radio-fake {
             <div class="kpi-card">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <div class="kpi-label">Vistos</div>
-                        <h2 class="kpi-value"><?= (int)$vistos ?></h2>
-                        <div class="kpi-small">Visualizados pelo RH</div>
+                        <div class="kpi-label"> Rejeitados</div>
+                        <h2 class="kpi-value"><?= (int)$rejeitados ?></h2>
+                        <div class="kpi-small">Solicitações recusadas</div>
                     </div>
                     <div class="kpi-icon">
-                        <i class="bi bi-eye"></i>
+                        <i class="bi bi-x-circle"></i>
                     </div>
                 </div>
             </div>
@@ -1076,9 +585,9 @@ body.dark-mode .config-box input[type="radio"]:checked + .radio-fake {
             <div class="kpi-card">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <div class="kpi-label">Meses liberados</div>
-                        <h2 class="kpi-value"><?= (int)$totalMesesDisponiveis ?></h2>
-                        <div class="kpi-small">Disponíveis para solicitação</div>
+                        <div class="kpi-label">Total de solicitações</div>
+                        <h2 class="kpi-value"><?= $totalSolicitacoes ?></h2>
+                        <div class="kpi-small">Pedidos registrados</div>
                     </div>
                     <div class="kpi-icon">
                         <i class="bi bi-calendar2-week"></i>
@@ -1207,15 +716,17 @@ body.dark-mode .config-box input[type="radio"]:checked + .radio-fake {
                                     <form method="POST" style="display:inline;">
                                         <input type="hidden" name="id_ferias" value="<?= $ferias['id_ferias'] ?>">
 
-                                        <button
-                                            type="submit"
-                                            name="aprovar"
-                                            class="btn btn-success btn-sm btn-action"
-                                            onclick="return confirm('Aprovar esta solicitação?')"
-                                        >
-                                            <i class="bi bi-check-lg"></i>
-                                            Aprovar
-                                        </button>
+                                       <button
+                                        type="button"
+                                        class="btn btn-success btn-sm btn-action"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalAprovar"
+                                        data-id="<?= $ferias['id_ferias'] ?>"
+                                        onclick="prepararAprovacao(this)"
+                                    >
+                                        <i class="bi bi-check-lg"></i>
+                                        Aprovar
+                                    </button>
                                     </form>
 
                                     <button
@@ -1412,76 +923,54 @@ body.dark-mode .config-box input[type="radio"]:checked + .radio-fake {
     </div>
 </div>
 
+<div class="modal fade" id="modalAprovar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    Aprovar solicitação
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                Tem certeza que deseja aprovar esta solicitação?
+
+                <input
+                    type="hidden"
+                    name="id_ferias"
+                    id="idFeriasAprovar">
+            </div>
+
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    name="aprovar"
+                    class="btn btn-success">
+                    Confirmar Aprovação
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-function prepararRejeicao(botao){
-    document.getElementById('idFeriasRejeitar').value = botao.dataset.id;
-}
-
-function abrirConfigMes(botao) {
-    const mes = botao.dataset.mes;
-    const nome = botao.dataset.nome;
-    const disponivel = botao.dataset.disponivel;
-    const limite = botao.dataset.limite;
-
-    document.getElementById('tituloMesConfig').innerText = nome;
-    document.getElementById('mesConfigInput').value = mes;
-
-    const tipoLiberado = document.getElementById('tipoLiberado');
-    const tipoLimitado = document.getElementById('tipoLimitado');
-    const tipoBloqueado = document.getElementById('tipoBloqueado');
-    const limiteInput = document.getElementById('limitePedidosInput');
-
-    tipoLiberado.checked = false;
-    tipoLimitado.checked = false;
-    tipoBloqueado.checked = false;
-
-    limiteInput.value = '';
-
-    if (disponivel === '0') {
-        tipoBloqueado.checked = true;
-    } else if (limite !== '') {
-        tipoLimitado.checked = true;
-        limiteInput.value = limite;
-    } else {
-        tipoLiberado.checked = true;
-    }
-
-    toggleLimitePedidos();
-}
-
-function toggleLimitePedidos() {
-    const tipoLimitado = document.getElementById('tipoLimitado');
-    const limiteInput = document.getElementById('limitePedidosInput');
-
-    if (tipoLimitado.checked) {
-        limiteInput.disabled = false;
-        limiteInput.required = true;
-        setTimeout(() => limiteInput.focus(), 100);
-    } else {
-        limiteInput.disabled = true;
-        limiteInput.required = false;
-        limiteInput.value = '';
-    }
-}
-
-const buscar = document.getElementById('buscarFerias');
-const linhas = document.querySelectorAll('#tabelaFerias tr');
-
-if (buscar) {
-    buscar.addEventListener('keyup', function(){
-        const termo = this.value.toLowerCase();
-
-        linhas.forEach(function(linha){
-            const texto = linha.innerText.toLowerCase();
-            linha.style.display = texto.includes(termo) ? '' : 'none';
-        });
-    });
-}
-</script>
-
+<script src="js/ferias.js"></script>
 <script src="js/theme.js"></script>
-<script src="js/translate.js"></script>
 </body>
 </html>

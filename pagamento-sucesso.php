@@ -1,7 +1,4 @@
-<?php
-session_start();
-?>
-
+<?php session_start();?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -176,6 +173,5 @@ setTimeout(() => {
     window.location.href = "login.php?cadastro=ok";
 }, 5000);
 </script>
-
 </body>
 </html>

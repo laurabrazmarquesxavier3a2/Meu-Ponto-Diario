@@ -19,14 +19,9 @@ if (!$idEmpresa) {
 $mensagem = '';
 $erro = '';
 
-/* =========================================================
-   AÇÕES
-========================================================= */
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     /* SALVAR COMUNICADO */
-
     if (isset($_POST['salvar_comunicado'])) {
 
         $titulo = trim($_POST['titulo']);
@@ -149,10 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-/* =========================================================
-   CONTADORES
-========================================================= */
-
 $totalComunicados = 0;
 $totalFixados = 0;
 $mesComunicados = 0;
@@ -211,10 +202,6 @@ $mesComunicados = $stmtMes
     ->get_result()
     ->fetch_assoc()['total'];
 
-/* =========================================================
-   LISTAGEM
-========================================================= */
-
 $stmtComunicados = $con->prepare("
     SELECT *
     FROM comunicados
@@ -230,10 +217,6 @@ $stmtComunicados->bind_param(
 $stmtComunicados->execute();
 
 $resultado = $stmtComunicados->get_result();
-
-/* =========================================================
-   CATEGORIA
-========================================================= */
 
 function badgeCategoria($categoria)
 {
@@ -1655,13 +1638,7 @@ if (buscar) {
         }
     );
 }
-
 </script>
-
 <script src="js/theme.js"></script>
-<script src="js/translate.js"></script>
-
 </body>
-
 </html>
-```

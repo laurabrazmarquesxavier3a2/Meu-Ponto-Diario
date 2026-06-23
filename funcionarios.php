@@ -1658,9 +1658,6 @@ document.querySelectorAll('.btnEditarFuncionario').forEach(function(botao){
 
 });
 </script>
-
 <script src="js/theme.js"></script>
-<script src="js/translate.js"></script>
-
 </body>
 </html>

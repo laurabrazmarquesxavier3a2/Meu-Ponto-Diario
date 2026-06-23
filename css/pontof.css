@@ -454,3 +454,444 @@ body {
     }
 
 }
+
+ .calendar-section {
+            display: grid;
+            grid-template-columns:
+                minmax(0, 1fr)
+                minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+            margin-top: 24px;
+        }
+
+        .calendar-box {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .week-history {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .week-day-item {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .week-day-item:last-child {
+            border-bottom: 0;
+        }
+
+        .week-day-button {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            padding: 15px 4px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+
+            text-align: left;
+        }
+
+        button.week-day-button {
+            cursor: pointer;
+        }
+
+        button.week-day-button:hover {
+            background: #f8fafc;
+        }
+
+        .week-day-button.no-record {
+            cursor: default;
+        }
+
+        .week-day-info {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .week-day-name {
+            color: #111827;
+            font-weight: 700;
+        }
+
+        .week-day-info small {
+            color: #64748b;
+        }
+
+        .week-day-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .week-day-status i {
+            margin-left: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 8px;
+            border-radius: 50%;
+        }
+
+        .status-ponto {
+            color: #1d4ed8;
+        }
+
+        .status-ponto .status-dot {
+            background: #2563eb;
+        }
+
+        .status-ferias {
+            color: #7e22ce;
+        }
+
+        .status-ferias .status-dot {
+            background: #a855f7;
+        }
+
+        .status-licenca {
+            color: #854d0e;
+        }
+
+        .status-licenca .status-dot {
+            background: #eab308;
+        }
+
+        .status-afastamento {
+            color: #c2410c;
+        }
+
+        .status-afastamento .status-dot {
+            background: #f97316;
+        }
+
+        .week-day-empty {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .week-day-details {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 4px 14px;
+
+            display: grid;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .compact-detail {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 9px;
+            padding: 9px;
+            min-width: 0;
+        }
+
+        .compact-detail span {
+            display: block;
+            color: #64748b;
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        .compact-detail strong {
+            display: block;
+            color: #111827;
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .absence-ferias {
+            background: #faf5ff;
+            border-radius: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .absence-licenca {
+            background: #fefce8;
+            border-radius: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .absence-afastamento {
+            background: #fff7ed;
+            border-radius: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .month-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .month-header strong {
+            color: #111827;
+            font-size: 17px;
+        }
+
+        .month-header span {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .month-calendar {
+            display: grid;
+            grid-template-columns:
+                repeat(7, minmax(0, 1fr));
+            gap: 7px;
+        }
+
+        .calendar-week-name {
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 0 8px;
+        }
+
+        .calendar-day {
+            position: relative;
+            min-width: 0;
+            aspect-ratio: 1 / 1;
+
+            border: 1px solid transparent;
+            border-radius: 11px;
+            background: #f8fafc;
+            color: #334155;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        button.calendar-day {
+            cursor: pointer;
+            font-weight: 700;
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
+        }
+
+        button.calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 18px
+                rgba(15, 23, 42, .14);
+        }
+
+        .event-ponto {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+
+        .event-ferias {
+            background: #f3e8ff;
+            border-color: #c084fc;
+            color: #7e22ce;
+        }
+
+        .event-licenca {
+            background: #fef9c3;
+            border-color: #facc15;
+            color: #854d0e;
+        }
+
+        .event-afastamento {
+            background: #ffedd5;
+            border-color: #fb923c;
+            color: #c2410c;
+        }
+
+        .calendar-day.today {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        .calendar-day.empty-day {
+            background: transparent;
+        }
+
+        .record-indicator {
+            position: absolute;
+            bottom: 6px;
+
+            width: 5px;
+            height: 5px;
+
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .calendar-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 18px;
+
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .calendar-legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .legend-ponto {
+            background: #2563eb;
+        }
+
+        .legend-ferias {
+            background: #a855f7;
+        }
+
+        .legend-licenca {
+            background: #eab308;
+        }
+
+        .legend-afastamento {
+            background: #f97316;
+        }
+
+        .legend-hoje {
+            background: transparent;
+            border: 2px solid #2563eb;
+        }
+
+        .modal-record-date {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-radius: 11px;
+            padding: 12px 14px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .modal-record-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .modal-record-item {
+            background: #f8fafc;
+            border-radius: 11px;
+            padding: 12px;
+            min-width: 0;
+        }
+
+        .modal-record-item span {
+            display: block;
+            color: #64748b;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .modal-record-item strong {
+            display: block;
+            color: #111827;
+            font-size: 15px;
+            overflow-wrap: anywhere;
+        }
+
+        .modal-record-item.full {
+            grid-column: 1 / -1;
+        }
+
+        .modal-record-origin {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            margin-top: 14px;
+            padding: 7px 10px;
+
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1100px) {
+
+            .calendar-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .week-day-details {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .week-day-button {
+                align-items: flex-start;
+            }
+
+            .week-day-status,
+            .week-day-empty {
+                white-space: normal;
+                text-align: right;
+            }
+
+            .month-calendar {
+                gap: 4px;
+            }
+
+            .calendar-day {
+                border-radius: 8px;
+                font-size: 11px;
+            }
+
+            .modal-record-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-record-item.full {
+                grid-column: auto;
+            }
+
+            .month-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }

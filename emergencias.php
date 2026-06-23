@@ -29,10 +29,6 @@ if (!$idEmpresa) {
 $mensagem = '';
 $erro = '';
 
-/* =========================================================
-   ATUALIZAR STATUS DA OCORRÊNCIA
-========================================================= */
-
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
     isset($_POST['atualizar_status'])
@@ -1598,11 +1594,6 @@ if (pesquisarOcorrencia) {
 }
 
 </script>
-
 <script src="js/theme.js"></script>
-<script src="js/translate.js"></script>
-
 </body>
-
 </html>
-```

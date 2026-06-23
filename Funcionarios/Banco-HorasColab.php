@@ -12,20 +12,8 @@ if (!$idFuncionario || !$idEmpresa) {
     die("Funcionário ou empresa não identificados. Faça login novamente.");
 }
 
-/*
-==========================
-CONFIGURAÇÃO
-==========================
-*/
-
 $cargaDiaria = 8.00;
 $mesAtual = date('Y-m');
-
-/*
-==========================
-FUNÇÕES
-==========================
-*/
 
 function formatarHoras($horas) {
 
@@ -56,11 +44,6 @@ function statusSaldo($saldo) {
     return "neutro";
 }
 
-/*
-==========================
-DADOS DO FUNCIONÁRIO
-==========================
-*/
 
 $stmtFunc = $con->prepare("
     SELECT *
@@ -78,12 +61,6 @@ $funcionario = $stmtFunc->get_result()->fetch_assoc();
 if (!$funcionario) {
     die("Funcionário não encontrado para esta empresa.");
 }
-
-/*
-==========================
-CALCULAR BANCO DE HORAS COM BASE NOS PONTOS
-==========================
-*/
 
 $stmtPontos = $con->prepare("
     SELECT
@@ -145,12 +122,6 @@ while ($ponto = $resultPontos->fetch_assoc()) {
     ];
 }
 
-/*
-==========================
-PENDENTES / EM ANDAMENTO
-==========================
-*/
-
 $stmtPendentes = $con->prepare("
     SELECT COUNT(*) AS total
     FROM pontos
@@ -163,12 +134,6 @@ $stmtPendentes->bind_param("ii", $idFuncionario, $idEmpresa);
 $stmtPendentes->execute();
 
 $pendentes = $stmtPendentes->get_result()->fetch_assoc()['total'] ?? 0;
-
-/*
-==========================
-SINCRONIZAR TABELA banco_horas
-==========================
-*/
 
 $statusBanco = statusSaldo($saldoTotal);
 $dataAtualizacao = date('Y-m-d');
@@ -247,18 +212,11 @@ if ($existeBanco) {
     $stmtInsert->execute();
 }
 
-/*
-==========================
-ÚLTIMOS REGISTROS
-==========================
-*/
-
 $ultimosRegistros = array_slice($registros, 0, 10);
 
 $progressoSaldo = min(100, abs($saldoTotal) * 5);
 $progressoExtra = min(100, $horasExtrasMes * 10);
 $progressoDebito = min(100, $horasDebitoMes * 10);
-
 ?>
 
 <!DOCTYPE html>
@@ -668,10 +626,7 @@ pesquisa.addEventListener('keyup', () => {
     });
 
 });
-
 </script>
 <script src="../js/theme.js"></script>
-<script src="../js/translate.js"></script>
 </body>
-
 </html>

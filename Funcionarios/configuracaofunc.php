@@ -16,12 +16,7 @@ if (!$id_usuario || !$id_empresa) {
     die("Usuário não autenticado.");
 }
 
-/*
-========================================
-BUSCAR USUÁRIO
-========================================
-*/
-
+/*BUSCAR USUÁRIO*/
 $stmtUsuario = $con->prepare("
     SELECT 
         id_usuario,
@@ -52,12 +47,6 @@ if (!$usuario) {
 
 $id_funcionario = $usuario['id_funcionario'] ?? 0;
 
-/*
-========================================
-BUSCAR FUNCIONÁRIO
-========================================
-*/
-
 $funcionario = null;
 
 if ($id_funcionario) {
@@ -82,12 +71,6 @@ if ($id_funcionario) {
         $funcionario = $stmtFunc->get_result()->fetch_assoc();
     }
 }
-
-/*
-========================================
-ALTERAR SENHA
-========================================
-*/
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_senha'])) {
 
@@ -137,12 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_senha'])) {
     }
 }
 
-/*
-========================================
-SALVAR PREFERÊNCIAS
-========================================
-*/
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_configuracoes'])) {
 
     $_SESSION['config_sistema_func'] = [
@@ -155,12 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_configuracoes'
 
     $mensagem = "Preferências salvas com sucesso.";
 }
-
-/*
-========================================
-VALORES PADRÃO
-========================================
-*/
 
 $configSistema = $_SESSION['config_sistema_func'] ?? [
     'fuso' => 'America/Sao_Paulo',
@@ -702,7 +673,6 @@ body.dark-mode .form-check-input:focus{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script src="../js/theme.js"></script>
-<script src="../js/translate.js"></script>
 
 <script>
 function toggleSenha(id, icone){

@@ -625,8 +625,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </script>
 
     <script src="js/theme.js"></script>
-    <script src="js/translate.js"></script>
-
 </body>
-
 </html>

@@ -74,9 +74,6 @@ function formatarMinutos(
         'min';
 }
 
-/**
- * Retorna a classe visual do saldo.
- */
 function classeSaldo(int|float|string|null $minutos): string
 {
     $valor = (int) round((float) $minutos);
@@ -91,21 +88,6 @@ function classeSaldo(int|float|string|null $minutos): string
 
     return 'saldo-neutro';
 }
-
-/*
-|--------------------------------------------------------------------------
-| REGISTROS
-|--------------------------------------------------------------------------
-|
-| A tabela pontos aparentemente guarda total_horas em horas decimais.
-|
-| Exemplos:
-| 0.68 hora = aproximadamente 41 minutos
-| 1.29 hora = aproximadamente 77 minutos
-|
-| Agora a consulta multiplica por 60 e retorna minutos inteiros.
-|
-*/
 
 $registros = [];
 
@@ -1070,8 +1052,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
-
-<script src="js/translate.js"></script>
-
 </body>
 </html>

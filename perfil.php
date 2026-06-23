@@ -667,8 +667,6 @@ novaFoto.addEventListener('change', function(){
     }
 
 });
-
 </script>
-<script src="js/translate.js"></script>
 </body>
 </html>

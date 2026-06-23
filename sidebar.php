@@ -6,10 +6,7 @@ require_once 'lang.php';
 $pagina = basename($_SERVER['PHP_SELF']);
 ?>
 
-<link
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-    rel="stylesheet"
->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"rel="stylesheet">
 
 <link rel="stylesheet" href="css/sidebar.css?v=6">
 
@@ -168,20 +165,62 @@ $pagina = basename($_SERVER['PHP_SELF']);
             <span><?= t('configuracoes') ?></span>
         </a>
 
-        <a
+       <a
             href="logout.php"
             class="mpd-link danger"
-            onclick="return confirm('<?= t('confirmar_sair') ?>')"
-        >
+            data-bs-toggle="modal"
+            data-bs-target="#modalLogout">
             <i class="bi bi-box-arrow-right"></i>
             <span><?= t('sair') ?></span>
         </a>
-
     </div>
 
 </aside>
 
 <?php include 'sininho.php'; ?>
+
+<!-- MODAL LOGOUT -->
+<div class="modal fade" id="modalLogout" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-box-arrow-right text-danger me-2"></i>
+                    <?= t('sair') ?>
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <?= t('confirmar_sair') ?>
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    <?= t('cancelar') ?>
+                </button>
+
+                <a
+                    href="logout.php"
+                    class="btn btn-danger">
+                    <?= t('sair') ?>
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script src="js/sidebar.js?v=6"></script>
 <script src="js/translate.js"></script>

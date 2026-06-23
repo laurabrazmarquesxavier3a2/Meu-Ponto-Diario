@@ -52,19 +52,19 @@ $pagina = basename($_SERVER['PHP_SELF']);
         </span>
 
         <a
-            href="banco-HorasColab.php"
-            class="mpd-link <?= $pagina === 'banco-HorasColab.php' ? 'active' : '' ?>"
-        >
-            <i class="bi bi-graph-up-arrow"></i>
-            <span><?= t('banco_horas') ?></span>
-        </a>
-
-        <a
             href="pontoF.php"
             class="mpd-link <?= $pagina === 'pontoF.php' ? 'active' : '' ?>"
         >
             <i class="bi bi-clock-history"></i>
             <span><?= t('historico_ponto') ?></span>
+        </a>
+
+        <a
+            href="banco-HorasColab.php"
+            class="mpd-link <?= $pagina === 'banco-HorasColab.php' ? 'active' : '' ?>"
+        >
+            <i class="bi bi-graph-up-arrow"></i>
+            <span><?= t('banco_horas') ?></span>
         </a>
 
         <a

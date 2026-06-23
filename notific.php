@@ -124,10 +124,6 @@ function criarNotificacao($con, $idEmpresa, $idUsuarioDestino, $tipo, $titulo, $
     return $stmt->execute();
 }
 
-/*
-    FUNÇÃO NORMAL:
-    respeita as configurações da tela configuracao.php
-*/
 function criarNotificacaoParaRH($con, $idEmpresa, $tipoConfig, $titulo, $mensagem, $link = null, $tipo = 'sistema') {
     $stmt = $con->prepare("
         SELECT id_usuario
@@ -167,11 +163,6 @@ function criarNotificacaoParaRH($con, $idEmpresa, $tipoConfig, $titulo, $mensage
     return true;
 }
 
-/*
-    FUNÇÃO FORÇADA:
-    envia para RH/Admin mesmo se alguma configuração estiver desligada.
-    Use para férias, atestado e emergência.
-*/
 function criarNotificacaoParaRHForcada($con, $idEmpresa, $titulo, $mensagem, $link = null, $tipo = 'sistema') {
     $stmt = $con->prepare("
         SELECT id_usuario

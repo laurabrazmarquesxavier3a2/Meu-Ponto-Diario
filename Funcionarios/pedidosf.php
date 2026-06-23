@@ -117,11 +117,6 @@ $con->query("
     MODIFY limite_pedidos INT NULL DEFAULT NULL
 ");
 
-/*
-========================================
-GARANTE OS 12 MESES
-========================================
-*/
 
 foreach ($meses as $nomeMes => $numeroMes) {
 
@@ -146,12 +141,6 @@ foreach ($meses as $nomeMes => $numeroMes) {
         $stmtMes->close();
     }
 }
-
-/*
-========================================
-BUSCA MESES DISPONÍVEIS E LIMITES
-========================================
-*/
 
 $mesesDisponiveis = [];
 $limitesPedidos = [];
@@ -194,11 +183,6 @@ while ($row = $resMeses->fetch_assoc()) {
 
 $stmtMeses->close();
 
-/*
-========================================
-CONTA PEDIDOS DE CADA MÊS
-========================================
-*/
 
 foreach ($meses as $nomeMes => $numeroMes) {
 
@@ -247,12 +231,6 @@ foreach ($meses as $nomeMes => $numeroMes) {
     }
 }
 
-/*
-========================================
-BUSCA FUNCIONÁRIO
-========================================
-*/
-
 $stmtFunc = $con->prepare("
     SELECT nome
     FROM funcionarios
@@ -282,11 +260,6 @@ $nomeFuncionario =
 
 $stmtFunc->close();
 
-/*
-========================================
-BUSCA PEDIDO PENDENTE
-========================================
-*/
 
 $stmtPedido = $con->prepare("
     SELECT
@@ -325,11 +298,6 @@ $possuiPedidoPendente = !empty($pedidoAtual);
 $alteracoesRestantes =
     $pedidoAtual['alteracoes_restantes'] ?? 2;
 
-/*
-========================================
-SOLICITAR OU ALTERAR FÉRIAS
-========================================
-*/
 
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
@@ -389,12 +357,6 @@ if (
             );
 
             $dias = 30;
-
-            /*
-            ========================================
-            ALTERA PEDIDO EXISTENTE
-            ========================================
-            */
 
             if (
                 $pedidoAtual &&
@@ -474,12 +436,6 @@ if (
 
             } else {
 
-                /*
-                ========================================
-                CRIA NOVO PEDIDO
-                ========================================
-                */
-
                 $stmt = $con->prepare("
                     INSERT INTO ferias (
                         id_funcionario,
@@ -556,291 +512,18 @@ if (
 
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pedidos</title>
-
-<link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
->
-
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
->
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="../css/global.css">
 <link rel="stylesheet" href="../css/sidebar.css?v=20">
 <link rel="stylesheet" href="../css/pedidosf.css?v=2">
 
-<style>
-/* =========================================
-   MODO ESCURO - CARDS
-========================================= */
-
-body.dark-mode .pedidos-card {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-}
-
-body.dark-mode .pedidos-card .card-body {
-    background: #0f172a !important;
-    color: #f8fafc !important;
-}
-
-body.dark-mode .pedidos-card h1,
-body.dark-mode .pedidos-card h2,
-body.dark-mode .pedidos-card h3,
-body.dark-mode .pedidos-card h4,
-body.dark-mode .pedidos-card h5,
-body.dark-mode .pedidos-card h6,
-body.dark-mode .pedidos-card label {
-    color: #f8fafc !important;
-}
-
-body.dark-mode .pedidos-card .text-muted,
-body.dark-mode .pedidos-header .text-muted {
-    color: #cbd5e1 !important;
-}
-
-/* =========================================
-   BOTÕES DOS MESES
-========================================= */
-
-body.dark-mode .mes-btn.btn-light,
-body.dark-mode .mes-btn {
-    background: #111c36 !important;
-    color: #f8fafc !important;
-    border: 1px solid #334155 !important;
-}
-
-body.dark-mode .mes-btn span {
-    color: #f8fafc !important;
-}
-
-body.dark-mode .mes-btn small {
-    color: #cbd5e1 !important;
-}
-
-body.dark-mode .mes-btn:hover:not(:disabled) {
-    background: #172443 !important;
-    border-color: #3b82f6 !important;
-}
-
-body.dark-mode .mes-btn.btn-primary,
-body.dark-mode .mes-btn.text-white {
-    background: #0d6efd !important;
-    color: #ffffff !important;
-    border-color: #0d6efd !important;
-}
-
-body.dark-mode .mes-btn.btn-primary span,
-body.dark-mode .mes-btn.text-white span {
-    color: #ffffff !important;
-}
-
-body.dark-mode .mes-indisponivel,
-body.dark-mode .mes-btn:disabled {
-    background: #1e293b !important;
-    color: #64748b !important;
-    border-color: #334155 !important;
-    opacity: .75;
-}
-
-body.dark-mode .mes-indisponivel span,
-body.dark-mode .mes-btn:disabled span {
-    color: #64748b !important;
-}
-
-/* =========================================
-   CAIXA DE INFORMAÇÃO
-========================================= */
-
-body.dark-mode .info-box {
-    background: #111827 !important;
-    color: #f8fafc !important;
-    border: 1px solid #334155 !important;
-}
-
-body.dark-mode #mesSelecionadoTexto {
-    color: #f8fafc !important;
-}
-
-body.dark-mode .info-box small {
-    color: #cbd5e1 !important;
-}
-
-/* =========================================
-   CAMPOS DO FORMULÁRIO
-========================================= */
-
-body.dark-mode .form-control,
-body.dark-mode input[type="text"],
-body.dark-mode input[type="date"],
-body.dark-mode input[type="file"],
-body.dark-mode textarea {
-    background: #111827 !important;
-    color: #f8fafc !important;
-    border-color: #334155 !important;
-}
-
-body.dark-mode .form-control:focus,
-body.dark-mode input[type="text"]:focus,
-body.dark-mode input[type="date"]:focus,
-body.dark-mode input[type="file"]:focus,
-body.dark-mode textarea:focus {
-    background: #111827 !important;
-    color: #f8fafc !important;
-    border-color: #60a5fa !important;
-
-    box-shadow:
-        0 0 0 .25rem
-        rgba(59, 130, 246, .20) !important;
-}
-
-body.dark-mode .form-control::placeholder,
-body.dark-mode textarea::placeholder {
-    color: #94a3b8 !important;
-    opacity: 1;
-}
-
-/* =========================================
-   CAMPO DE ARQUIVO
-========================================= */
-
-body.dark-mode input[type="file"]::file-selector-button {
-    background: #1e293b !important;
-    color: #f8fafc !important;
-
-    border: 0 !important;
-    border-right: 1px solid #334155 !important;
-
-    cursor: pointer;
-}
-
-body.dark-mode input[type="file"]::-webkit-file-upload-button {
-    background: #1e293b !important;
-    color: #f8fafc !important;
-
-    border: 0 !important;
-    border-right: 1px solid #334155 !important;
-
-    cursor: pointer;
-}
-
-/* =========================================
-   ALERTA AMARELO
-========================================= */
-
-body.dark-mode .alert-warning {
-    background: #fef3c7 !important;
-    color: #78350f !important;
-    border: 1px solid #fcd34d !important;
-}
-
-body.dark-mode .alert-warning strong,
-body.dark-mode .alert-warning i {
-    color: #78350f !important;
-}
-
-body.dark-mode .alert-warning .btn-close {
-    filter: none !important;
-}
-
-/* =========================================
-   CALENDÁRIO NO MODO ESCURO
-========================================= */
-
-body.dark-mode input[type="date"] {
-    position: relative;
-
-    background-color: #111827 !important;
-    color: #f8fafc !important;
-
-    border: 1px solid #334155 !important;
-
-    color-scheme: dark !important;
-}
-
-/* ÍCONE DO CALENDÁRIO */
-
-body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
-    display: block !important;
-
-    width: 20px;
-    height: 20px;
-
-    opacity: 1 !important;
-
-    cursor: pointer;
-
-    filter:
-        invert(1)
-        brightness(2)
-        contrast(1.1) !important;
-}
-
-/* TEXTO INTERNO DA DATA */
-
-body.dark-mode input[type="date"]::-webkit-datetime-edit {
-    color: #f8fafc !important;
-}
-
-body.dark-mode input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-    color: #f8fafc !important;
-}
-
-body.dark-mode input[type="date"]::-webkit-datetime-edit-text {
-    color: #94a3b8 !important;
-}
-
-body.dark-mode input[type="date"]::-webkit-datetime-edit-month-field,
-body.dark-mode input[type="date"]::-webkit-datetime-edit-day-field,
-body.dark-mode input[type="date"]::-webkit-datetime-edit-year-field {
-    color: #f8fafc !important;
-}
-
-/* SELEÇÃO DOS NÚMEROS DA DATA */
-
-body.dark-mode input[type="date"]::-webkit-datetime-edit-month-field:focus,
-body.dark-mode input[type="date"]::-webkit-datetime-edit-day-field:focus,
-body.dark-mode input[type="date"]::-webkit-datetime-edit-year-field:focus {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    border-radius: 4px;
-}
-
-/* HOVER DO ÍCONE */
-
-body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    filter:
-        invert(1)
-        brightness(2.5)
-        contrast(1.2) !important;
-}
-
-/* FIREFOX */
-
-@supports (-moz-appearance: none) {
-    body.dark-mode input[type="date"] {
-        color-scheme: dark !important;
-    }
-}
-</style>
-
 </head>
-
 <body>
-
 <?php include 'sidebarfunc.php'; ?>
 
 <main class="pedidos-page">
@@ -1317,9 +1000,6 @@ function mostrarAlerta(texto) {
     }, 3000);
 }
 </script>
-
 <script src="../js/theme.js"></script>
-<script src="../js/translate.js"></script>
-
 </body>
 </html>

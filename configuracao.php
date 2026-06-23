@@ -17,12 +17,6 @@ if (!$id_usuario || !$id_empresa) {
     die("Usuário não autenticado.");
 }
 
-/*
-========================================
-GARANTIR TABELA DE CONFIGURAÇÕES
-========================================
-*/
-
 $con->query("
     CREATE TABLE IF NOT EXISTS config_notificacoes (
         id_config INT NOT NULL AUTO_INCREMENT,
@@ -37,12 +31,6 @@ $con->query("
         KEY idx_usuario_empresa (id_usuario, id_empresa)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 ");
-
-/*
-========================================
-BUSCAR USUÁRIO RH
-========================================
-*/
 
 $stmtUsuario = $con->prepare("
     SELECT 
@@ -70,12 +58,6 @@ $usuario = $stmtUsuario->get_result()->fetch_assoc();
 if (!$usuario) {
     die("Usuário não encontrado.");
 }
-
-/*
-========================================
-ALTERAR SENHA
-========================================
-*/
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_senha'])) {
 
@@ -125,11 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_senha'])) {
     }
 }
 
-/*
-========================================
-SALVAR CONFIGURAÇÕES RH
-========================================
-*/
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_configuracoes'])) {
 
@@ -138,10 +115,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_configuracoes'
     $alertasEmergencia = isset($_POST['alertas_emergencia']) ? 1 : 0;
     $resumoSemanal = isset($_POST['resumo_semanal']) ? 1 : 0;
 
-    /*
-        Primeiro tenta achar configuração existente.
-        Assim não depende de UNIQUE KEY no banco.
-    */
     $stmtExiste = $con->prepare("
         SELECT id_config
         FROM config_notificacoes
@@ -241,12 +214,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_configuracoes'
     $mensagem = "Configurações salvas com sucesso.";
 }
 
-/*
-========================================
-BUSCAR CONFIGURAÇÕES DE NOTIFICAÇÃO
-========================================
-*/
-
 $configNotificacoes = [
     'novas_solicitacoes' => 1,
     'aprovacoes_pendentes' => 1,
@@ -277,12 +244,6 @@ if ($stmtBuscaConfig) {
         $configNotificacoes = $resConfig->fetch_assoc();
     }
 }
-
-/*
-========================================
-VALORES PADRÃO DE SISTEMA E JORNADA
-========================================
-*/
 
 $configSistema = $_SESSION['config_sistema'] ?? [
     'fuso' => 'America/Sao_Paulo',
@@ -1061,8 +1022,6 @@ body.dark-mode .form-check-input:focus{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script src="js/theme.js"></script>
-<script src="js/translate.js"></script>
-
 <script>
 function toggleSenha(id, icone){
     const campo = document.getElementById(id);
@@ -1110,9 +1069,6 @@ if(localStorage.getItem('jornadaAberta') === 'sim'){
         jornadaContainer.style.display = 'block';
     }
 }
-
 </script>
-
 </body>
-
 </html>

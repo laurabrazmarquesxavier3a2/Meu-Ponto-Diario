@@ -134,7 +134,5 @@ require_once 'lang.php';
         </div>
 
     </div>
-<script src="js/translate.js"></script>
 </body>
-
 </html>
