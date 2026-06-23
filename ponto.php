@@ -14,13 +14,6 @@ if ($id_empresa <= 0) {
     die('Erro: empresa não identificada. Faça login novamente.');
 }
 
-/**
- * Converte horas decimais armazenadas no banco para minutos.
- *
- * Exemplos:
- * 7.98 => 479 minutos
- * 8.15 => 489 minutos
- */
 function horasDecimaisParaMinutos($totalHoras): ?int
 {
     if ($totalHoras === null || $totalHoras === '') {
