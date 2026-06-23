@@ -60,7 +60,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
         </a>
 
         <a
-            href="banco-HorasColab.php"
+            href="Banco-HorasColab.php"
             class="mpd-link <?= $pagina === 'Banco-HorasColab.php' ? 'active' : '' ?>"
         >
             <i class="bi bi-graph-up-arrow"></i>
@@ -84,8 +84,8 @@ $pagina = basename($_SERVER['PHP_SELF']);
         </a>
 
         <a
-            href="SoliLic.php"
-            class="mpd-link <?= $pagina === 'SoliLic.php' ? 'active' : '' ?>"
+            href="Solilic.php"
+            class="mpd-link <?= $pagina === 'Solilic.php' ? 'active' : '' ?>"
         >
             <i class="bi bi-file-medical"></i>
             <span><?= t('solicitacoes') ?></span>
