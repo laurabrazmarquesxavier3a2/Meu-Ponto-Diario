@@ -61,7 +61,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
         <a
             href="banco-HorasColab.php"
-            class="mpd-link <?= $pagina === 'banco-HorasColab.php' ? 'active' : '' ?>"
+            class="mpd-link <?= $pagina === 'Banco-HorasColab.php' ? 'active' : '' ?>"
         >
             <i class="bi bi-graph-up-arrow"></i>
             <span><?= t('banco_horas') ?></span>
