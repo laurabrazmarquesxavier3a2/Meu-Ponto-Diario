@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 22-Jun-2026 às 02:28
+-- Tempo de geração: 23/06/2026 às 01:51
 -- Versão do servidor: 5.7.36
--- versão do PHP: 8.1.3
+-- Versão do PHP: 8.0.16
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `afastamentos`
+-- Estrutura para tabela `afastamentos`
 --
 
 CREATE TABLE `afastamentos` (
@@ -42,7 +42,7 @@ CREATE TABLE `afastamentos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Extraindo dados da tabela `afastamentos`
+-- Despejando dados para a tabela `afastamentos`
 --
 
 INSERT INTO `afastamentos` (`id_afastamento`, `id_funcionario`, `id_empresa`, `tipo`, `motivo`, `data_inicio`, `data_fim`, `dias`, `status`, `observacao`, `data_cadastro`) VALUES
@@ -52,7 +52,7 @@ INSERT INTO `afastamentos` (`id_afastamento`, `id_funcionario`, `id_empresa`, `t
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `assinaturas`
+-- Estrutura para tabela `assinaturas`
 --
 
 CREATE TABLE `assinaturas` (
@@ -68,7 +68,7 @@ CREATE TABLE `assinaturas` (
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `atividades`
+-- Estrutura para tabela `atividades`
 --
 
 CREATE TABLE `atividades` (
@@ -80,7 +80,7 @@ CREATE TABLE `atividades` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `atividades`
+-- Despejando dados para a tabela `atividades`
 --
 
 INSERT INTO `atividades` (`id_atividade`, `id_usuario`, `descricao`, `tipo`, `data_atividade`) VALUES
@@ -97,12 +97,40 @@ INSERT INTO `atividades` (`id_atividade`, `id_usuario`, `descricao`, `tipo`, `da
 (11, 23, 'Liberou solicitações de férias para Março', 'success', '2026-06-11 21:51:07'),
 (12, 23, 'Liberou solicitações de férias para Abril', 'success', '2026-06-11 21:51:10'),
 (13, 23, 'Liberou solicitações de férias para Abril', 'success', '2026-06-11 21:56:38'),
-(14, 23, 'Liberou solicitações de férias para Fevereiro', 'success', '2026-06-11 21:56:48');
+(14, 23, 'Liberou solicitações de férias para Fevereiro', 'success', '2026-06-11 21:56:48'),
+(15, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 20:42:22'),
+(16, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 20:42:25'),
+(17, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 20:42:33'),
+(18, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 20:42:35'),
+(19, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 20:59:13'),
+(20, 23, 'Liberou solicitações de férias para Abril', 'success', '2026-06-22 20:59:21'),
+(21, 23, 'Liberou solicitações de férias para Abril', 'success', '2026-06-22 20:59:29'),
+(22, 23, 'Liberou solicitações de férias para Março', 'success', '2026-06-22 20:59:31'),
+(23, 23, 'Limitou solicitações de férias para Março', 'primary', '2026-06-22 20:59:39'),
+(24, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 20:59:46'),
+(25, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 20:59:49'),
+(26, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 21:00:25'),
+(27, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:00:32'),
+(28, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:02:38'),
+(29, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:04:51'),
+(30, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:04:56'),
+(31, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:05:01'),
+(32, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 21:05:05'),
+(33, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:05:08'),
+(34, 23, 'Liberou solicitações de férias para Abril', 'success', '2026-06-22 21:05:26'),
+(35, 23, 'Limitou solicitações de férias para Abril', 'primary', '2026-06-22 21:05:43'),
+(36, 23, 'Liberou solicitações de férias para Fevereiro', 'success', '2026-06-22 21:05:52'),
+(37, 23, 'Liberou solicitações de férias para Fevereiro', 'success', '2026-06-22 21:09:52'),
+(38, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:09:55'),
+(39, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:09:59'),
+(40, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 21:10:04'),
+(41, 23, 'Aprovou uma solicitação de férias', 'success', '2026-06-22 21:10:07'),
+(42, 23, 'Rejeitou uma solicitação de férias', 'danger', '2026-06-22 21:10:57');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `banco_horas`
+-- Estrutura para tabela `banco_horas`
 --
 
 CREATE TABLE `banco_horas` (
@@ -119,20 +147,10 @@ CREATE TABLE `banco_horas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `banco_horas`
+-- Despejando dados para a tabela `banco_horas`
 --
 
 INSERT INTO `banco_horas` (`id_banco`, `id_funcionario`, `mes`, `saldo_total`, `saldo_mes`, `horas_extras_mes`, `horas_debito_mes`, `data_atualizacao`, `status`, `id_empresa`) VALUES
-(11, 11, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(12, 12, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(13, 13, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(14, 14, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(15, 15, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(16, 16, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(17, 17, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(18, 18, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
-(19, 19, '2026-06', '1.29', '1.29', '1.34', '0.05', '2026-06-16', 'positivo', 4),
-(20, 20, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-09', 'neutro', 4),
 (21, 21, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (22, 22, '2026-06', '0.60', '0.60', '1.13', '0.53', '2026-06-21', 'positivo', 5),
 (23, 23, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
@@ -156,7 +174,7 @@ INSERT INTO `banco_horas` (`id_banco`, `id_funcionario`, `mes`, `saldo_total`, `
 (41, 41, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (42, 42, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (43, 43, '2026-06', '0.21', '0.21', '0.56', '0.35', '2026-06-21', 'positivo', 5),
-(44, 44, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
+(44, 44, '2026-06', '-0.67', '-0.67', '0.61', '1.28', '2026-06-23', 'negativo', 5),
 (45, 45, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (46, 46, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
 (47, 47, '2026-06', '0.00', '0.00', '0.00', '0.00', '2026-06-11', 'neutro', 5),
@@ -167,23 +185,7 @@ INSERT INTO `banco_horas` (`id_banco`, `id_funcionario`, `mes`, `saldo_total`, `
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `banco_horas_movimentacao`
---
-
-CREATE TABLE `banco_horas_movimentacao` (
-  `id_mov` int(11) NOT NULL,
-  `id_funcionario` int(11) NOT NULL,
-  `data` date NOT NULL,
-  `tipo` enum('extra','debito') NOT NULL,
-  `horas` decimal(5,2) NOT NULL,
-  `descricao` varchar(255) DEFAULT NULL,
-  `id_empresa` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Estrutura da tabela `comunicados`
+-- Estrutura para tabela `comunicados`
 --
 
 CREATE TABLE `comunicados` (
@@ -199,20 +201,19 @@ CREATE TABLE `comunicados` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `comunicados`
+-- Despejando dados para a tabela `comunicados`
 --
 
 INSERT INTO `comunicados` (`id`, `titulo`, `conteudo`, `categoria`, `fixado`, `autor`, `publico`, `data_publicacao`, `id_empresa`) VALUES
 (1, 'Atenção!', 'Banheiro do segundo andar interditado, pedimos para que não entrem até segunda ordem para sua segurança e bem estar.', 'Aviso', 1, 'Mariana Alves', 'Todos', '2026-06-11 22:01:24', 5),
 (2, 'Atualização da política de férias', 'Informamos que a solicitação de férias deve ser realizada com antecedência mínima de 30 dias. Em caso de dúvidas, entre em contato com o RH.', 'Política', 1, 'Mariana Alves', 'Funcionários', '2026-06-11 22:15:36', 5),
 (3, 'Café especial da equipe', 'Nesta sexta-feira teremos um café especial para promover a integração entre os colaboradores. A participação de todos é muito bem-vinda.', 'Comemoração', 0, 'Mariana Alves', 'Funcionários', '2026-06-11 22:16:41', 5),
-(4, 'Aniversariantes do mês', 'Vamos comemorar os aniversariantes do mês com um momento especial de confraternização. Contamos com a presença de todos para celebrar junto com a equipe.', 'Comemoração', 0, 'Mariana Alves', 'Todos', '2026-06-11 22:17:20', 5),
-(6, 'Festa junina da empresa', 'A empresa realizará uma festa junina para os colaboradores, com comidas típicas, música e atividades de integração. Em breve divulgaremos mais detalhes sobre data e horário.', 'Evento', 0, 'Mariana Alves', 'Todos', '2026-06-11 22:18:55', 5);
+(4, 'Aniversariantes do mês', 'Vamos comemorar os aniversariantes do mês com um momento especial de confraternização. Contamos com a presença de todos para celebrar junto com a equipe.', 'Comemoração', 0, 'Mariana Alves', 'Todos', '2026-06-11 22:17:20', 5);
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `config_notificacoes`
+-- Estrutura para tabela `config_notificacoes`
 --
 
 CREATE TABLE `config_notificacoes` (
@@ -227,18 +228,16 @@ CREATE TABLE `config_notificacoes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Extraindo dados da tabela `config_notificacoes`
+-- Despejando dados para a tabela `config_notificacoes`
 --
 
 INSERT INTO `config_notificacoes` (`id_config`, `id_usuario`, `id_empresa`, `novas_solicitacoes`, `aprovacoes_pendentes`, `alertas_emergencia`, `resumo_semanal`, `data_atualizacao`) VALUES
-(1, 21, 4, 1, 1, 1, 0, '2026-06-09 15:51:34'),
-(3, 12, 4, 1, 1, 1, 0, '2026-06-09 17:22:00'),
 (4, 23, 5, 1, 1, 1, 0, '2026-06-21 18:20:05');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `duvidas`
+-- Estrutura para tabela `duvidas`
 --
 
 CREATE TABLE `duvidas` (
@@ -252,7 +251,7 @@ CREATE TABLE `duvidas` (
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `empresas`
+-- Estrutura para tabela `empresas`
 --
 
 CREATE TABLE `empresas` (
@@ -276,17 +275,16 @@ CREATE TABLE `empresas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `empresas`
+-- Despejando dados para a tabela `empresas`
 --
 
 INSERT INTO `empresas` (`id_empresa`, `razao_social`, `nome_fantasia`, `cnpj`, `segmento`, `email`, `telefone`, `responsavel`, `cargo_responsavel`, `endereco`, `cidade`, `estado`, `cep`, `logo`, `plano`, `status`, `data_cadastro`) VALUES
-(4, 'MEU PONTO DIÁRIO DEMONSTRAÇÃO LTDA', 'Empresa Demonstração', '12345678000195', '', 'demo@meupontodiario.com.br', '(11) 99999-0000', 'ACGLL', 'Dono', 'Avenida Tecnologia, 100 - Centro', 'São Paulo', 'SP', '01000000', NULL, 'pequeno', 'ativa', '2026-06-09 02:52:57'),
 (5, 'TechNova Sistemas Corporativos LTDA', 'TechNova Sistemas', '74291836000129', 'Tecnologia', 'Alves@technova.com.br', '(11) 97777-2020', 'Mariana Alves', 'Gerente de RH', 'Avenida Paulista, 1500 - Bela Vista', 'São Paulo', 'SP', '01310-200', NULL, 'pequeno', 'ativa', '2026-06-11 23:26:23');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `ferias`
+-- Estrutura para tabela `ferias`
 --
 
 CREATE TABLE `ferias` (
@@ -305,21 +303,19 @@ CREATE TABLE `ferias` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `ferias`
+-- Despejando dados para a tabela `ferias`
 --
 
 INSERT INTO `ferias` (`id_ferias`, `id_funcionario`, `id_empresa`, `data_inicio`, `data_fim`, `dias`, `data_solicitacao`, `status`, `data_visto`, `mensagem_colaborador`, `alteracoes_restantes`, `motivo_rejeicao`) VALUES
-(1, 19, 4, '2027-05-01', '2027-05-30', 30, '2026-06-09 15:48:42', 'aprovado', '2026-06-09 16:45:19', 'Férias de 30 dias aprovadas pelo RH. Período de 01/05/2027 até 30/05/2027.', 0, NULL),
-(2, 14, 4, '2026-07-01', '2026-07-30', 30, '2026-06-09 16:17:45', 'aprovado', '2026-06-09 16:45:17', 'Férias de 30 dias aprovadas pelo RH. Período de 01/07/2026 até 30/07/2026.', 0, NULL),
-(3, 19, 4, '2027-03-01', '2027-03-30', 30, '2026-06-09 17:06:37', 'rejeitado', '2026-06-09 17:22:24', 'Sua solicitação de férias foi rejeitada pelo RH.', 2, 'ja foi aprovado um pedido anteriormente'),
-(4, 19, 4, '2026-07-01', '2026-07-30', 30, '2026-06-15 21:47:36', 'pendente', NULL, 'Solicitação alterada. Aguardando visualização do RH.', 0, NULL),
-(5, 22, 5, '2026-06-15', '2026-07-14', 30, '2026-06-21 19:27:24', 'aprovado', '2026-06-21 19:27:24', 'Férias de 30 dias aprovadas pelo RH. Período de 15/06/2026 até 14/07/2026.', 0, NULL),
-(6, 30, 5, '2026-06-22', '2026-07-21', 30, '2026-06-21 19:27:24', 'aprovado', '2026-06-21 19:27:24', 'Férias de 30 dias aprovadas pelo RH. Período de 22/06/2026 até 21/07/2026.', 0, NULL);
+(5, 22, 5, '2026-06-15', '2026-07-14', 30, '2026-06-21 19:27:24', 'aprovado', '2026-06-22 21:10:07', 'Sua solicitação de férias foi aprovada pelo RH.', 0, NULL),
+(6, 30, 5, '2026-06-22', '2026-07-21', 30, '2026-06-21 19:27:24', 'rejeitado', '2026-06-22 21:10:57', 'Sua solicitação de férias foi rejeitada pelo RH.', 0, '.'),
+(7, 47, 5, '2026-06-23', '2026-07-22', 30, '2026-06-22 21:21:03', 'aprovado', '2026-06-22 21:21:03', 'Férias cadastradas pelo RH no perfil do funcionário.', 0, NULL),
+(8, 44, 5, '2026-10-01', '2026-10-30', 30, '2026-06-22 22:24:30', 'pendente', NULL, 'Solicitação alterada. Aguardando visualização do RH.', 0, NULL);
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `ferias_backup_antes_correcao`
+-- Estrutura para tabela `ferias_backup_antes_correcao`
 --
 
 CREATE TABLE `ferias_backup_antes_correcao` (
@@ -338,7 +334,7 @@ CREATE TABLE `ferias_backup_antes_correcao` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Extraindo dados da tabela `ferias_backup_antes_correcao`
+-- Despejando dados para a tabela `ferias_backup_antes_correcao`
 --
 
 INSERT INTO `ferias_backup_antes_correcao` (`id_ferias`, `id_funcionario`, `id_empresa`, `data_inicio`, `data_fim`, `dias`, `data_solicitacao`, `status`, `data_visto`, `mensagem_colaborador`, `alteracoes_restantes`, `motivo_rejeicao`) VALUES
@@ -352,7 +348,7 @@ INSERT INTO `ferias_backup_antes_correcao` (`id_ferias`, `id_funcionario`, `id_e
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `ferias_meses_disponiveis`
+-- Estrutura para tabela `ferias_meses_disponiveis`
 --
 
 CREATE TABLE `ferias_meses_disponiveis` (
@@ -365,38 +361,14 @@ CREATE TABLE `ferias_meses_disponiveis` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Extraindo dados da tabela `ferias_meses_disponiveis`
+-- Despejando dados para a tabela `ferias_meses_disponiveis`
 --
 
 INSERT INTO `ferias_meses_disponiveis` (`id`, `id_empresa`, `mes`, `disponivel`, `limite_pedidos`, `atualizado_em`) VALUES
-(1, 1, 1, 1, 0, '2026-06-08 19:33:18'),
-(2, 1, 2, 1, 0, '2026-06-08 19:33:18'),
-(3, 1, 3, 1, 0, '2026-06-08 19:33:18'),
-(4, 1, 4, 1, 0, '2026-06-08 19:33:18'),
-(5, 1, 5, 1, 0, '2026-06-08 19:33:18'),
-(6, 1, 6, 1, 0, '2026-06-08 19:33:18'),
-(7, 1, 7, 1, 0, '2026-06-08 19:33:18'),
-(8, 1, 8, 1, 0, '2026-06-08 19:33:18'),
-(9, 1, 9, 1, 0, '2026-06-08 19:33:18'),
-(10, 1, 10, 1, 0, '2026-06-08 19:33:18'),
-(11, 1, 11, 1, 0, '2026-06-08 19:33:18'),
-(12, 1, 12, 1, 0, '2026-06-08 19:33:18'),
-(193, 4, 1, 1, 0, '2026-06-09 00:04:24'),
-(194, 4, 2, 1, 0, '2026-06-09 00:04:24'),
-(195, 4, 3, 1, 0, '2026-06-09 00:04:24'),
-(196, 4, 4, 1, 0, '2026-06-09 00:04:24'),
-(197, 4, 5, 1, 0, '2026-06-09 00:04:24'),
-(198, 4, 6, 1, 0, '2026-06-09 00:04:24'),
-(199, 4, 7, 1, 0, '2026-06-09 00:04:24'),
-(200, 4, 8, 1, 0, '2026-06-09 00:04:24'),
-(201, 4, 9, 1, 0, '2026-06-09 00:04:24'),
-(202, 4, 10, 1, 0, '2026-06-09 00:04:24'),
-(203, 4, 11, 1, 0, '2026-06-09 00:04:24'),
-(204, 4, 12, 1, 0, '2026-06-09 00:04:24'),
 (205, 5, 1, 1, NULL, '2026-06-11 21:51:02'),
-(206, 5, 2, 1, NULL, '2026-06-11 21:56:48'),
-(207, 5, 3, 1, NULL, '2026-06-11 21:51:07'),
-(208, 5, 4, 1, NULL, '2026-06-11 21:56:38'),
+(206, 5, 2, 1, NULL, '2026-06-22 21:09:52'),
+(207, 5, 3, 1, 10, '2026-06-22 20:59:39'),
+(208, 5, 4, 1, 1, '2026-06-22 21:05:43'),
 (209, 5, 5, 1, 0, '2026-06-11 20:52:55'),
 (210, 5, 6, 1, 0, '2026-06-11 20:52:55'),
 (211, 5, 7, 1, 0, '2026-06-11 20:52:55'),
@@ -409,7 +381,7 @@ INSERT INTO `ferias_meses_disponiveis` (`id`, `id_empresa`, `mes`, `disponivel`,
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `funcionarios`
+-- Estrutura para tabela `funcionarios`
 --
 
 CREATE TABLE `funcionarios` (
@@ -426,7 +398,7 @@ CREATE TABLE `funcionarios` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `funcionarios`
+-- Despejando dados para a tabela `funcionarios`
 --
 
 INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `horario_padrao`, `ativo`, `created_at`, `id_empresa`, `escala`, `supervisor`) VALUES
@@ -474,7 +446,7 @@ INSERT INTO `funcionarios` (`id_funcionario`, `nome`, `cargo`, `departamento`, `
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `holerites`
+-- Estrutura para tabela `holerites`
 --
 
 CREATE TABLE `holerites` (
@@ -488,26 +460,28 @@ CREATE TABLE `holerites` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `holerites`
+-- Despejando dados para a tabela `holerites`
 --
 
 INSERT INTO `holerites` (`id`, `funcionario_id`, `arquivo`, `periodo`, `data_envio`, `status`, `id_empresa`) VALUES
-(1, 19, 'uploads/holerites/holerite_4_19_6a309daf5e80a.pdf', 'Janeiro/2026', '2026-06-15 21:49:51', 'enviado', 4),
-(2, 19, 'uploads/holerites/holerite_4_19_6a309dbd241a0.pdf', 'Fevereiro/2026', '2026-06-15 21:50:05', 'enviado', 4),
-(3, 14, 'uploads/holerites/holerite_4_14_6a309dc7b07a0.pdf', 'Junho/2026', '2026-06-15 21:50:15', 'enviado', 4),
-(4, 18, 'uploads/holerites/holerite_4_18_6a309dd1f1b8b.pdf', 'Março/2026', '2026-06-15 21:50:25', 'enviado', 4),
-(5, 19, 'uploads/holerites/holerite_4_19_6a309ddd3976e.pdf', 'Março/2026', '2026-06-15 21:50:37', 'enviado', 4),
-(6, 19, 'uploads/holerites/holerite_4_19_6a309de75daef.pdf', 'Abril/2026', '2026-06-15 21:50:47', 'enviado', 4),
-(7, 15, 'uploads/holerites/holerite_4_15_6a309df203cd0.pdf', 'Fevereiro/2026', '2026-06-15 21:50:58', 'enviado', 4),
-(8, 11, 'uploads/holerites/holerite_4_11_6a309dfc20817.pdf', 'Fevereiro/2026', '2026-06-15 21:51:08', 'enviado', 4),
-(9, 19, 'uploads/holerites/holerite_4_19_6a309e0d4880c.pdf', 'Maio/2026', '2026-06-15 21:51:25', 'enviado', 4),
-(10, 19, 'uploads/holerites/holerite_4_19_6a309e16f2f95.pdf', 'Junho/2026', '2026-06-15 21:51:34', 'enviado', 4),
-(11, 12, 'uploads/holerites/holerite_4_12_6a309e25e3672.pdf', 'Junho/2026', '2026-06-15 21:51:49', 'enviado', 4);
+(12, 24, 'uploads/holerites/holerite_5_24_6a39cf31d670e.pdf', 'Junho/2026', '2026-06-22 21:11:29', 'enviado', 5),
+(13, 44, 'uploads/holerites/holerite_5_44_6a39cf401b7cf.pdf', 'Junho/2026', '2026-06-22 21:11:44', 'enviado', 5),
+(14, 26, 'uploads/holerites/holerite_5_26_6a39cf4c8529b.pdf', 'Junho/2026', '2026-06-22 21:11:56', 'enviado', 5),
+(15, 43, 'uploads/holerites/holerite_5_43_6a39cf58bcfee.pdf', 'Junho/2026', '2026-06-22 21:12:08', 'enviado', 5),
+(16, 28, 'uploads/holerites/holerite_5_28_6a39cf83640ab.pdf', 'Junho/2026', '2026-06-22 21:12:51', 'enviado', 5),
+(17, 33, 'uploads/holerites/holerite_5_33_6a39cf8f5d33e.pdf', 'Junho/2026', '2026-06-22 21:13:03', 'enviado', 5),
+(18, 46, 'uploads/holerites/holerite_5_46_6a39cf99598d7.pdf', 'Junho/2026', '2026-06-22 21:13:13', 'enviado', 5),
+(19, 31, 'uploads/holerites/holerite_5_31_6a39cfa42f81a.pdf', 'Junho/2026', '2026-06-22 21:13:24', 'enviado', 5),
+(20, 38, 'uploads/holerites/holerite_5_38_6a39cfb2db12b.pdf', 'Junho/2026', '2026-06-22 21:13:38', 'enviado', 5),
+(21, 44, 'uploads/holerites/holerite_5_44_6a39cfc18bb91.pdf', 'Maio/2026', '2026-06-22 21:13:53', 'enviado', 5),
+(22, 36, 'uploads/holerites/holerite_5_36_6a39cfd639025.pdf', 'Janeiro/2026', '2026-06-22 21:14:14', 'enviado', 5),
+(23, 36, 'uploads/holerites/holerite_5_36_6a39d00736b5a.pdf', 'Fevereiro/2026', '2026-06-22 21:15:03', 'enviado', 5),
+(24, 22, 'uploads/holerites/holerite_5_22_6a39d01c18d39.pdf', 'Junho/2026', '2026-06-22 21:15:24', 'enviado', 5);
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `licencas_medicas`
+-- Estrutura para tabela `licencas_medicas`
 --
 
 CREATE TABLE `licencas_medicas` (
@@ -528,19 +502,17 @@ CREATE TABLE `licencas_medicas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `licencas_medicas`
+-- Despejando dados para a tabela `licencas_medicas`
 --
 
 INSERT INTO `licencas_medicas` (`id`, `id_funcionario`, `arquivo_atestado`, `tipo_arquivo`, `motivo`, `data_inicio`, `data_fim`, `dias`, `observacao`, `data_envio`, `id_empresa`, `status`, `data_visto`, `mensagem_colaborador`) VALUES
-(1, 19, 'uploads/licencas/licenca_6a28614867b88.jpg', 'jpg', 'Gripe', '2026-06-09', '2026-06-12', 4, '', '2026-06-09 18:54:00', 4, 'visto', '2026-06-09 16:45:06', 'Sua licença médica foi visualizada pelo RH.'),
-(2, 14, 'uploads/licencas/licenca_6a2866e7dd8f0.jpg', 'jpg', 'dor de cabeça', '2026-06-09', '2026-06-10', 2, '', '2026-06-09 19:17:59', 4, 'visto', '2026-06-09 16:45:04', 'Sua licença médica foi visualizada pelo RH.'),
 (3, 23, 'uploads/licencas/atestado-demo-pedro.pdf', 'pdf', 'Gripe e recomendação de repouso', '2026-06-17', '2026-06-19', 3, 'Licença médica criada para demonstração.', '2026-06-21 22:27:24', 5, 'visto', '2026-06-21 19:27:24', 'Seu atestado foi visualizado e registrado pelo RH.'),
 (4, 28, 'uploads/licencas/atestado-demo-camila.pdf', 'pdf', 'Procedimento odontológico', '2026-06-03', '2026-06-05', 3, 'Afastamento médico temporário para demonstração.', '2026-06-21 22:27:24', 5, 'visto', '2026-06-21 19:27:24', 'Sua licença médica foi visualizada pelo RH.');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `notificacoes`
+-- Estrutura para tabela `notificacoes`
 --
 
 CREATE TABLE `notificacoes` (
@@ -556,7 +528,7 @@ CREATE TABLE `notificacoes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Extraindo dados da tabela `notificacoes`
+-- Despejando dados para a tabela `notificacoes`
 --
 
 INSERT INTO `notificacoes` (`id_notificacao`, `id_empresa`, `id_usuario_destino`, `tipo`, `titulo`, `mensagem`, `link`, `lida`, `data_criacao`) VALUES
@@ -576,12 +548,15 @@ INSERT INTO `notificacoes` (`id_notificacao`, `id_empresa`, `id_usuario_destino`
 (14, 4, 12, 'solicitacao', 'Nova solicitação de férias', 'Bruno Martins enviou uma nova solicitação de férias para Março.', 'ferias.php', 0, '2026-06-09 17:06:37'),
 (15, 4, 12, 'solicitacao', 'Nova solicitação de férias', 'Bruno Martins enviou uma nova solicitação de férias para Maio.', 'ferias.php', 0, '2026-06-15 21:47:36'),
 (16, 4, 12, 'solicitacao', 'Solicitação de férias alterada', 'Bruno Martins alterou uma solicitação de férias para Agosto.', 'ferias.php', 0, '2026-06-15 21:47:39'),
-(17, 4, 12, 'solicitacao', 'Solicitação de férias alterada', 'Bruno Martins alterou uma solicitação de férias para Julho.', 'ferias.php', 0, '2026-06-15 21:47:41');
+(17, 4, 12, 'solicitacao', 'Solicitação de férias alterada', 'Bruno Martins alterou uma solicitação de férias para Julho.', 'ferias.php', 0, '2026-06-15 21:47:41'),
+(18, 5, 23, 'solicitacao', 'Nova solicitação de férias', 'Amanda Reis enviou uma nova solicitação de férias para Abril.', 'ferias.php', 0, '2026-06-22 22:24:30'),
+(19, 5, 23, 'solicitacao', 'Solicitação de férias alterada', 'Amanda Reis alterou uma solicitação de férias para Março.', 'ferias.php', 0, '2026-06-22 22:24:32'),
+(20, 5, 23, 'solicitacao', 'Solicitação de férias alterada', 'Amanda Reis alterou uma solicitação de férias para Outubro.', 'ferias.php', 0, '2026-06-22 22:24:34');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `ocorrencias`
+-- Estrutura para tabela `ocorrencias`
 --
 
 CREATE TABLE `ocorrencias` (
@@ -602,7 +577,7 @@ CREATE TABLE `ocorrencias` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `ocorrencias`
+-- Despejando dados para a tabela `ocorrencias`
 --
 
 INSERT INTO `ocorrencias` (`id_ocorrencia`, `id_empresa`, `id_usuario`, `tipo_reporte`, `nome`, `categoria`, `andar`, `sala`, `local_especifico`, `descricao`, `testemunhas`, `evidencia`, `status`, `data_ocorrencia`) VALUES
@@ -615,7 +590,7 @@ INSERT INTO `ocorrencias` (`id_ocorrencia`, `id_empresa`, `id_usuario`, `tipo_re
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `pontos`
+-- Estrutura para tabela `pontos`
 --
 
 CREATE TABLE `pontos` (
@@ -634,7 +609,7 @@ CREATE TABLE `pontos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `pontos`
+-- Despejando dados para a tabela `pontos`
 --
 
 INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hora_saida`, `total_horas`, `status`, `justificativa`, `created_at`, `id_empresa`, `saida_intervalo`, `retorno_intervalo`) VALUES
@@ -930,12 +905,81 @@ INSERT INTO `pontos` (`id_ponto`, `id_funcionario`, `data`, `hora_entrada`, `hor
 (321, 16, '2026-06-01', '08:07:00', '17:05:00', '7.82', 'completo', NULL, '2026-06-16 00:15:15', 4, '12:05:00', '13:14:00'),
 (322, 20, '2026-06-01', '08:27:00', '17:20:00', '7.75', 'completo', NULL, '2026-06-16 00:15:15', 4, '11:59:00', '13:07:00'),
 (323, 19, '2026-06-01', '08:31:00', '17:38:00', '8.00', 'completo', NULL, '2026-06-16 00:15:15', 4, '11:55:00', '13:02:00'),
-(324, 14, '2026-06-01', '08:01:00', '16:51:00', '7.97', 'completo', NULL, '2026-06-16 00:15:15', 4, '12:04:00', '12:56:00');
+(324, 14, '2026-06-01', '08:01:00', '16:51:00', '7.97', 'completo', NULL, '2026-06-16 00:15:15', 4, '12:04:00', '12:56:00'),
+(325, 40, '2026-06-19', '07:52:00', '16:48:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:58:00', '13:02:00'),
+(326, 36, '2026-06-19', '07:57:00', '16:53:00', '7.93', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:04:00', '13:04:00'),
+(327, 35, '2026-06-19', '07:58:00', '16:51:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:57:00', '12:50:00'),
+(328, 42, '2026-06-19', '07:59:00', '16:54:00', '7.92', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:50:00', '12:50:00'),
+(329, 33, '2026-06-19', '08:09:00', '16:57:00', '7.97', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:53:00', '12:43:00'),
+(330, 44, '2026-06-19', '08:11:00', '17:13:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:10:00', '13:19:00'),
+(331, 50, '2026-06-19', '08:12:00', '17:05:00', '7.85', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:10:00', '13:12:00'),
+(332, 30, '2026-06-19', '08:18:00', '17:23:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:07:00', '13:12:00'),
+(333, 45, '2026-06-19', '08:30:00', '17:36:00', '7.93', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:07:00', '13:17:00'),
+(334, 47, '2026-06-19', '08:32:00', '17:38:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:58:00', '13:04:00'),
+(335, 24, '2026-06-19', '08:35:00', '17:30:00', '7.98', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:51:00', '12:47:00'),
+(336, 38, '2026-06-18', '07:53:00', '17:02:00', '7.98', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:05:00', '13:15:00'),
+(337, 28, '2026-06-18', '07:53:00', '16:50:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:01:00', '12:58:00'),
+(338, 35, '2026-06-18', '07:55:00', '16:51:00', '7.98', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:04:00', '13:01:00'),
+(339, 42, '2026-06-18', '07:57:00', '16:56:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:06:00', '13:12:00'),
+(340, 26, '2026-06-18', '07:57:00', '16:45:00', '7.93', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:50:00', '12:42:00'),
+(341, 27, '2026-06-18', '07:58:00', '16:48:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:02:00', '13:00:00'),
+(342, 36, '2026-06-18', '08:05:00', '17:07:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:55:00', '13:05:00'),
+(343, 31, '2026-06-18', '08:21:00', '17:14:00', '7.85', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:08:00', '13:10:00'),
+(344, 48, '2026-06-18', '08:25:00', '17:11:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:56:00', '12:50:00'),
+(345, 38, '2026-06-17', '07:51:00', '16:40:00', '7.83', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:59:00', '12:58:00'),
+(346, 41, '2026-06-17', '07:52:00', '16:55:00', '7.93', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:59:00', '13:06:00'),
+(347, 21, '2026-06-17', '07:53:00', '16:49:00', '7.95', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:08:00', '13:07:00'),
+(348, 47, '2026-06-17', '07:53:00', '16:50:00', '7.97', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:55:00', '12:54:00'),
+(349, 35, '2026-06-17', '07:55:00', '16:51:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:04:00', '13:00:00'),
+(350, 25, '2026-06-17', '07:55:00', '16:55:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:05:00', '13:13:00'),
+(351, 30, '2026-06-17', '08:07:00', '16:54:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:06:00', '13:00:00'),
+(352, 34, '2026-06-17', '08:07:00', '17:06:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:55:00', '12:54:00'),
+(353, 28, '2026-06-17', '08:11:00', '17:03:00', '7.83', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:52:00', '12:54:00'),
+(354, 37, '2026-06-17', '08:21:00', '17:18:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:57:00', '12:54:00'),
+(355, 35, '2026-06-16', '07:54:00', '16:53:00', '7.92', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:01:00', '13:05:00'),
+(356, 36, '2026-06-16', '07:54:00', '16:38:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:00:00', '12:52:00'),
+(357, 47, '2026-06-16', '08:02:00', '16:54:00', '7.85', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:59:00', '13:00:00'),
+(358, 28, '2026-06-16', '08:02:00', '16:49:00', '7.95', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:06:00', '12:56:00'),
+(359, 45, '2026-06-16', '08:04:00', '16:58:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:04:00', '13:05:00'),
+(360, 49, '2026-06-16', '08:08:00', '17:15:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:02:00', '13:09:00'),
+(361, 25, '2026-06-16', '08:12:00', '17:08:00', '7.97', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:50:00', '12:48:00'),
+(362, 48, '2026-06-16', '08:15:00', '17:09:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:02:00', '13:03:00'),
+(363, 44, '2026-06-16', '08:15:00', '16:57:00', '7.85', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:08:00', '12:59:00'),
+(364, 30, '2026-06-16', '08:33:00', '17:23:00', '7.83', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:09:00', '13:09:00'),
+(365, 49, '2026-06-15', '07:59:00', '17:00:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:51:00', '12:59:00'),
+(366, 28, '2026-06-15', '08:01:00', '16:58:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:09:00', '13:06:00'),
+(367, 38, '2026-06-15', '08:02:00', '17:04:00', '7.95', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:06:00', '13:11:00'),
+(368, 47, '2026-06-15', '08:06:00', '17:06:00', '7.98', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:50:00', '12:51:00'),
+(369, 44, '2026-06-15', '08:17:00', '17:17:00', '7.98', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:05:00', '13:06:00'),
+(370, 41, '2026-06-14', '07:57:00', '17:04:00', '7.95', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:10:00', '13:20:00'),
+(371, 36, '2026-06-12', '07:50:00', '16:46:00', '7.98', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:50:00', '12:47:00'),
+(372, 37, '2026-06-12', '07:52:00', '16:47:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:08:00', '13:03:00'),
+(373, 38, '2026-06-12', '07:54:00', '16:56:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:53:00', '13:03:00'),
+(374, 34, '2026-06-12', '07:56:00', '16:59:00', '7.93', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:55:00', '13:02:00'),
+(375, 41, '2026-06-12', '07:57:00', '16:43:00', '7.92', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:07:00', '12:58:00'),
+(376, 28, '2026-06-12', '07:57:00', '16:49:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:08:00', '13:07:00'),
+(377, 44, '2026-06-12', '07:57:00', '16:38:00', '7.83', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:53:00', '12:44:00'),
+(378, 46, '2026-06-12', '07:58:00', '16:43:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:59:00', '12:51:00'),
+(379, 42, '2026-06-12', '08:03:00', '16:51:00', '7.95', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:52:00', '12:43:00'),
+(380, 24, '2026-06-12', '08:08:00', '17:14:00', '7.98', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:57:00', '13:04:00'),
+(381, 35, '2026-06-12', '08:09:00', '17:13:00', '8.00', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:54:00', '12:58:00'),
+(382, 26, '2026-06-12', '08:10:00', '16:58:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:53:00', '12:49:00'),
+(383, 49, '2026-06-12', '08:33:00', '17:22:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:04:00', '13:00:00'),
+(384, 32, '2026-06-11', '07:52:00', '16:48:00', '7.95', 'completo', NULL, '2026-06-23 00:36:07', 5, '12:03:00', '13:02:00'),
+(385, 48, '2026-06-11', '07:53:00', '16:41:00', '7.85', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:53:00', '12:50:00'),
+(386, 35, '2026-06-11', '07:55:00', '16:44:00', '7.88', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:08:00', '13:04:00'),
+(387, 33, '2026-06-11', '07:56:00', '16:57:00', '7.95', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:55:00', '12:59:00'),
+(388, 30, '2026-06-11', '08:02:00', '16:54:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:06:00', '13:06:00'),
+(389, 45, '2026-06-11', '08:15:00', '17:14:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '11:58:00', '13:05:00'),
+(390, 49, '2026-06-11', '08:33:00', '17:35:00', '7.87', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:05:00', '13:15:00'),
+(391, 27, '2026-06-06', '08:09:00', '17:11:00', '7.93', 'completo', NULL, '2026-06-23 00:36:07', 5, '11:53:00', '12:59:00'),
+(392, 41, '2026-06-06', '08:10:00', '16:58:00', '7.90', 'atraso', NULL, '2026-06-23 00:36:07', 5, '12:07:00', '13:01:00'),
+(393, 44, '2026-06-22', '09:00:00', NULL, NULL, 'em andamento', NULL, '2026-06-23 00:38:53', 5, NULL, NULL);
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `usuarios`
+-- Estrutura para tabela `usuarios`
 --
 
 CREATE TABLE `usuarios` (
@@ -957,7 +1001,7 @@ CREATE TABLE `usuarios` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `usuarios`
+-- Despejando dados para a tabela `usuarios`
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`, `tipo`, `status`, `ultimo_login`, `created_at`, `telefone`, `cidade`, `foto`, `cargo`, `departamento`, `id_empresa`) VALUES
@@ -972,7 +1016,7 @@ INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`
 (20, 18, 'Juliana Alves', 'juliana@empresa.com', '$2y$10$rA77xAwSJp7A39/oZ8rVp.vVAKAv2XeD/Jf.mXM7RPROmz2t116FS', 'funcionario', 'ferias', NULL, '2026-06-09 03:05:12', '11999998888', 'São Paulo', NULL, 'Analista Comercial', 'Comercial', 4),
 (21, 19, 'Bruno Martins', 'bruno@empresa.com', '$2y$10$FI84T4iaHtpPdZPkA79ueO3.Yb2i5gcbjHFd7ZE7KWGIEdRXY80HC', 'funcionario', 'ativo', '2026-06-15 22:36:51', '2026-06-09 03:05:12', '11999999999', 'São Bernardo', NULL, 'Técnico de Suporte', 'TI', 4),
 (22, 20, 'Carla Rocha', 'carla@empresa.com', '$2y$10$iYiNGRoSO6VyfVGVwQeq.eAGS5J9vtN29s7hOgIRyPPq5XJnrIMSS', 'funcionario', 'ativo', NULL, '2026-06-09 03:05:12', '11988880000', 'São Paulo', NULL, 'Coordenadora RH', 'RH', 4),
-(23, NULL, 'Mariana Alves', 'Alves@technova.com.br', '$2y$10$//6b0igvCvXGEFh3Kg919OynR7ze.S0nc.hczpYwFEFVij1sf5OE2', 'rh', 'ativo', '2026-06-21 20:30:55', '2026-06-11 23:26:23', '(11) 97777-2020', 'São Paulo', NULL, 'Gerente de RH', NULL, 5),
+(23, NULL, 'Mariana Alves', 'Alves@technova.com.br', '$2y$10$//6b0igvCvXGEFh3Kg919OynR7ze.S0nc.hczpYwFEFVij1sf5OE2', 'rh', 'ativo', '2026-06-22 22:39:34', '2026-06-11 23:26:23', '(11) 97777-2020', 'São Paulo', 'uploads/perfis/perfil_6a39d6f8b808f.jpg', 'Gerente de RH', NULL, 5),
 (24, 21, 'João Silva', 'joao.silva@technova.com.br', '$2y$10$rFUxfy23YQyltmLM/poAsuktIXYTy4p7qSMA6wr7QE238gwDssjSW', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999991111', 'São Paulo', NULL, 'Analista de TI', 'TI', 5),
 (25, 22, 'Maria Oliveira', 'maria.oliveira@technova.com.br', '$2y$10$GRRLjj61haT06yFAeID.E.hnH/XSF3jhG6SsRorv8WrbktybbIBX.', 'funcionario', 'ativo', '2026-06-21 20:30:20', '2026-06-11 23:27:03', '11999992222', 'São Paulo', NULL, 'Desenvolvedora Back-end', 'TI', 5),
 (26, 23, 'Pedro Santos', 'pedro.santos@technova.com.br', '$2y$10$p3hOxE3N1YrTrptGY.4PwOYmLeJzgSzQ9nfaGCHEaeJs3HLHEFoTy', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:03', '11999993333', 'Santos', NULL, 'Desenvolvedor Front-end', 'TI', 5),
@@ -996,10 +1040,10 @@ INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`
 (44, 41, 'Thiago Moreira', 'thiago.moreira@technova.com.br', '$2y$10$jxfpLkN7Huu0aavCBdnVA.KCe8B.ZE1ILvg/NzyUvDY0GvGicAbP.', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990013', 'São Paulo', NULL, 'Analista de Segurança', 'Segurança da Informação', 5),
 (45, 42, 'Natália Dias', 'natalia.dias@technova.com.br', '$2y$10$RrJ1838XimSttDwfLFcS9eV.RSIZINK/rB9k3a/bFs1gNlEeJmGC2', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990014', 'Santos', NULL, 'DevOps Junior', 'Infraestrutura', 5),
 (46, 43, 'Bruno Teixeira', 'bruno.teixeira@technova.com.br', '$2y$10$.2JqZagXMKPpZNY3F5gRu.NsKZmKbgKPg7Ui8q1cv2.tTvN0ftFO6', 'funcionario', 'ativo', '2026-06-21 19:56:15', '2026-06-11 23:27:04', '11999990015', 'São Paulo', NULL, 'DevOps Pleno', 'Infraestrutura', 5),
-(47, 44, 'Amanda Reis', 'amanda.reis@technova.com.br', '$2y$10$WGdv021qKuLaIN.hsOhEjOLzjMs5iobCJ5hp.qDQ8H/LKFd4BBvEq', 'funcionario', 'ferias', NULL, '2026-06-11 23:27:04', '11999990016', 'São Vicente', NULL, 'Assistente de RH', 'RH', 5),
+(47, 44, 'Amanda Reis', 'amanda.reis@technova.com.br', '$2y$10$WGdv021qKuLaIN.hsOhEjOLzjMs5iobCJ5hp.qDQ8H/LKFd4BBvEq', 'funcionario', 'ativo', '2026-06-22 22:33:12', '2026-06-11 23:27:04', '11999990016', 'São Vicente', NULL, 'Assistente de RH', 'RH', 5),
 (48, 45, 'Vinícius Duarte', 'vinicius.duarte@technova.com.br', '$2y$10$mzTNemqthXww.rPxE1xZM.eEF3fyICkRSoF05RLiukoW0gxnMMN82', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990017', 'Praia Grande', NULL, 'QA Tester', 'Qualidade', 5),
 (49, 46, 'Carolina Matos', 'carolina.matos@technova.com.br', '$2y$10$pv0olWoieqYtNKr6Ff8jde2RW8Wc6FfxcsSFh6viiUn8P/k1TDT3i', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:04', '11999990018', 'São Paulo', NULL, 'Coordenadora de Qualidade', 'Qualidade', 5),
-(50, 47, 'Eduardo Ramos', 'eduardo.ramos@technova.com.br', '$2y$10$LPp00J/6R/WVhBiSr9eUKePc1lF3j5zzGA5Sm5r38NZN933XYknQm', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:05', '11999990019', 'Santos', NULL, 'QA Automatizador', 'Qualidade', 5),
+(50, 47, 'Eduardo Ramos', 'eduardo.ramos@technova.com.br', '$2y$10$LPp00J/6R/WVhBiSr9eUKePc1lF3j5zzGA5Sm5r38NZN933XYknQm', 'funcionario', 'ferias', NULL, '2026-06-11 23:27:05', '11999990019', 'Santos', NULL, 'QA Automatizador', 'Qualidade', 5),
 (51, 48, 'Sofia Martins', 'sofia.martins@technova.com.br', '$2y$10$9JFiZRtY5rIC0cJjkuvhhO06YJmQcp3Y1w/tQKxLdfLc4KQE.Fwvi', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:05', '11999990020', 'São Paulo', NULL, 'Analista Comercial', 'Comercial', 5),
 (52, 49, 'Ricardo Lopes', 'ricardo.lopes@technova.com.br', '$2y$10$4Jq.7hCcUZPhxIEYUYSrueSdGo0LlQ7IcrDcgbRBKSuq3EU4MFPE.', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:05', '11999990021', 'São Paulo', NULL, 'Gerente Comercial', 'Comercial', 5),
 (53, 50, 'Letícia Araujo', 'leticia.araujo@technova.com.br', '$2y$10$TYbp6Zrjm49GO8XF5.eLueiT3NWoxT4n0OuOjEUtLHo.v1Oir..bO', 'funcionario', 'ativo', NULL, '2026-06-11 23:27:05', '11999990022', 'São Vicente', NULL, 'Assistente Administrativo', 'Administrativo', 5);
@@ -1009,7 +1053,7 @@ INSERT INTO `usuarios` (`id_usuario`, `id_funcionario`, `nome`, `email`, `senha`
 --
 
 --
--- Índices para tabela `afastamentos`
+-- Índices de tabela `afastamentos`
 --
 ALTER TABLE `afastamentos`
   ADD PRIMARY KEY (`id_afastamento`),
@@ -1017,95 +1061,88 @@ ALTER TABLE `afastamentos`
   ADD KEY `idx_afastamento_periodo` (`data_inicio`,`data_fim`);
 
 --
--- Índices para tabela `assinaturas`
+-- Índices de tabela `assinaturas`
 --
 ALTER TABLE `assinaturas`
   ADD PRIMARY KEY (`id_assinatura`),
   ADD KEY `id_empresa` (`id_empresa`);
 
 --
--- Índices para tabela `atividades`
+-- Índices de tabela `atividades`
 --
 ALTER TABLE `atividades`
   ADD PRIMARY KEY (`id_atividade`),
   ADD KEY `id_usuario` (`id_usuario`);
 
 --
--- Índices para tabela `banco_horas`
+-- Índices de tabela `banco_horas`
 --
 ALTER TABLE `banco_horas`
   ADD PRIMARY KEY (`id_banco`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices para tabela `banco_horas_movimentacao`
---
-ALTER TABLE `banco_horas_movimentacao`
-  ADD PRIMARY KEY (`id_mov`),
-  ADD KEY `id_funcionario` (`id_funcionario`);
-
---
--- Índices para tabela `comunicados`
+-- Índices de tabela `comunicados`
 --
 ALTER TABLE `comunicados`
   ADD PRIMARY KEY (`id`);
 
 --
--- Índices para tabela `config_notificacoes`
+-- Índices de tabela `config_notificacoes`
 --
 ALTER TABLE `config_notificacoes`
   ADD PRIMARY KEY (`id_config`),
   ADD UNIQUE KEY `unico_usuario_empresa` (`id_usuario`,`id_empresa`);
 
 --
--- Índices para tabela `duvidas`
+-- Índices de tabela `duvidas`
 --
 ALTER TABLE `duvidas`
   ADD PRIMARY KEY (`id`);
 
 --
--- Índices para tabela `empresas`
+-- Índices de tabela `empresas`
 --
 ALTER TABLE `empresas`
   ADD PRIMARY KEY (`id_empresa`),
   ADD UNIQUE KEY `cnpj` (`cnpj`);
 
 --
--- Índices para tabela `ferias`
+-- Índices de tabela `ferias`
 --
 ALTER TABLE `ferias`
   ADD PRIMARY KEY (`id_ferias`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices para tabela `ferias_meses_disponiveis`
+-- Índices de tabela `ferias_meses_disponiveis`
 --
 ALTER TABLE `ferias_meses_disponiveis`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `empresa_mes` (`id_empresa`,`mes`);
 
 --
--- Índices para tabela `funcionarios`
+-- Índices de tabela `funcionarios`
 --
 ALTER TABLE `funcionarios`
   ADD PRIMARY KEY (`id_funcionario`);
 
 --
--- Índices para tabela `holerites`
+-- Índices de tabela `holerites`
 --
 ALTER TABLE `holerites`
   ADD PRIMARY KEY (`id`),
   ADD KEY `funcionario_id` (`funcionario_id`);
 
 --
--- Índices para tabela `licencas_medicas`
+-- Índices de tabela `licencas_medicas`
 --
 ALTER TABLE `licencas_medicas`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices para tabela `notificacoes`
+-- Índices de tabela `notificacoes`
 --
 ALTER TABLE `notificacoes`
   ADD PRIMARY KEY (`id_notificacao`),
@@ -1113,20 +1150,20 @@ ALTER TABLE `notificacoes`
   ADD KEY `idx_lida` (`lida`);
 
 --
--- Índices para tabela `ocorrencias`
+-- Índices de tabela `ocorrencias`
 --
 ALTER TABLE `ocorrencias`
   ADD PRIMARY KEY (`id_ocorrencia`);
 
 --
--- Índices para tabela `pontos`
+-- Índices de tabela `pontos`
 --
 ALTER TABLE `pontos`
   ADD PRIMARY KEY (`id_ponto`),
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- Índices para tabela `usuarios`
+-- Índices de tabela `usuarios`
 --
 ALTER TABLE `usuarios`
   ADD PRIMARY KEY (`id_usuario`),
@@ -1134,7 +1171,7 @@ ALTER TABLE `usuarios`
   ADD KEY `id_funcionario` (`id_funcionario`);
 
 --
--- AUTO_INCREMENT de tabelas despejadas
+-- AUTO_INCREMENT para tabelas despejadas
 --
 
 --
@@ -1153,7 +1190,7 @@ ALTER TABLE `assinaturas`
 -- AUTO_INCREMENT de tabela `atividades`
 --
 ALTER TABLE `atividades`
-  MODIFY `id_atividade` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id_atividade` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT de tabela `banco_horas`
@@ -1162,16 +1199,10 @@ ALTER TABLE `banco_horas`
   MODIFY `id_banco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
--- AUTO_INCREMENT de tabela `banco_horas_movimentacao`
---
-ALTER TABLE `banco_horas_movimentacao`
-  MODIFY `id_mov` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de tabela `comunicados`
 --
 ALTER TABLE `comunicados`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de tabela `config_notificacoes`
@@ -1195,13 +1226,13 @@ ALTER TABLE `empresas`
 -- AUTO_INCREMENT de tabela `ferias`
 --
 ALTER TABLE `ferias`
-  MODIFY `id_ferias` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_ferias` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de tabela `ferias_meses_disponiveis`
 --
 ALTER TABLE `ferias_meses_disponiveis`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=613;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=217;
 
 --
 -- AUTO_INCREMENT de tabela `funcionarios`
@@ -1213,7 +1244,7 @@ ALTER TABLE `funcionarios`
 -- AUTO_INCREMENT de tabela `holerites`
 --
 ALTER TABLE `holerites`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT de tabela `licencas_medicas`
@@ -1225,7 +1256,7 @@ ALTER TABLE `licencas_medicas`
 -- AUTO_INCREMENT de tabela `notificacoes`
 --
 ALTER TABLE `notificacoes`
-  MODIFY `id_notificacao` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id_notificacao` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de tabela `ocorrencias`
@@ -1237,7 +1268,7 @@ ALTER TABLE `ocorrencias`
 -- AUTO_INCREMENT de tabela `pontos`
 --
 ALTER TABLE `pontos`
-  MODIFY `id_ponto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=325;
+  MODIFY `id_ponto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=394;
 
 --
 -- AUTO_INCREMENT de tabela `usuarios`
@@ -1246,59 +1277,53 @@ ALTER TABLE `usuarios`
   MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
--- Restrições para despejos de tabelas
+-- Restrições para tabelas despejadas
 --
 
 --
--- Limitadores para a tabela `assinaturas`
+-- Restrições para tabelas `assinaturas`
 --
 ALTER TABLE `assinaturas`
   ADD CONSTRAINT `assinaturas_ibfk_1` FOREIGN KEY (`id_empresa`) REFERENCES `empresas` (`id_empresa`);
 
 --
--- Limitadores para a tabela `atividades`
+-- Restrições para tabelas `atividades`
 --
 ALTER TABLE `atividades`
   ADD CONSTRAINT `atividades_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE;
 
 --
--- Limitadores para a tabela `banco_horas`
+-- Restrições para tabelas `banco_horas`
 --
 ALTER TABLE `banco_horas`
   ADD CONSTRAINT `banco_horas_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Limitadores para a tabela `banco_horas_movimentacao`
---
-ALTER TABLE `banco_horas_movimentacao`
-  ADD CONSTRAINT `banco_horas_movimentacao_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
-
---
--- Limitadores para a tabela `ferias`
+-- Restrições para tabelas `ferias`
 --
 ALTER TABLE `ferias`
   ADD CONSTRAINT `ferias_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Limitadores para a tabela `holerites`
+-- Restrições para tabelas `holerites`
 --
 ALTER TABLE `holerites`
   ADD CONSTRAINT `holerites_ibfk_1` FOREIGN KEY (`funcionario_id`) REFERENCES `funcionarios` (`id_funcionario`);
 
 --
--- Limitadores para a tabela `licencas_medicas`
+-- Restrições para tabelas `licencas_medicas`
 --
 ALTER TABLE `licencas_medicas`
   ADD CONSTRAINT `licencas_medicas_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Limitadores para a tabela `pontos`
+-- Restrições para tabelas `pontos`
 --
 ALTER TABLE `pontos`
   ADD CONSTRAINT `pontos_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE CASCADE;
 
 --
--- Limitadores para a tabela `usuarios`
+-- Restrições para tabelas `usuarios`
 --
 ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`id_funcionario`) REFERENCES `funcionarios` (`id_funcionario`) ON DELETE SET NULL;

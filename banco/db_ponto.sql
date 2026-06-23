@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 22-Jun-2026 às 02:28
+-- Tempo de geração: 23/06/2026 às 01:51
 -- Versão do servidor: 5.7.36
--- versão do PHP: 8.1.3
+-- Versão do PHP: 8.0.16
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `registros_ponto`
+-- Estrutura para tabela `registros_ponto`
 --
 
 CREATE TABLE `registros_ponto` (
@@ -39,7 +39,7 @@ CREATE TABLE `registros_ponto` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Extraindo dados da tabela `registros_ponto`
+-- Despejando dados para a tabela `registros_ponto`
 --
 
 INSERT INTO `registros_ponto` (`id`, `email`, `data`, `entrada`, `saida_intervalo`, `retorno_intervalo`, `saida`, `criado_em`) VALUES
@@ -244,27 +244,29 @@ INSERT INTO `registros_ponto` (`id`, `email`, `data`, `entrada`, `saida_interval
 (209, 'thiago.moreira@technova.com.br', '2026-06-20', '07:58:00', '11:53:00', '12:52:00', '17:15:00', '2026-06-21 22:49:41'),
 (210, 'vinicius.duarte@technova.com.br', '2026-06-11', '08:15:00', '11:58:00', '13:05:00', '17:14:00', '2026-06-21 22:49:41'),
 (211, 'vinicius.duarte@technova.com.br', '2026-06-12', '08:31:00', '11:56:00', '13:01:00', '17:50:00', '2026-06-21 22:49:41'),
-(212, 'maria.oliveira@technova.com.br', '2026-06-01', '09:08:00', '11:57:00', '12:56:00', '17:25:00', '2026-06-21 23:30:07');
+(212, 'maria.oliveira@technova.com.br', '2026-06-01', '09:08:00', '11:57:00', '12:56:00', '17:25:00', '2026-06-21 23:30:07'),
+(213, 'amanda@technova.com.br', '2026-06-22', '10:00:00', '12:00:00', '13:00:00', '19:00:00', '2026-06-23 00:35:50'),
+(214, 'amanda.reis@technova.com.br', '2026-06-22', '09:00:00', NULL, NULL, NULL, '2026-06-23 00:38:49');
 
 --
 -- Índices para tabelas despejadas
 --
 
 --
--- Índices para tabela `registros_ponto`
+-- Índices de tabela `registros_ponto`
 --
 ALTER TABLE `registros_ponto`
   ADD PRIMARY KEY (`id`);
 
 --
--- AUTO_INCREMENT de tabelas despejadas
+-- AUTO_INCREMENT para tabelas despejadas
 --
 
 --
 -- AUTO_INCREMENT de tabela `registros_ponto`
 --
 ALTER TABLE `registros_ponto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=213;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=215;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
