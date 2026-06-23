@@ -878,3 +878,31 @@ footer small {
     }
 
 }
+/* RODAPÉ DA PÁGINA SOBRE */
+
+footer {
+    background: #1f467a;
+    color: #ffffff;
+}
+
+footer h5,
+footer small {
+    color: #ffffff;
+}
+
+footer a {
+    color: #ffffff !important;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+footer a:visited,
+footer a:active,
+footer a:focus {
+    color: #ffffff !important;
+}
+
+footer a:hover {
+    color: #ffffff !important;
+    opacity: 0.75;
+}
